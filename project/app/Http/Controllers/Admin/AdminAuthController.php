@@ -113,7 +113,7 @@ class AdminAuthController extends Controller
 
             $token = Str::random(64);
 
-            DB::table("password_resets")->insert([
+            DB::table("password_reset_tokens")->insert([
                 "email" => $request->email,
                 "token" => $token,
                 "created_at" => Carbon::now(),
@@ -137,7 +137,7 @@ class AdminAuthController extends Controller
     public function showResetPasswordForm($token)
     {
         try{    
-            $user = DB::table("password_resets")->where("token", $token)->first();
+            $user = DB::table("password_reset_tokens")->where("token", $token)->first();
             $email = $user->email;
             return view("admin.auth.reset-password", ["token" => $token,"email" => $email,]);
         }
@@ -155,7 +155,7 @@ class AdminAuthController extends Controller
                 "password_confirmation" => "required",
             ]);
 
-            $updatePassword = DB::table("password_resets")->where(["email" => $request->email,"token" => $request->token])->first();
+            $updatePassword = DB::table("password_reset_tokens")->where(["email" => $request->email,"token" => $request->token])->first();
 
             if (!$updatePassword) {
                 return back()->withInput()->with("error", "Invalid token!");
@@ -163,7 +163,7 @@ class AdminAuthController extends Controller
 
             $user = User::where("email", $request->email)->update(["password" => Hash::make($request->password)]);
 
-            DB::table("password_resets")->where(["email" => $request->email])->delete();
+            DB::table("password_reset_tokens")->where(["email" => $request->email])->delete();
 
             return redirect()->route("admin.login")->with("success","Your password has been changed successfully!");
         }
