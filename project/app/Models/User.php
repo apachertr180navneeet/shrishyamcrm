@@ -6,14 +6,12 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
-use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Carbon\Carbon;
 
-class User extends Authenticatable implements JWTSubject
+class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable ,SoftDeletes;
+    use HasFactory, Notifiable, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -43,26 +41,12 @@ class User extends Authenticatable implements JWTSubject
         'phone_verified_at' => 'datetime',
     ];
 
-
-    public function getJWTIdentifier()
-    {
-        return $this->getKey();
-    }
-    
-    public function getJWTCustomClaims()
-    {
-        return [];
-    }
-
-    
-
     public function getAvatarFullPathAttribute()
     {
-        if($this->avatar != ''){
+        if ($this->avatar != '') {
             return asset($this->avatar);
-        }else{
+        } else {
             return "";
         }
     }
-
 }

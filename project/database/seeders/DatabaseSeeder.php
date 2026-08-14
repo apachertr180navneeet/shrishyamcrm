@@ -17,7 +17,6 @@ class DatabaseSeeder extends Seeder
         $this->call([
             UserSeeder::class,
             PageSeeder::class,
-            SplashScreenSeeder::class,
         ]);
     }
 }
