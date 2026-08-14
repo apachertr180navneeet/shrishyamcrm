@@ -33,14 +33,14 @@
 		<li class="menu-header small text-uppercase">
 			<span class="menu-header-text">Master Records</span>
 		</li>
-		<li class="menu-item {{ request()->is('admin/schemes*') ? 'active' : '' }}">
-			<a href="javascript:void(0);" class="menu-link">
+		<li class="menu-item {{ request()->is('admin/schemes*') && !request()->is('admin/age-slabs*') ? 'active' : '' }}">
+			<a href="{{ route('admin.schemes.index') }}" class="menu-link">
 				<i class="menu-icon tf-icons fas fa-hand-holding-heart"></i>
 				<div>Schemes Master</div>
 			</a>
 		</li>
 		<li class="menu-item {{ request()->is('admin/age-slabs*') ? 'active' : '' }}">
-			<a href="javascript:void(0);" class="menu-link">
+			<a href="{{ route('admin.schemes.age-slabs') }}" class="menu-link">
 				<i class="menu-icon tf-icons fas fa-sliders-h"></i>
 				<div>Age Slabs</div>
 			</a>
@@ -50,16 +50,16 @@
 		<li class="menu-header small text-uppercase">
 			<span class="menu-header-text">Member Enrolment</span>
 		</li>
-		<li class="menu-item {{ request()->is('admin/members*') ? 'active' : '' }}">
-			<a href="javascript:void(0);" class="menu-link">
+		<li class="menu-item {{ request()->is('admin/members') || (request()->is('admin/members/*') && !request()->is('admin/members/create')) ? 'active' : '' }}">
+			<a href="{{ route('admin.members.index') }}" class="menu-link">
 				<i class="menu-icon tf-icons fas fa-users"></i>
 				<div>All Members</div>
 			</a>
 		</li>
-		<li class="menu-item {{ request()->is('admin/add-member*') ? 'active' : '' }}">
-			<a href="javascript:void(0);" class="menu-link">
+		<li class="menu-item {{ request()->is('admin/members/create') ? 'active' : '' }}">
+			<a href="{{ route('admin.members.create') }}" class="menu-link">
 				<i class="menu-icon tf-icons fas fa-user-plus"></i>
-				<div>Add Member</div>
+				<div>Add Member (5-Step)</div>
 			</a>
 		</li>
 
@@ -68,7 +68,7 @@
 			<span class="menu-header-text">Agent Network</span>
 		</li>
 		<li class="menu-item {{ request()->is('admin/agents*') ? 'active' : '' }}">
-			<a href="javascript:void(0);" class="menu-link">
+			<a href="{{ route('admin.agents.index') }}" class="menu-link">
 				<i class="menu-icon tf-icons fas fa-user-tie"></i>
 				<div>All Agents</div>
 			</a>
@@ -79,25 +79,25 @@
 			<span class="menu-header-text">Collections & Accounting</span>
 		</li>
 		<li class="menu-item {{ request()->is('admin/payment-entry*') ? 'active' : '' }}">
-			<a href="javascript:void(0);" class="menu-link">
+			<a href="{{ route('admin.payments.create') }}" class="menu-link">
 				<i class="menu-icon tf-icons fas fa-cash-register"></i>
 				<div>Payment Entry</div>
 			</a>
 		</li>
-		<li class="menu-item {{ request()->is('admin/payments*') ? 'active' : '' }}">
-			<a href="javascript:void(0);" class="menu-link">
+		<li class="menu-item {{ request()->is('admin/payments') ? 'active' : '' }}">
+			<a href="{{ route('admin.payments.index') }}" class="menu-link">
 				<i class="menu-icon tf-icons fas fa-history"></i>
 				<div>Payment History</div>
 			</a>
 		</li>
 		<li class="menu-item {{ request()->is('admin/receipts*') ? 'active' : '' }}">
-			<a href="javascript:void(0);" class="menu-link">
+			<a href="{{ route('admin.receipts.index') }}" class="menu-link">
 				<i class="menu-icon tf-icons fas fa-receipt"></i>
 				<div>Receipts</div>
 			</a>
 		</li>
 		<li class="menu-item {{ request()->is('admin/ledger*') ? 'active' : '' }}">
-			<a href="javascript:void(0);" class="menu-link">
+			<a href="{{ route('admin.ledger.index') }}" class="menu-link">
 				<i class="menu-icon tf-icons fas fa-book-open"></i>
 				<div>Financial Ledgers</div>
 			</a>
@@ -108,25 +108,25 @@
 			<span class="menu-header-text">Certificates & Events</span>
 		</li>
 		<li class="menu-item {{ request()->is('admin/certificates*') ? 'active' : '' }}">
-			<a href="javascript:void(0);" class="menu-link">
+			<a href="{{ route('admin.certificates.index') }}" class="menu-link">
 				<i class="menu-icon tf-icons fas fa-certificate"></i>
 				<div>Certificates</div>
 			</a>
 		</li>
 		<li class="menu-item {{ request()->is('admin/events*') ? 'active' : '' }}">
-			<a href="javascript:void(0);" class="menu-link">
+			<a href="{{ route('admin.events.index') }}" class="menu-link">
 				<i class="menu-icon tf-icons fas fa-calendar-alt"></i>
 				<div>Marriage Events</div>
 			</a>
 		</li>
 		<li class="menu-item {{ request()->is('admin/payouts*') ? 'active' : '' }}">
-			<a href="javascript:void(0);" class="menu-link">
+			<a href="{{ route('admin.payouts.index') }}" class="menu-link">
 				<i class="menu-icon tf-icons fas fa-hand-holding-usd"></i>
 				<div>Beneficiary Payouts</div>
 			</a>
 		</li>
 		<li class="menu-item {{ request()->is('admin/whatsapp*') ? 'active' : '' }}">
-			<a href="javascript:void(0);" class="menu-link">
+			<a href="{{ route('admin.whatsapp.index') }}" class="menu-link">
 				<i class="menu-icon tf-icons fab fa-whatsapp"></i>
 				<div>WhatsApp Center</div>
 			</a>
@@ -137,7 +137,7 @@
 			<span class="menu-header-text">Reports & Admin</span>
 		</li>
 		<li class="menu-item {{ request()->is('admin/reports*') ? 'active' : '' }}">
-			<a href="javascript:void(0);" class="menu-link">
+			<a href="{{ route('admin.reports.index') }}" class="menu-link">
 				<i class="menu-icon tf-icons fas fa-file-alt"></i>
 				<div>Reports Center</div>
 			</a>
