@@ -9,7 +9,11 @@ class Nominee extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    protected $guarded = ['id'];
+
+    protected $casts = [
+        'percentage' => 'decimal:2',
+    ];
 
     public function member()
     {

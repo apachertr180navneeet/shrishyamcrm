@@ -6,17 +6,22 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\MarriageEvent;
 use App\Models\Member;
-use App\Models\Payment;
-use DB;
+use App\Models\Scheme;
+use App\Models\EventBilling;
+use App\Services\EventBillingService;
+use App\Services\NumberSeriesService;
+use App\Services\AuditService;
 
 class MarriageEventController extends Controller
 {
     public function index()
     {
-        $events = MarriageEvent::with(['member', 'payouts'])->latest('event_date')->get();
+        $events = MarriageEvent::with(['member', 'payouts', 'billings', 'scheme'])->latest('event_date')->get();
         $members = Member::where('status', 'Active')->get();
+        $schemes = Scheme::where('status', 'Active')->get();
+        $billings = EventBilling::with(['event', 'scheme'])->latest('billing_date')->take(10)->get();
 
-        return view('admin.events.index', compact('events', 'members'));
+        return view('admin.events.index', compact('events', 'members', 'schemes', 'billings'));
     }
 
     public function store(Request $request)
@@ -28,43 +33,46 @@ class MarriageEventController extends Controller
             'target_amount' => 'required|numeric|min:0',
         ]);
 
-        $count = MarriageEvent::count() + 1;
-        $eventCode = 'EVT-2026-' . str_pad($count, 2, '0', STR_PAD_LEFT);
+        $eventCode = NumberSeriesService::getNextNumber('EVT', ['prefix' => 'EVT-' . date('Y') . '-', 'initial_value' => 1, 'padding' => 2]);
 
-        MarriageEvent::create([
+        $event = MarriageEvent::create([
             'event_code' => $eventCode,
             'title' => $request->title,
+            'event_type' => $request->event_type ?? 'Marriage Support',
             'girl_name' => $request->girl_name,
             'father_name' => $request->father_name,
             'member_id' => $request->member_id,
+            'scheme_id' => $request->scheme_id,
             'event_date' => $request->event_date,
             'venue' => $request->venue,
             'target_amount' => $request->target_amount,
             'collected_amount' => 0,
             'beneficiary_payout_amount' => $request->target_amount,
+            'rate_per_event' => $request->rate_per_event ?? 200.00,
             'status' => 'Upcoming',
             'description' => $request->description,
         ]);
 
-        return back()->with('success', "Marriage Event {$eventCode} created successfully!");
+        AuditService::log('create', 'events', (string)$event->id, null, ['code' => $eventCode, 'title' => $event->title]);
+
+        return back()->with('success', "Society Event {$eventCode} created successfully!");
     }
 
     public function billMembers(Request $request)
     {
         $request->validate([
-            'event_id' => 'required|exists:marriage_events,id',
-            'contribution_amount' => 'required|numeric|min:50',
+            'event_id' => 'nullable|exists:marriage_events,id',
+            'billing_month' => 'required|string',
+            'events_count' => 'required|integer|min:1',
+            'rate_per_event' => 'required|numeric|min:1',
         ]);
 
-        $event = MarriageEvent::findOrFail($request->event_id);
-        $members = Member::where('status', 'Active')->get();
-        $amount = (float)$request->contribution_amount;
+        try {
+            $billing = EventBillingService::processConsolidatedBilling($request->all());
 
-        foreach ($members as $m) {
-            $m->pending_amount += $amount;
-            $m->save();
+            return back()->with('success', "Consolidated billing for {$billing->month_name} applied successfully to {$billing->billed_members_count} active members. Total: ₹" . number_format($billing->total_billing_amount, 2));
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error processing consolidated event billing: ' . $e->getMessage());
         }
-
-        return back()->with('success', "Event billing of ₹{$amount} applied to all " . count($members) . " active members for event {$event->event_code}.");
     }
 }

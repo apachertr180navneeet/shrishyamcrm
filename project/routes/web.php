@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Web\HomeController;
+use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\SchemeController;
@@ -13,6 +13,8 @@ use App\Http\Controllers\Admin\MarriageEventController;
 use App\Http\Controllers\Admin\PayoutController;
 use App\Http\Controllers\Admin\WhatsAppController;
 use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\SettingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,6 +29,9 @@ Route::get('/', function () {
 Route::get('/home', function () {
     return redirect()->route('admin.dashboard');
 })->name('home');
+
+// Language Switcher
+Route::get('lang/{locale}', [LanguageController::class, 'switch'])->name('lang.switch');
 
 Route::name('admin.')->prefix('admin')->group(function () {
     Route::get('/', [AdminAuthController::class, 'index']);
@@ -59,6 +64,7 @@ Route::name('admin.')->prefix('admin')->group(function () {
 
         // Member Enrolment
         Route::resource('members', MemberController::class);
+        Route::get('members/{id}/certificate/pdf', [MemberController::class, 'certificatePdf'])->name('members.certificate.pdf');
 
         // Agent Network
         Route::resource('agents', AgentController::class)->only(['index', 'store', 'show']);
@@ -69,11 +75,13 @@ Route::name('admin.')->prefix('admin')->group(function () {
         Route::post('payments', [PaymentController::class, 'store'])->name('payments.store');
         Route::get('receipts', [PaymentController::class, 'receipts'])->name('receipts.index');
         Route::get('receipts/{id}', [PaymentController::class, 'receipt'])->name('payments.receipt');
+        Route::get('receipts/{id}/pdf', [PaymentController::class, 'receiptPdf'])->name('payments.receipt.pdf');
         Route::get('ledger', [PaymentController::class, 'ledger'])->name('ledger.index');
 
         // Certificates
         Route::get('certificates', [CertificateController::class, 'index'])->name('certificates.index');
         Route::get('certificates/{id}', [CertificateController::class, 'show'])->name('certificates.show');
+        Route::get('certificates/{id}/pdf', [CertificateController::class, 'downloadPdf'])->name('certificates.pdf');
 
         // Marriage Events
         Route::get('events', [MarriageEventController::class, 'index'])->name('events.index');
@@ -83,6 +91,7 @@ Route::name('admin.')->prefix('admin')->group(function () {
         // Beneficiary Payouts
         Route::get('payouts', [PayoutController::class, 'index'])->name('payouts.index');
         Route::post('payouts', [PayoutController::class, 'store'])->name('payouts.store');
+        Route::post('payouts/{id}/status', [PayoutController::class, 'updateStatus'])->name('payouts.update-status');
 
         // WhatsApp Center
         Route::get('whatsapp', [WhatsAppController::class, 'index'])->name('whatsapp.index');
@@ -91,6 +100,13 @@ Route::name('admin.')->prefix('admin')->group(function () {
         // Reports Center
         Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
         Route::get('reports/export', [ReportController::class, 'export'])->name('reports.export');
+
+        // User Management (Super Admin)
+        Route::resource('users', UserController::class)->only(['index', 'store', 'update', 'destroy']);
+
+        // Society Settings (Super Admin)
+        Route::get('settings', [SettingController::class, 'index'])->name('settings.index');
+        Route::post('settings', [SettingController::class, 'update'])->name('settings.update');
 
         // Profile & Account Settings
         Route::get('change-password', [AdminAuthController::class, 'changePassword'])->name('change.password');

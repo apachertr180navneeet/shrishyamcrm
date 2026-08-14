@@ -135,31 +135,66 @@
         <div class="modal-content">
             <form action="{{ route('admin.events.billing') }}" method="POST">
                 @csrf
-                <div class="modal-header">
-                    <h5 class="modal-title fw-bold">Event Contribution Billing to Members</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-header" style="background: #1B365D; color: #fff;">
+                    <h5 class="modal-title fw-bold text-white"><i class="fas fa-calculator me-2"></i>Consolidated Monthly Event Billing</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p class="text-muted small mb-3">This will automatically apply an event contribution amount to all active members' pending balance for the selected marriage welfare event.</p>
+                    <p class="text-muted small mb-3">
+                        Automatically posts consolidated event charges to member financial ledgers with duplicate protection.
+                    </p>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Select Marriage Event</label>
-                        <select name="event_id" class="form-select" required>
+                        <label class="form-label fw-semibold">Billing Month <span class="text-danger">*</span></label>
+                        <input type="month" name="billing_month" class="form-control" value="{{ date('Y-m') }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Applicable Event (Optional)</label>
+                        <select name="event_id" class="form-select">
+                            <option value="">-- Consolidated Pool / All Events --</option>
                             @foreach($events as $ev)
                             <option value="{{ $ev->id }}">{{ $ev->event_code }} - {{ $ev->title }}</option>
                             @endforeach
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Per-Member Contribution Amount (₹)</label>
-                        <input type="number" name="contribution_amount" class="form-control" value="200" min="50" required>
+                        <label class="form-label fw-semibold">Target Scheme (Optional)</label>
+                        <select name="scheme_id" class="form-select">
+                            <option value="">-- All Active Members Across Schemes --</option>
+                            @foreach($schemes as $sch)
+                            <option value="{{ $sch->id }}">{{ $sch->name_hindi }} ({{ $sch->name }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Number of Events</label>
+                            <input type="number" name="events_count" class="form-control" value="1" min="1" required id="billingEventsCount" oninput="updateTotalCharge()">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Rate per Event (₹)</label>
+                            <input type="number" name="rate_per_event" class="form-control" value="200" min="1" required id="billingRatePerEvent" oninput="updateTotalCharge()">
+                        </div>
+                    </div>
+                    <div class="p-3 bg-light rounded border text-center">
+                        <small class="text-muted d-block">Total Debit Per Member</small>
+                        <h4 class="text-primary fw-bold mb-0" id="totalDebitPerMember">₹200.00</h4>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-success">Apply Contribution Billing</button>
+                    <button type="submit" class="btn btn-primary" style="background: #1B365D;">Process Consolidated Billing</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<script>
+function updateTotalCharge() {
+    const count = parseFloat(document.getElementById('billingEventsCount').value) || 0;
+    const rate = parseFloat(document.getElementById('billingRatePerEvent').value) || 0;
+    const total = count * rate;
+    document.getElementById('totalDebitPerMember').innerText = '₹' + total.toFixed(2);
+}
+</script>
 @endsection

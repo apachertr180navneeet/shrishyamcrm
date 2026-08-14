@@ -63,11 +63,14 @@
             <i class="fas fa-arrow-left me-1"></i> Back to Payments
         </a>
         <div class="d-flex gap-2">
-            <a href="https://api.whatsapp.com/send?phone=91{{ preg_replace('/[^0-9]/', '', $payment->member->mobile ?? '') }}&text={{ urlencode('श्री श्याम वेलफेयर सोसायटी लोहीकी - रसीद सं: ' . $payment->receipt_no . ' राशि: ₹' . $payment->amount . ' प्राप्त हुई। धन्यवाद!') }}" target="_blank" class="btn btn-success">
+            <a href="{{ $whatsappData['url'] ?? '#' }}" target="_blank" class="btn btn-success">
                 <i class="fab fa-whatsapp me-1"></i> Send on WhatsApp
             </a>
+            <a href="{{ route('admin.payments.receipt.pdf', $payment->id) }}" class="btn btn-danger">
+                <i class="fas fa-file-pdf me-1"></i> Download PDF Receipt
+            </a>
             <button type="button" class="btn btn-primary" onclick="window.print()">
-                <i class="fas fa-print me-1"></i> Print Official Receipt
+                <i class="fas fa-print me-1"></i> Print Receipt
             </button>
         </div>
     </div>
@@ -88,7 +91,7 @@
             </div>
             <div class="text-end">
                 <span class="badge bg-primary px-3 py-2 fs-6 mb-1 d-inline-block">OFFICIAL RECEIPT</span>
-                <small class="d-block text-muted">Reg No: <strong>HR/NNL/2021/04582</strong></small>
+                <small class="d-block text-muted">Reg No: <strong>HR/019/2021/04582</strong></small>
             </div>
         </div>
 
@@ -100,7 +103,7 @@
             </div>
             <div class="col-6 col-md-3">
                 <small class="text-muted d-block">SAN Code:</small>
-                <strong class="text-dark">{{ $payment->san_code ?? 'SAN-LOH-001' }}</strong>
+                <strong class="text-dark">{{ $payment->san_code ?? 'SAN-LOH-'.$payment->member_id }}</strong>
             </div>
             <div class="col-6 col-md-3">
                 <small class="text-muted d-block">Date of Issue:</small>
@@ -144,13 +147,19 @@
                 <tr>
                     <th class="bg-light">Amount Received (प्राप्त राशि)</th>
                     <td>
-                        <h4 class="fw-bold text-success mb-0">₹{{ number_format($payment->amount) }}</h4>
+                        <h4 class="fw-bold text-success mb-0">₹{{ number_format($payment->amount, 2) }}</h4>
                     </td>
                 </tr>
                 <tr>
                     <th class="bg-light">Amount in Words (शब्दों में)</th>
-                    <td class="fst-italic fw-semibold text-capitalize">
-                        INR {{ number_format($payment->amount) }} Only
+                    <td class="fst-italic fw-semibold text-primary">
+                        {{ $payment->amount_in_words }}
+                    </td>
+                </tr>
+                <tr>
+                    <th class="bg-light">Remaining Pending Dues (शेष बकाया)</th>
+                    <td class="fw-bold text-danger">
+                        ₹{{ number_format($payment->member ? $payment->member->pending_amount : 0, 2) }}
                     </td>
                 </tr>
             </tbody>

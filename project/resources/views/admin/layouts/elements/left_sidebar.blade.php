@@ -134,25 +134,27 @@
 
 		<!-- Reports & Admin -->
 		<li class="menu-header small text-uppercase">
-			<span class="menu-header-text" data-i18n="reportsAdmin">Reports & Admin</span>
+			<span class="menu-header-text">{{ __('erp.reportsAdmin', [], 'en') ?: 'Reports & System' }}</span>
 		</li>
 		<li class="menu-item {{ request()->is('admin/reports*') ? 'active' : '' }}">
 			<a href="{{ route('admin.reports.index') }}" class="menu-link">
 				<i class="menu-icon tf-icons fas fa-file-alt"></i>
-				<div data-i18n="reports">Reports Center</div>
+				<div>{{ __('erp.reports') }}</div>
 			</a>
 		</li>
-		<li class="menu-item {{ request()->is('admin/profile') ? 'active' : '' }}">
-			<a href="{{ route('admin.profile') }}" class="menu-link">
+		@if(auth()->check() && (auth()->user()->isSuperAdmin() || auth()->user()->role === 'admin' || auth()->user()->role === 'super_admin'))
+		<li class="menu-item {{ request()->is('admin/users*') ? 'active' : '' }}">
+			<a href="{{ route('admin.users.index') }}" class="menu-link">
 				<i class="menu-icon tf-icons fas fa-user-shield"></i>
-				<div data-i18n="users">Users & Roles</div>
+				<div>{{ __('erp.users') }}</div>
 			</a>
 		</li>
-		<li class="menu-item {{ request()->is('admin/change-password') ? 'active' : '' }}">
-			<a href="{{ route('admin.change.password') }}" class="menu-link">
+		<li class="menu-item {{ request()->is('admin/settings*') ? 'active' : '' }}">
+			<a href="{{ route('admin.settings.index') }}" class="menu-link">
 				<i class="menu-icon tf-icons fas fa-cog"></i>
-				<div data-i18n="settings">Settings</div>
+				<div>{{ __('erp.settings') }}</div>
 			</a>
 		</li>
+		@endif
 	</ul>
 </aside>

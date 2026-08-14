@@ -10,11 +10,15 @@ class Member extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $guarded = [];
+    protected $guarded = ['id'];
 
     protected $casts = [
         'dob' => 'date',
         'joining_date' => 'date',
+        'joining_amount' => 'decimal:2',
+        'monthly_support_amount' => 'decimal:2',
+        'pending_amount' => 'decimal:2',
+        'total_paid' => 'decimal:2',
     ];
 
     public function scheme()
@@ -34,26 +38,37 @@ class Member extends Model
 
     public function nominees()
     {
-        return $this->hasMany(Nominee::class)->orderBy('priority', 'asc');
+        return $this->hasMany(Nominee::class)->orderBy('priority');
+    }
+
+    public function documents()
+    {
+        return $this->hasMany(MemberDocument::class);
     }
 
     public function payments()
     {
-        return $this->hasMany(Payment::class)->orderBy('payment_date', 'desc');
+        return $this->hasMany(Payment::class)->latest('payment_date');
     }
 
-    public function marriageEvents()
+    public function ledgers()
     {
-        return $this->hasMany(MarriageEvent::class);
+        return $this->hasMany(Ledger::class)->orderBy('transaction_date')->orderBy('id');
     }
 
-    public function getPrimaryNomineeAttribute()
+    public function certificates()
     {
-        return $this->nominees->where('priority', 1)->first();
+        return $this->hasMany(Certificate::class)->latest('issue_date');
     }
 
-    public function getSecondaryNomineeAttribute()
+    public function payouts()
     {
-        return $this->nominees->where('priority', 2)->first();
+        return $this->hasMany(Payout::class);
+    }
+
+    public function calculateCurrentBalance(): float
+    {
+        $lastLedger = $this->ledgers()->latest('id')->first();
+        return $lastLedger ? (float)$lastLedger->running_balance : 0.0;
     }
 }

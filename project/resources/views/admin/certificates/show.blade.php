@@ -87,9 +87,14 @@
         <a href="{{ route('admin.certificates.index') }}" class="btn btn-outline-secondary">
             <i class="fas fa-arrow-left me-1"></i> Back to Certificates
         </a>
-        <button type="button" class="btn btn-primary btn-lg shadow" onclick="window.print()">
-            <i class="fas fa-print me-1"></i> Print Official Certificate
-        </button>
+        <div class="d-flex gap-2">
+            <a href="{{ route('admin.certificates.pdf', $member->id) }}" class="btn btn-danger btn-lg shadow">
+                <i class="fas fa-file-pdf me-1"></i> Download PDF Certificate
+            </a>
+            <button type="button" class="btn btn-primary btn-lg shadow" onclick="window.print()">
+                <i class="fas fa-print me-1"></i> Print Official Certificate
+            </button>
+        </div>
     </div>
 
     <!-- Official Gold-Bordered Certificate -->

@@ -9,15 +9,17 @@ class AgeSlab extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    protected $guarded = ['id'];
+
+    protected $casts = [
+        'joining_amount' => 'decimal:2',
+        'support_amount' => 'decimal:2',
+        'effective_from' => 'date',
+        'effective_to' => 'date',
+    ];
 
     public function scheme()
     {
         return $this->belongsTo(Scheme::class);
-    }
-
-    public function members()
-    {
-        return $this->hasMany(Member::class);
     }
 }

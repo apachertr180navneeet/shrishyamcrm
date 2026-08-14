@@ -8,12 +8,14 @@ use App\Models\Payment;
 use App\Models\Member;
 use App\Models\Agent;
 use App\Models\MarriageEvent;
+use App\Models\AgentCommission;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ReportController extends Controller
 {
     public function index(Request $request)
     {
+        $user = auth()->user();
         $type = $request->get('type', 'collection');
         $agents = Agent::where('status', 'Active')->get();
 
@@ -21,30 +23,58 @@ class ReportController extends Controller
 
         switch ($type) {
             case 'agent':
-                $data = Agent::with(['members', 'payments'])->get();
+                $query = Agent::with(['members', 'payments']);
+                if ($user && $user->isAgent() && $user->agent_id) {
+                    $query->where('id', $user->agent_id);
+                }
+                $data = $query->get();
                 break;
+
             case 'pending':
-                $data = Member::with(['scheme', 'agent'])->where('pending_amount', '>', 0)->get();
+                $query = Member::with(['scheme', 'agent'])->where('pending_amount', '>', 0);
+                if ($user && $user->isAgent() && $user->agent_id) {
+                    $query->where('agent_id', $user->agent_id);
+                }
+                $data = $query->get();
                 break;
+
             case 'commission':
-                $data = Agent::with('payments')->get();
+                $query = AgentCommission::with(['agent', 'payment', 'member']);
+                if ($user && $user->isAgent() && $user->agent_id) {
+                    $query->where('agent_id', $user->agent_id);
+                }
+                $data = $query->latest()->get();
                 break;
+
             case 'members':
-                $data = Member::with(['scheme', 'agent', 'ageSlab'])->get();
+                $query = Member::with(['scheme', 'agent', 'ageSlab']);
+                if ($user && $user->isAgent() && $user->agent_id) {
+                    $query->where('agent_id', $user->agent_id);
+                }
+                $data = $query->get();
                 break;
+
             case 'events':
-                $data = MarriageEvent::with('member')->get();
+                $data = MarriageEvent::with(['member', 'payouts', 'billings'])->get();
                 break;
+
             case 'monthly':
-                $data = Payment::selectRaw('month_year, count(*) as count, sum(amount) as total')
-                    ->where('status', 'Verified')
-                    ->groupBy('month_year')
-                    ->get();
+                $query = Payment::selectRaw('month_year, count(*) as count, sum(amount) as total')
+                    ->where('status', 'Verified');
+                if ($user && $user->isAgent() && $user->agent_id) {
+                    $query->where('agent_id', $user->agent_id);
+                }
+                $data = $query->groupBy('month_year')->get();
                 break;
+
             case 'collection':
             case 'payments':
             default:
-                $data = Payment::with(['member.scheme', 'agent'])->where('status', 'Verified')->latest('payment_date')->get();
+                $query = Payment::with(['member.scheme', 'agent'])->where('status', 'Verified');
+                if ($user && $user->isAgent() && $user->agent_id) {
+                    $query->where('agent_id', $user->agent_id);
+                }
+                $data = $query->latest('payment_date')->get();
                 break;
         }
 
@@ -53,15 +83,20 @@ class ReportController extends Controller
 
     public function export(Request $request)
     {
+        $user = auth()->user();
         $type = $request->get('type', 'collection');
         $fileName = "SSWS_Report_{$type}_" . date('Ymd_His') . ".csv";
 
-        $response = new StreamedResponse(function () use ($type) {
+        $response = new StreamedResponse(function () use ($type, $user) {
             $handle = fopen('php://output', 'w');
 
             if ($type === 'members') {
-                fputcsv($handle, ['Membership No', 'Full Name', 'Mobile', 'Scheme', 'Age', 'District', 'Agent', 'Joining Amount', 'Monthly Support', 'Status']);
-                $members = Member::with(['scheme', 'agent'])->get();
+                fputcsv($handle, ['Membership No', 'Full Name', 'Mobile', 'Scheme', 'Age', 'District', 'Agent', 'Joining Amount', 'Monthly Support', 'Status', 'Pending Dues']);
+                $query = Member::with(['scheme', 'agent']);
+                if ($user && $user->isAgent() && $user->agent_id) {
+                    $query->where('agent_id', $user->agent_id);
+                }
+                $members = $query->get();
                 foreach ($members as $m) {
                     fputcsv($handle, [
                         $m->membership_no,
@@ -74,11 +109,16 @@ class ReportController extends Controller
                         $m->joining_amount,
                         $m->monthly_support_amount,
                         $m->status,
+                        $m->pending_amount,
                     ]);
                 }
             } elseif ($type === 'pending') {
                 fputcsv($handle, ['Membership No', 'Full Name', 'Mobile', 'Scheme', 'Agent', 'Pending Amount (₹)', 'Status']);
-                $members = Member::with(['scheme', 'agent'])->where('pending_amount', '>', 0)->get();
+                $query = Member::with(['scheme', 'agent'])->where('pending_amount', '>', 0);
+                if ($user && $user->isAgent() && $user->agent_id) {
+                    $query->where('agent_id', $user->agent_id);
+                }
+                $members = $query->get();
                 foreach ($members as $m) {
                     fputcsv($handle, [
                         $m->membership_no,
@@ -90,9 +130,13 @@ class ReportController extends Controller
                         $m->status,
                     ]);
                 }
-            } elseif ($type === 'agent' || $type === 'commission') {
+            } elseif ($type === 'agent') {
                 fputcsv($handle, ['Agent Code', 'Name', 'Mobile', 'District', 'Total Members', 'Total Collection (₹)', 'Commission Rate (%)', 'Commission Due (₹)']);
-                $agents = Agent::with(['members', 'payments'])->get();
+                $query = Agent::with(['members', 'payments']);
+                if ($user && $user->isAgent() && $user->agent_id) {
+                    $query->where('id', $user->agent_id);
+                }
+                $agents = $query->get();
                 foreach ($agents as $a) {
                     fputcsv($handle, [
                         $a->agent_code,
@@ -105,9 +149,33 @@ class ReportController extends Controller
                         $a->total_commission,
                     ]);
                 }
+            } elseif ($type === 'commission') {
+                fputcsv($handle, ['Agent Code', 'Agent Name', 'Member Name', 'Receipt No', 'Collection (₹)', 'Rate (%)', 'Commission Amount (₹)', 'Status', 'Date']);
+                $query = AgentCommission::with(['agent', 'payment', 'member']);
+                if ($user && $user->isAgent() && $user->agent_id) {
+                    $query->where('agent_id', $user->agent_id);
+                }
+                $commissions = $query->get();
+                foreach ($commissions as $c) {
+                    fputcsv($handle, [
+                        $c->agent ? $c->agent->agent_code : '',
+                        $c->agent ? $c->agent->name : '',
+                        $c->member ? $c->member->full_name : '',
+                        $c->payment ? $c->payment->receipt_no : '',
+                        $c->collection_amount,
+                        $c->commission_rate . '%',
+                        $c->commission_amount,
+                        $c->status,
+                        $c->created_at->format('Y-m-d'),
+                    ]);
+                }
             } else {
                 fputcsv($handle, ['Receipt No', 'SAN Code', 'Member Name', 'Membership No', 'Amount (₹)', 'Payment Type', 'Payment Mode', 'Date', 'Status']);
-                $payments = Payment::with('member')->get();
+                $query = Payment::with('member');
+                if ($user && $user->isAgent() && $user->agent_id) {
+                    $query->where('agent_id', $user->agent_id);
+                }
+                $payments = $query->get();
                 foreach ($payments as $p) {
                     fputcsv($handle, [
                         $p->receipt_no,
@@ -117,7 +185,7 @@ class ReportController extends Controller
                         $p->amount,
                         $p->payment_type,
                         $p->payment_mode,
-                        $p->payment_date->format('Y-m-d'),
+                        $p->payment_date ? $p->payment_date->format('Y-m-d') : '',
                         $p->status,
                     ]);
                 }

@@ -6,52 +6,55 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Payout;
 use App\Models\MarriageEvent;
+use App\Models\Member;
+use App\Models\Scheme;
+use App\Services\PayoutService;
 
 class PayoutController extends Controller
 {
     public function index()
     {
-        $payouts = Payout::with('event')->latest('payout_date')->get();
+        $payouts = Payout::with(['event', 'member', 'scheme'])->latest('payout_date')->get();
         $events = MarriageEvent::where('status', '!=', 'Completed')->get();
+        $members = Member::where('status', 'Active')->get();
+        $schemes = Scheme::where('status', 'Active')->get();
         $totalDisbursed = Payout::where('status', 'Disbursed')->sum('amount');
+        $totalPending = Payout::where('status', 'Pending Approval')->sum('amount');
 
-        return view('admin.payouts.index', compact('payouts', 'events', 'totalDisbursed'));
+        return view('admin.payouts.index', compact('payouts', 'events', 'members', 'schemes', 'totalDisbursed', 'totalPending'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'event_id' => 'required|exists:marriage_events,id',
             'beneficiary_name' => 'required|string|max:150',
             'amount' => 'required|numeric|min:1',
             'payout_date' => 'required|date',
             'payment_mode' => 'required|string',
+            'payout_type' => 'required|string',
         ]);
 
-        $count = Payout::count() + 1;
-        $payoutNo = 'PAY-2026-' . str_pad($count, 3, '0', STR_PAD_LEFT);
+        try {
+            $payout = PayoutService::createPayout($request->all());
 
-        $payout = Payout::create([
-            'payout_no' => $payoutNo,
-            'event_id' => $request->event_id,
-            'beneficiary_name' => $request->beneficiary_name,
-            'relation' => $request->relation ?? 'Beneficiary',
-            'amount' => $request->amount,
-            'payout_date' => $request->payout_date,
-            'approved_by' => auth()->user()->full_name ?? 'Super Admin',
-            'payment_mode' => $request->payment_mode,
-            'transaction_ref' => $request->transaction_ref ?? ('UTR' . rand(100000, 999999)),
-            'status' => 'Disbursed',
-            'remarks' => $request->remarks,
-        ]);
-
-        // Update event status if fully paid out
-        $event = MarriageEvent::find($request->event_id);
-        if ($event) {
-            $event->status = 'Completed';
-            $event->save();
+            return back()->with('success', "Beneficiary payout {$payout->payout_no} of ₹{$payout->amount} recorded successfully!");
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error recording payout: ' . $e->getMessage());
         }
+    }
 
-        return back()->with('success', "Beneficiary payout {$payoutNo} of ₹{$request->amount} disbursed successfully!");
+    public function updateStatus(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required|in:Pending Approval,Approved,Disbursed,Rejected',
+        ]);
+
+        try {
+            $payout = PayoutService::updateStatus($id, $request->status, $request->remarks);
+
+            return back()->with('success', "Payout {$payout->payout_no} status updated to {$payout->status}.");
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error updating payout status: ' . $e->getMessage());
+        }
     }
 }

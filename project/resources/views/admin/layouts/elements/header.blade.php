@@ -37,10 +37,10 @@
 
 			<!-- Bilingual Toggle Button -->
 			<li class="nav-item">
-				<button type="button" class="btn btn-sm btn-outline-primary px-2 py-1 d-flex align-items-center gap-1 shadow-sm" onclick="SSWS.toggleLanguage()" title="Switch Language">
+				<a href="{{ route('lang.switch', app()->getLocale() === 'hi' ? 'en' : 'hi') }}" class="btn btn-sm btn-outline-primary px-2 py-1 d-flex align-items-center gap-1 shadow-sm" title="Switch Language">
 					<i class="fas fa-globe"></i>
-					<span id="langToggleLabel" class="fw-semibold" style="font-size: 12px;">हिंदी / English</span>
-				</button>
+					<span class="fw-semibold" style="font-size: 12px;">{{ app()->getLocale() === 'hi' ? 'English' : 'हिंदी' }}</span>
+				</a>
 			</li>
 
 			<!-- Role Simulator Switcher -->

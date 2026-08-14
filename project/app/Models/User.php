@@ -2,51 +2,91 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Carbon\Carbon;
 
 class User extends Authenticatable
 {
     use HasFactory, Notifiable, SoftDeletes;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
+    protected $guarded = ['id'];
 
-    protected $appends = ['avatar_full_path'];
-
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
         'email_verified_at' => 'datetime',
         'phone_verified_at' => 'datetime',
     ];
 
+    protected $appends = ['avatar_full_path'];
+
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'role_user');
+    }
+
+    public function roleModel()
+    {
+        return $this->belongsTo(Role::class, 'role_id');
+    }
+
+    public function agent()
+    {
+        return $this->belongsTo(Agent::class);
+    }
+
+    public function hasRole(string|array $roles): bool
+    {
+        if (is_array($roles)) {
+            return $this->roles->pluck('name')->intersect($roles)->isNotEmpty() ||
+                   in_array($this->role, $roles) ||
+                   ($this->roleModel && in_array($this->roleModel->name, $roles));
+        }
+
+        return $this->roles->contains('name', $roles) ||
+               $this->role === $roles ||
+               ($this->roleModel && $this->roleModel->name === $roles);
+    }
+
+    public function hasPermission(string $permissionName): bool
+    {
+        if ($this->hasRole('super_admin') || $this->role === 'super_admin' || $this->role === 'admin') {
+            return true;
+        }
+
+        foreach ($this->roles as $role) {
+            if ($role->hasPermission($permissionName)) {
+                return true;
+            }
+        }
+
+        if ($this->roleModel && $this->roleModel->hasPermission($permissionName)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->hasRole('super_admin');
+    }
+
+    public function isAgent(): bool
+    {
+        return $this->hasRole('agent') || $this->agent_id !== null;
+    }
+
     public function getAvatarFullPathAttribute()
     {
-        if ($this->avatar != '') {
+        if (!empty($this->avatar)) {
             return asset($this->avatar);
-        } else {
-            return "";
         }
+        return "https://ui-avatars.com/api/?name=" . urlencode($this->full_name ?: 'User') . "&background=1B365D&color=fff";
     }
 }

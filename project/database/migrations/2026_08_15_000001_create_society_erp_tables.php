@@ -140,7 +140,7 @@ return new class extends Migration
             $table->string('approved_by')->nullable();
             $table->enum('payment_mode', ['Bank Transfer', 'Cheque', 'Cash', 'UPI'])->default('Bank Transfer');
             $table->string('transaction_ref')->nullable();
-            $table->enum('status', ['Disbursed', 'Pending', 'Approved'])->default('Disbursed');
+            $table->enum('status', ['Eligible', 'Pending Approval', 'Approved', 'Disbursed', 'Rejected'])->default('Pending Approval');
             $table->text('remarks')->nullable();
             $table->timestamps();
         });

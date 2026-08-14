@@ -7,14 +7,21 @@ use Illuminate\Http\Request;
 use App\Models\Payment;
 use App\Models\Member;
 use App\Models\Agent;
+use App\Services\PaymentService;
+use App\Services\ReceiptService;
+use App\Services\WhatsAppService;
 use Carbon\Carbon;
-use DB;
 
 class PaymentController extends Controller
 {
     public function index(Request $request)
     {
+        $user = auth()->user();
         $query = Payment::with(['member.scheme', 'agent']);
+
+        if ($user && $user->isAgent() && $user->agent_id) {
+            $query->where('agent_id', $user->agent_id);
+        }
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -37,14 +44,19 @@ class PaymentController extends Controller
         }
 
         $payments = $query->latest('payment_date')->paginate(15)->withQueryString();
-        $totalCollected = Payment::where('status', 'Verified')->sum('amount');
+        $totalCollected = (clone $query)->where('status', 'Verified')->sum('amount');
 
         return view('admin.payments.index', compact('payments', 'totalCollected'));
     }
 
     public function create(Request $request)
     {
-        $members = Member::with(['scheme', 'agent'])->where('status', 'Active')->get();
+        $user = auth()->user();
+        $membersQuery = Member::with(['scheme', 'agent'])->where('status', 'Active');
+        if ($user && $user->isAgent() && $user->agent_id) {
+            $membersQuery->where('agent_id', $user->agent_id);
+        }
+        $members = $membersQuery->get();
         $agents = Agent::where('status', 'Active')->get();
         $selectedMemberId = $request->member_id;
 
@@ -62,46 +74,23 @@ class PaymentController extends Controller
         ]);
 
         try {
-            DB::beginTransaction();
+            $payment = PaymentService::processPayment($request->all());
 
-            $member = Member::findOrFail($request->member_id);
-            $receiptNo = 'REC-2026-' . (5000 + Payment::count() + 1);
-
-            $payment = Payment::create([
-                'receipt_no' => $receiptNo,
-                'san_code' => 'SAN-LOH-' . str_pad($member->id, 3, '0', STR_PAD_LEFT),
-                'member_id' => $member->id,
-                'agent_id' => $request->agent_id ?: $member->agent_id,
-                'amount' => $request->amount,
-                'payment_type' => $request->payment_type,
-                'payment_mode' => $request->payment_mode,
-                'reference_no' => $request->reference_no ?? ('TXN' . rand(100000, 999999)),
-                'month_year' => Carbon::parse($request->payment_date)->format('M Y'),
-                'payment_date' => $request->payment_date,
-                'status' => 'Verified',
-                'collected_by' => $request->collected_by ?? (auth()->user()->full_name ?? 'Admin'),
-                'remarks' => $request->remarks,
-            ]);
-
-            // Update member total paid and adjust pending
-            $member->total_paid += $request->amount;
-            if ($member->pending_amount > 0) {
-                $member->pending_amount = max(0, $member->pending_amount - $request->amount);
-            }
-            $member->save();
-
-            DB::commit();
-
-            return redirect()->route('admin.payments.receipt', $payment->id)->with('success', "Payment of ₹{$request->amount} recorded successfully. Receipt No: {$receiptNo}");
+            return redirect()->route('admin.payments.receipt', $payment->id)
+                ->with('success', "Payment of ₹{$request->amount} recorded successfully. Receipt No: {$payment->receipt_no}");
         } catch (\Exception $e) {
-            DB::rollBack();
             return back()->withInput()->with('error', 'Error recording payment: ' . $e->getMessage());
         }
     }
 
     public function receipts(Request $request)
     {
+        $user = auth()->user();
         $query = Payment::with(['member.scheme', 'agent'])->where('status', 'Verified');
+
+        if ($user && $user->isAgent() && $user->agent_id) {
+            $query->where('agent_id', $user->agent_id);
+        }
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -121,20 +110,39 @@ class PaymentController extends Controller
 
     public function receipt($id)
     {
-        $payment = Payment::with(['member.scheme', 'member.agent', 'agent'])->findOrFail($id);
-        return view('admin.payments.receipt', compact('payment'));
+        $user = auth()->user();
+        $query = Payment::with(['member.scheme', 'member.agent', 'agent']);
+        if ($user && $user->isAgent() && $user->agent_id) {
+            $query->where('agent_id', $user->agent_id);
+        }
+        $payment = $query->findOrFail($id);
+        $whatsappData = WhatsAppService::getReceiptMessage($payment);
+
+        return view('admin.payments.receipt', compact('payment', 'whatsappData'));
+    }
+
+    public function receiptPdf($id)
+    {
+        $pdf = ReceiptService::generatePdf($id);
+        return $pdf->download("SSWS_Receipt_{$id}.pdf");
     }
 
     public function ledger(Request $request)
     {
-        $members = Member::where('status', 'Active')->get();
+        $user = auth()->user();
+        $membersQuery = Member::where('status', 'Active');
+        if ($user && $user->isAgent() && $user->agent_id) {
+            $membersQuery->where('agent_id', $user->agent_id);
+        }
+        $members = $membersQuery->get();
+
         $selectedMember = null;
         $ledgerEntries = collect();
 
         if ($request->filled('member_id')) {
-            $selectedMember = Member::with(['scheme', 'agent', 'payments'])->find($request->member_id);
+            $selectedMember = Member::with(['scheme', 'agent', 'ledgers.creator', 'payments'])->find($request->member_id);
             if ($selectedMember) {
-                $ledgerEntries = $selectedMember->payments;
+                $ledgerEntries = $selectedMember->ledgers()->orderBy('transaction_date')->orderBy('id')->get();
             }
         }
 

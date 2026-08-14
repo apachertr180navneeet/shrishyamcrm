@@ -24,10 +24,16 @@
                     </div>
                 </div>
                 <div class="d-flex flex-wrap gap-2">
-                    <a href="{{ route('admin.certificates.show', $member->id) }}" class="btn btn-warning text-dark" target="_blank">
-                        <i class="fas fa-certificate me-1"></i> Membership Certificate
+                    <a href="{{ $whatsappData['url'] ?? '#' }}" target="_blank" class="btn btn-success">
+                        <i class="fab fa-whatsapp me-1"></i> WhatsApp Due Alert
                     </a>
-                    <a href="{{ route('admin.payments.create', ['member_id' => $member->id]) }}" class="btn btn-success">
+                    <a href="{{ route('admin.certificates.show', $member->id) }}" class="btn btn-warning text-dark" target="_blank">
+                        <i class="fas fa-certificate me-1"></i> View Certificate
+                    </a>
+                    <a href="{{ route('admin.members.certificate.pdf', $member->id) }}" class="btn btn-danger">
+                        <i class="fas fa-file-pdf me-1"></i> Certificate PDF
+                    </a>
+                    <a href="{{ route('admin.payments.create', ['member_id' => $member->id]) }}" class="btn btn-primary" style="background: #1B365D;">
                         <i class="fas fa-rupee-sign me-1"></i> Record Payment
                     </a>
                 </div>
@@ -45,7 +51,7 @@
             </li>
             <li class="nav-item">
                 <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#tab-personal">
-                    <i class="fas fa-user-check me-1"></i> Personal & KYC Details
+                    <i class="fas fa-user-check me-1"></i> Personal & KYC
                 </button>
             </li>
             <li class="nav-item">
@@ -55,7 +61,17 @@
             </li>
             <li class="nav-item">
                 <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#tab-payments">
-                    <i class="fas fa-history me-1"></i> Payment History ({{ $member->payments->count() }})
+                    <i class="fas fa-history me-1"></i> Payments ({{ $member->payments->count() }})
+                </button>
+            </li>
+            <li class="nav-item">
+                <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#tab-ledger">
+                    <i class="fas fa-book-open me-1"></i> Ledger ({{ $member->ledgers->count() }})
+                </button>
+            </li>
+            <li class="nav-item">
+                <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#tab-documents">
+                    <i class="fas fa-file-upload me-1"></i> Documents ({{ $member->documents->count() }})
                 </button>
             </li>
         </ul>
@@ -195,7 +211,7 @@
                             @forelse($member->payments as $p)
                             <tr>
                                 <td><strong class="text-primary">{{ $p->receipt_no }}</strong></td>
-                                <td><strong class="text-success">₹{{ number_format($p->amount) }}</strong></td>
+                                <td><strong class="text-success">₹{{ number_format($p->amount, 2) }}</strong></td>
                                 <td><span class="badge bg-label-primary">{{ $p->payment_type }}</span></td>
                                 <td><span class="badge bg-label-info">{{ $p->payment_mode }}</span></td>
                                 <td><small class="text-muted">{{ $p->reference_no }}</small></td>
@@ -214,6 +230,71 @@
                             @endforelse
                         </tbody>
                     </table>
+                </div>
+            </div>
+
+            <!-- Tab 5: Financial Ledger -->
+            <div class="tab-pane fade" id="tab-ledger" role="tabpanel">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Txn No</th>
+                                <th>Description / Particulars</th>
+                                <th class="text-end">Debit / Due (₹)</th>
+                                <th class="text-end">Credit / Paid (₹)</th>
+                                <th class="text-end">Running Balance (₹)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($member->ledgers as $ledger)
+                            <tr>
+                                <td>{{ $ledger->transaction_date ? $ledger->transaction_date->format('d-M-Y') : '' }}</td>
+                                <td><code>{{ $ledger->transaction_no }}</code></td>
+                                <td>
+                                    <span class="badge bg-label-secondary me-1">{{ $ledger->entry_type }}</span>
+                                    {{ $ledger->description }}
+                                </td>
+                                <td class="text-end fw-bold text-danger">
+                                    {{ $ledger->debit > 0 ? '₹' . number_format($ledger->debit, 2) : '-' }}
+                                </td>
+                                <td class="text-end fw-bold text-success">
+                                    {{ $ledger->credit > 0 ? '₹' . number_format($ledger->credit, 2) : '-' }}
+                                </td>
+                                <td class="text-end fw-bold {{ $ledger->running_balance > 0 ? 'text-danger' : 'text-success' }}">
+                                    ₹{{ number_format($ledger->running_balance, 2) }}
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted">No ledger transactions posted yet.</td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab 6: Documents -->
+            <div class="tab-pane fade" id="tab-documents" role="tabpanel">
+                <div class="row g-3">
+                    @forelse($member->documents as $doc)
+                    <div class="col-md-4 col-sm-6 col-12">
+                        <div class="card border p-3 text-center">
+                            <i class="fas fa-file-pdf fs-1 text-danger mb-2"></i>
+                            <h6 class="fw-bold mb-1">{{ $doc->title }}</h6>
+                            <small class="text-muted d-block mb-2">{{ $doc->document_type }} ({{ round($doc->file_size / 1024) }} KB)</small>
+                            <a href="{{ asset($doc->file_path) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye me-1"></i> View Document
+                            </a>
+                        </div>
+                    </div>
+                    @empty
+                    <div class="col-12 text-center text-muted py-4">
+                        No additional KYC documents attached.
+                    </div>
+                    @endforelse
                 </div>
             </div>
         </div>

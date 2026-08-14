@@ -10,7 +10,12 @@ class Agent extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $guarded = [];
+    protected $guarded = ['id'];
+
+    protected $casts = [
+        'commission_rate' => 'decimal:2',
+        'joining_date' => 'date',
+    ];
 
     public function user()
     {
@@ -27,13 +32,23 @@ class Agent extends Model
         return $this->hasMany(Payment::class);
     }
 
-    public function getTotalCollectionAttribute()
+    public function commissions()
     {
-        return $this->payments()->sum('amount');
+        return $this->hasMany(AgentCommission::class);
     }
 
-    public function getTotalCommissionAttribute()
+    public function ledgers()
     {
-        return ($this->total_collection * $this->commission_rate) / 100;
+        return $this->hasMany(Ledger::class);
+    }
+
+    public function getTotalCollectionAttribute(): float
+    {
+        return (float)$this->payments()->where('status', 'Verified')->sum('amount');
+    }
+
+    public function getTotalCommissionAttribute(): float
+    {
+        return (float)($this->total_collection * ($this->commission_rate / 100));
     }
 }
