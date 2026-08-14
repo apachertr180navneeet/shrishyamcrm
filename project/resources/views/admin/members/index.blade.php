@@ -11,7 +11,7 @@
                     <p class="text-muted mb-0">Total {{ $members->total() }} registered society members across all schemes and agent districts.</p>
                 </div>
                 <a href="{{ route('admin.members.create') }}" class="btn btn-primary">
-                    <i class="fas fa-user-plus me-1"></i> Add New Member (5-Step)
+                    <i class="fas fa-user-plus me-1"></i> Add New Member
                 </a>
             </div>
         </div>

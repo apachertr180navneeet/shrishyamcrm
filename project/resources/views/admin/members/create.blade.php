@@ -73,8 +73,8 @@
         <div class="card-body p-4">
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
                 <div>
-                    <h4 class="fw-bold mb-1" style="font-family: 'Hind', sans-serif;">सदस्य पंजीकरण विज़ार्ड (5-Step Member Registration)</h4>
-                    <p class="text-muted mb-0">Step-by-step registration wizard with auto age calculation, scheme age slab matching, and initial receipt generation.</p>
+                    <h4 class="fw-bold mb-1" style="font-family: 'Hind', sans-serif;">सदस्य पंजीकरण (Add New Member Registration)</h4>
+                    <p class="text-muted mb-0">Enroll new society member, auto-calculate scheme age slab, add dual nominees, and record initial fees.</p>
                 </div>
                 <a href="{{ route('admin.members.index') }}" class="btn btn-outline-secondary">
                     <i class="fas fa-arrow-left me-1"></i> Back to Directory

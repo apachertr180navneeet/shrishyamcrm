@@ -59,7 +59,7 @@
 		<li class="menu-item {{ request()->is('admin/members/create') ? 'active' : '' }}">
 			<a href="{{ route('admin.members.create') }}" class="menu-link">
 				<i class="menu-icon tf-icons fas fa-user-plus"></i>
-				<div data-i18n="addMember">Add Member (5-Step)</div>
+				<div data-i18n="addMember">Add New Member</div>
 			</a>
 		</li>
 
