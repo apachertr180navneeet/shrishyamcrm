@@ -23,15 +23,9 @@ class DashboardController extends Controller
 
         $today = Carbon::today();
         $todayCollection = Payment::whereDate('payment_date', $today)->where('status', 'Verified')->sum('amount');
-        if ($todayCollection == 0) {
-            $todayCollection = 42500; // Realistic default preview if newly seeded
-        }
 
         $startOfMonth = Carbon::now()->startOfMonth();
         $monthCollection = Payment::where('payment_date', '>=', $startOfMonth)->where('status', 'Verified')->sum('amount');
-        if ($monthCollection < 50000) {
-            $monthCollection = Payment::where('status', 'Verified')->sum('amount');
-        }
 
         $pendingAmountSum = Member::sum('pending_amount');
         $pendingPaymentsCount = Member::where('pending_amount', '>', 0)->count();
@@ -40,8 +34,8 @@ class DashboardController extends Controller
         // Scheme distribution
         $seniorScheme = Scheme::where('code', 'SENIOR')->first();
         $marriageScheme = Scheme::where('code', 'MARRIAGE')->first();
-        $seniorMembersCount = $seniorScheme ? Member::where('scheme_id', $seniorScheme->id)->count() : 34;
-        $marriageMembersCount = $marriageScheme ? Member::where('scheme_id', $marriageScheme->id)->count() : 18;
+        $seniorMembersCount = $seniorScheme ? Member::where('scheme_id', $seniorScheme->id)->count() : 0;
+        $marriageMembersCount = $marriageScheme ? Member::where('scheme_id', $marriageScheme->id)->count() : 0;
 
         // Top Agents
         $topAgents = Agent::withSum('payments', 'amount')->orderBy('payments_sum_amount', 'desc')->take(5)->get();
