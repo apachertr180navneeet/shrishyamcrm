@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="hi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>श्री श्याम वेलफेयर सोसायटी लोहीकी | Welfare Society ERP</title>
+  <meta name="description" content="Official Administration & Management ERP for Shri Shyam Welfare Society, Lohki">
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Custom Stylesheets -->
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/print.css">
+</head>
+
+<body>
+
+  <div id="app-root">
+
+    <!-- APP SIDEBAR NAVIGATION -->
+    <aside class="app-sidebar">
+      <div class="sidebar-header">
+        <img src="assets/logo.svg" alt="Society Logo" class="sidebar-logo">
+        <div class="sidebar-title-box">
+          <span class="sidebar-title-hi">श्री श्याम वेलफेयर सोसायटी</span>
+          <span class="sidebar-title-en">Welfare Society ERP</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-label" data-i18n="mainMenu">Main Menu</div>
+        <a href="#" class="nav-item active" data-view="dashboard">
+          <i class="fas fa-chart-pie"></i>
+          <span data-i18n="dashboard">Dashboard</span>
+        </a>
+
+        <div class="nav-section-label" data-i18n="masterRecords">Master Records</div>
+        <a href="#" class="nav-item" data-view="schemes">
+          <i class="fas fa-hand-holding-heart"></i>
+          <span data-i18n="schemesMaster">Schemes Master</span>
+        </a>
+        <a href="#" class="nav-item" data-view="age-slabs">
+          <i class="fas fa-sliders-h"></i>
+          <span data-i18n="ageSlabs">Age Slabs</span>
+        </a>
+
+        <div class="nav-section-label" data-i18n="memberEnrolment">Member Enrolment</div>
+        <a href="#" class="nav-item" data-view="members">
+          <i class="fas fa-users"></i>
+          <span data-i18n="allMembers">All Members</span>
+        </a>
+        <a href="#" class="nav-item" data-view="add-member">
+          <i class="fas fa-user-plus"></i>
+          <span data-i18n="addMember">Add Member</span>
+        </a>
+
+        <div class="nav-section-label" data-i18n="agentNetwork">Agent Network</div>
+        <a href="#" class="nav-item" data-view="agents">
+          <i class="fas fa-user-tie"></i>
+          <span data-i18n="allAgents">All Agents</span>
+        </a>
+
+        <div class="nav-section-label" data-i18n="collections">Collections & Accounting</div>
+        <a href="#" class="nav-item" data-view="payment-entry">
+          <i class="fas fa-cash-register"></i>
+          <span data-i18n="paymentEntry">Payment Entry</span>
+        </a>
+        <a href="#" class="nav-item" data-view="payments">
+          <i class="fas fa-history"></i>
+          <span data-i18n="paymentList">Payment History</span>
+        </a>
+        <a href="#" class="nav-item" data-view="receipts">
+          <i class="fas fa-receipt"></i>
+          <span data-i18n="receipts">Receipts</span>
+        </a>
+        <a href="#" class="nav-item" data-view="ledger">
+          <i class="fas fa-book-open"></i>
+          <span data-i18n="ledger">Financial Ledgers</span>
+        </a>
+
+        <div class="nav-section-label" data-i18n="certificatesEvents">Certificates & Events</div>
+        <a href="#" class="nav-item" data-view="certificates">
+          <i class="fas fa-certificate"></i>
+          <span data-i18n="certificates">Certificates</span>
+        </a>
+        <a href="#" class="nav-item" data-view="events">
+          <i class="fas fa-calendar-alt"></i>
+          <span data-i18n="events">Marriage Events</span>
+        </a>
+        <a href="#" class="nav-item" data-view="payouts">
+          <i class="fas fa-hand-holding-usd"></i>
+          <span data-i18n="payouts">Beneficiary Payouts</span>
+        </a>
+        <a href="#" class="nav-item" data-view="whatsapp">
+          <i class="fab fa-whatsapp"></i>
+          <span data-i18n="whatsapp">WhatsApp Center</span>
+        </a>
+
+        <div class="nav-section-label" data-i18n="reportsAdmin">Reports & Admin</div>
+        <a href="#" class="nav-item" data-view="reports">
+          <i class="fas fa-file-alt"></i>
+          <span data-i18n="reports">Reports Center</span>
+        </a>
+        <a href="#" class="nav-item" data-view="users">
+          <i class="fas fa-user-shield"></i>
+          <span data-i18n="users">Users & Roles</span>
+        </a>
+        <a href="#" class="nav-item" data-view="settings">
+          <i class="fas fa-cog"></i>
+          <span data-i18n="settings">Settings</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- MAIN CONTAINER -->
+    <div class="app-main">
+
+      <!-- TOP NAVBAR -->
+      <header class="app-header">
+        <div class="header-left">
+          <button class="sidebar-toggle-btn" id="mobileSidebarToggle" title="Toggle Sidebar">
+            <i class="fas fa-bars"></i>
+          </button>
+
+          <div class="header-search">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Global search (Name, Member No, Receipt...)"
+              data-i18n-placeholder="searchPlaceholder" onkeyup="if(event.key==='Enter') App.navigateTo('members')">
+          </div>
+        </div>
+
+        <div class="header-right">
+          <!-- Bilingual Language Switcher Toggle -->
+          <button id="langToggleBtn" class="lang-toggle-btn" onclick="App.toggleLanguage()">
+            <i class="fas fa-globe"></i>
+            <span id="langToggleLabel">English / हिंदी</span>
+          </button>
+
+          <!-- Role Switcher Simulation -->
+          <div class="role-switcher-box">
+            <label><i class="fas fa-user-tag"></i> Role:</label>
+            <select id="globalRoleSwitcher" onchange="App.switchRole(this.value)">
+              <option value="Super Admin">Super Admin</option>
+              <option value="Admin">Admin Secretary</option>
+              <option value="Agent">Agent Mode (Assigned Members)</option>
+            </select>
+          </div>
+
+          <!-- User Profile Dropdown -->
+          <div class="user-profile-menu">
+            <img src="https://randomuser.me/api/portraits/men/42.jpg" alt="Navneet Sharma" class="user-avatar"
+              id="displayUserAvatar">
+            <div class="user-info">
+              <span class="user-name" id="displayUserName">Shri Navneet Sharma</span>
+              <span class="user-role-badge" id="displayRoleBadge">Super Admin</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- AGENT VIEW BANNER (Agent Role Mode) -->
+      <div id="agentViewBanner" class="agent-view-banner hidden">
+        <i class="fas fa-user-shield"></i>
+        <span data-i18n="agentViewBanner">एजेंट मोड: केवल आपके आवंटित सदस्य (रामेश्वर लाल शर्मा - AGT-001) प्रदर्शित हो
+          रहे हैं</span>
+      </div>
+
+      <!-- VIEW DYNAMIC CONTENT CONTAINER -->
+      <main class="view-container" id="view-content">
+        <!-- Content dynamically rendered by js/app.js -->
+      </main>
+
+    </div>
+
+  </div>
+
+  <!-- GLOBAL MODALS CONTAINER -->
+  <div id="global-modal-root"></div>
+
+  <!-- Application Logic Scripts -->
+  <script src="js/utils.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,322 @@
+/* ==========================================================================
+   Shri Shyam Welfare Society ERP - Print Stylesheet (Receipts & Certificates)
+   ========================================================================== */
+
+/* Hidden on Screen by Default */
+.print-only-wrapper {
+  display: none;
+}
+
+/* Screen Preview Modal Wrappers */
+.receipt-paper,
+.certificate-paper {
+  background-color: #FFFFFF;
+  margin: 0 auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  font-family: 'Inter', 'Hind', sans-serif;
+  color: #0F172A;
+  position: relative;
+}
+
+/* ==========================================================================
+   A4 / Slip RECEIPT LAYOUT
+   ========================================================================== */
+
+.receipt-paper {
+  width: 100%;
+  max-width: 780px;
+  padding: 2.25rem;
+  border: 2px solid #1E3A8A;
+  border-radius: 8px;
+  background: #FFFFFF;
+}
+
+.receipt-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 2px double #1E3A8A;
+  padding-bottom: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.receipt-logo {
+  width: 75px;
+  height: 75px;
+}
+
+.receipt-header-center {
+  text-align: center;
+}
+
+.receipt-org-hi {
+  font-family: 'Hind', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #1E3A8A;
+  line-height: 1.2;
+}
+
+.receipt-org-en {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #B45309;
+  letter-spacing: 1px;
+}
+
+.receipt-reg-info {
+  font-size: 0.78rem;
+  color: #475569;
+  margin-top: 0.25rem;
+}
+
+.receipt-title-badge {
+  text-align: center;
+  margin: 0.75rem 0 1.25rem;
+}
+
+.receipt-title-badge span {
+  background-color: #1E3A8A;
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 0.3rem 1.25rem;
+  border-radius: 20px;
+  letter-spacing: 1px;
+}
+
+.receipt-meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem 1.5rem;
+  font-size: 0.88rem;
+  margin-bottom: 1.5rem;
+  background-color: #F8FAFC;
+  padding: 1rem 1.25rem;
+  border-radius: 6px;
+  border: 1px solid #E2E8F0;
+}
+
+.receipt-meta-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.receipt-meta-label {
+  font-weight: 600;
+  color: #475569;
+}
+
+.receipt-meta-val {
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.receipt-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1.5rem;
+  font-size: 0.88rem;
+}
+
+.receipt-table th {
+  background-color: #1E3A8A;
+  color: #FFFFFF;
+  padding: 0.6rem 0.85rem;
+  text-align: left;
+}
+
+.receipt-table td {
+  padding: 0.75rem 0.85rem;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.receipt-amount-words {
+  font-size: 0.88rem;
+  font-style: italic;
+  margin-bottom: 1.5rem;
+  padding: 0.75rem;
+  background-color: #FEF3C7;
+  border-left: 4px solid #D97706;
+  border-radius: 4px;
+}
+
+.receipt-footer-signatures {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+}
+
+.sig-box {
+  text-align: center;
+}
+
+.sig-line {
+  width: 160px;
+  border-top: 1px dashed #475569;
+  margin-bottom: 0.35rem;
+}
+
+.sig-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+/* ==========================================================================
+   GOLD BORDER OFFICIAL CERTIFICATE LAYOUT
+   ========================================================================== */
+
+.certificate-paper {
+  width: 100%;
+  max-width: 840px;
+  padding: 3rem;
+  border: 12px double #D97706;
+  background: radial-gradient(circle, #FFFBEB 0%, #FFFFFF 100%);
+  text-align: center;
+  position: relative;
+  border-radius: 4px;
+}
+
+.cert-corner-ornament {
+  position: absolute;
+  width: 45px;
+  height: 45px;
+  border: 3px solid #D97706;
+}
+
+.cert-corner-tl {
+  top: 8px;
+  left: 8px;
+  border-right: none;
+  border-bottom: none;
+}
+
+.cert-corner-tr {
+  top: 8px;
+  right: 8px;
+  border-left: none;
+  border-bottom: none;
+}
+
+.cert-corner-bl {
+  bottom: 8px;
+  left: 8px;
+  border-right: none;
+  border-top: none;
+}
+
+.cert-corner-br {
+  bottom: 8px;
+  right: 8px;
+  border-left: none;
+  border-top: none;
+}
+
+.cert-header {
+  margin-bottom: 1.5rem;
+}
+
+.cert-logo {
+  width: 90px;
+  height: 90px;
+  margin-bottom: 0.5rem;
+}
+
+.cert-society-hi {
+  font-family: 'Hind', sans-serif;
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #1E3A8A;
+  line-height: 1.2;
+}
+
+.cert-society-en {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #B45309;
+  letter-spacing: 2px;
+}
+
+.cert-reg-line {
+  font-size: 0.85rem;
+  color: #475569;
+  margin-top: 0.35rem;
+}
+
+.cert-main-title {
+  font-family: 'Hind', 'Outfit', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1E3A8A;
+  margin: 1.5rem 0 1.25rem;
+  text-decoration: underline;
+  text-underline-offset: 6px;
+  text-decoration-color: #F59E0B;
+}
+
+.cert-body-text {
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: #1E293B;
+  max-width: 680px;
+  margin: 0 auto 2rem;
+}
+
+.cert-highlight {
+  font-weight: 700;
+  color: #1E3A8A;
+  border-bottom: 1px solid #D97706;
+  padding: 0 0.25rem;
+}
+
+.cert-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  max-width: 600px;
+  margin: 0 auto 2.5rem;
+  text-align: left;
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 1.25rem 1.5rem;
+  border: 1px solid #FCD34D;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.cert-sig-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 2rem;
+  padding: 0 2rem;
+}
+
+/* PRINT MEDIA OVERRIDES */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .print-only-wrapper,
+  .print-only-wrapper * {
+    visibility: visible;
+  }
+
+  .print-only-wrapper {
+    display: block !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  .receipt-paper,
+  .certificate-paper {
+    box-shadow: none;
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+}
