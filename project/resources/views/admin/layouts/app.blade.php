@@ -64,6 +64,11 @@
             .bg-menu-theme .app-brand .app-brand-text {
                 color: #F8FAFC !important;
             }
+            .bg-menu-theme .menu-inner-shadow,
+            .layout-menu .menu-inner-shadow,
+            .menu-inner-shadow {
+                background: linear-gradient(#0F172A 41%, rgba(15, 23, 42, 0.11) 95%, rgba(15, 23, 42, 0)) !important;
+            }
             .btn-primary {
                 background-color: #2563EB !important;
                 border-color: #2563EB !important;
