@@ -43,52 +43,23 @@ class RolePermissionSeeder extends Seeder
             $createdPermissions[$p['name']] = Permission::updateOrCreate(['name' => $p['name']], $p);
         }
 
-        // Roles
+        $allPermissionNames = array_keys($createdPermissions);
+
+        // Only 2 Roles: Admin & Agent
         $roles = [
-            'super_admin' => [
-                'display_name' => 'Super Admin',
-                'display_name_hindi' => 'सुपर एडमिन',
-                'description' => 'Full administrative privileges across all modules.',
-                'permissions' => array_keys($createdPermissions),
-            ],
             'admin' => [
-                'display_name' => 'Admin Secretary',
-                'display_name_hindi' => 'प्रशासक / सचिव',
-                'description' => 'Operational management for members, collections, payouts, and reports.',
-                'permissions' => [
-                    'member.view', 'member.create', 'member.edit',
-                    'payment.view', 'payment.create', 'receipt.view', 'receipt.generate', 'ledger.view',
-                    'scheme.manage', 'age_slab.manage', 'agent.manage',
-                    'event.manage', 'payout.create', 'payout.approve',
-                    'report.view', 'report.export'
-                ],
+                'display_name' => 'Admin',
+                'display_name_hindi' => 'प्रशासक / एडमिन',
+                'description' => 'Full administrative privileges and operational management across all modules.',
+                'permissions' => $allPermissionNames,
             ],
             'agent' => [
-                'display_name' => 'Field Agent',
-                'display_name_hindi' => 'फील्ड एजेंट',
-                'description' => 'Field representative restricted strictly to assigned members and collections.',
+                'display_name' => 'Agent',
+                'display_name_hindi' => 'प्रतिनिधि / एजेंट',
+                'description' => 'Field agent access to view and create assigned members, collect payments, and view receipts.',
                 'permissions' => [
                     'member.view', 'member.create',
                     'payment.view', 'payment.create', 'receipt.view', 'receipt.generate', 'ledger.view'
-                ],
-            ],
-            'data_entry' => [
-                'display_name' => 'Data Entry Operator',
-                'display_name_hindi' => 'डेटा एंट्री ऑपरेटर',
-                'description' => 'Member registration, document upload, and basic data entry.',
-                'permissions' => [
-                    'member.view', 'member.create', 'member.edit',
-                    'payment.view', 'payment.create', 'receipt.view'
-                ],
-            ],
-            'accountant' => [
-                'display_name' => 'Accountant',
-                'display_name_hindi' => 'लेखाकार (Accountant)',
-                'description' => 'Financial accounting, receipts, ledgers, and financial reports.',
-                'permissions' => [
-                    'member.view',
-                    'payment.view', 'payment.create', 'receipt.view', 'receipt.generate', 'ledger.view',
-                    'report.view', 'report.export', 'payout.create'
                 ],
             ],
         ];

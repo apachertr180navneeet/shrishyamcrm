@@ -48,10 +48,8 @@
 				<div class="input-group input-group-sm">
 					<span class="input-group-text bg-light text-primary py-0"><i class="fas fa-user-tag"></i></span>
 					<select id="globalRoleSwitcher" class="form-select form-select-sm py-1" style="font-size: 12px;" onchange="SSWS.switchRole(this.value)">
-						<option value="Super Admin">Super Admin</option>
-						<option value="Admin">Admin Secretary</option>
+						<option value="Admin">Admin</option>
 						<option value="Agent">Agent Mode</option>
-						<option value="Accountant">Accountant</option>
 					</select>
 				</div>
 			</li>

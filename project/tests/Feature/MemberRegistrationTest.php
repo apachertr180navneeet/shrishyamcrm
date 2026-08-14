@@ -24,8 +24,29 @@ class MemberRegistrationTest extends TestCase
 
     public function test_member_registration_calculates_age_and_creates_records_in_transaction()
     {
-        $seniorScheme = Scheme::where('code', 'SENIOR')->first();
-        $agent = Agent::first();
+        $seniorScheme = Scheme::create([
+            'code' => 'SENIOR',
+            'name' => 'Senior Welfare Scheme',
+            'name_hindi' => 'बुजुर्ग सम्मान योजना',
+            'status' => 'Active',
+        ]);
+
+        $slab = AgeSlab::create([
+            'scheme_id' => $seniorScheme->id,
+            'slab_code' => 'SLAB-S3',
+            'min_age' => 60,
+            'max_age' => 75,
+            'joining_amount' => 2000,
+            'support_amount' => 400,
+            'status' => 'Active',
+        ]);
+
+        $agent = Agent::create([
+            'agent_code' => 'AGT-001',
+            'name' => 'Rameshwar Lal Sharma',
+            'commission_rate' => 5.0,
+            'status' => 'Active',
+        ]);
 
         $dob = Carbon::now()->subYears(65)->format('Y-m-d'); // 65 years old -> SLAB-S3 (60-75)
 

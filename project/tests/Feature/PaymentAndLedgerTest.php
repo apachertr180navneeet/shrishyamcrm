@@ -22,8 +22,19 @@ class PaymentAndLedgerTest extends TestCase
 
     public function test_partial_payment_updates_ledger_and_carries_forward_outstanding_balance()
     {
-        $agent = Agent::first();
-        $scheme = Scheme::first();
+        $agent = Agent::create([
+            'agent_code' => 'AGT-001',
+            'name' => 'Rameshwar Lal Sharma',
+            'commission_rate' => 5.0,
+            'status' => 'Active',
+        ]);
+
+        $scheme = Scheme::create([
+            'code' => 'SENIOR',
+            'name' => 'Senior Welfare Scheme',
+            'name_hindi' => 'बुजुर्ग सम्मान योजना',
+            'status' => 'Active',
+        ]);
 
         // Create a new member with 0 initial pending balance
         $member = Member::create([

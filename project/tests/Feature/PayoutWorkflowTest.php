@@ -6,6 +6,7 @@ use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Models\MarriageEvent;
 use App\Models\Payout;
+use App\Models\Scheme;
 use App\Services\PayoutService;
 
 class PayoutWorkflowTest extends TestCase
@@ -20,7 +21,16 @@ class PayoutWorkflowTest extends TestCase
 
     public function test_payout_workflow_from_creation_to_approval_and_disbursement()
     {
-        $event = MarriageEvent::first();
+        $scheme = Scheme::create(['code' => 'MARR', 'name' => 'Marriage Scheme', 'name_hindi' => 'विवाह योजना', 'status' => 'Active']);
+        $event = MarriageEvent::create([
+            'event_code' => 'EVT-P01',
+            'title' => 'Marriage Welfare Event',
+            'girl_name' => 'Bride Name',
+            'event_date' => '2026-08-20',
+            'target_amount' => 51000.0,
+            'scheme_id' => $scheme->id,
+            'status' => 'Upcoming',
+        ]);
 
         // 1. Create Payout
         $payout = PayoutService::createPayout([
