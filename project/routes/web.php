@@ -46,8 +46,15 @@ Route::name('admin.')->prefix('admin')->group(function () {
 
         // Schemes & Age Slabs
         Route::get('schemes', [SchemeController::class, 'index'])->name('schemes.index');
+        Route::post('schemes', [SchemeController::class, 'store'])->name('schemes.store');
+        Route::put('schemes/{id}', [SchemeController::class, 'update'])->name('schemes.update');
+        Route::delete('schemes/{id}', [SchemeController::class, 'destroy'])->name('schemes.destroy');
+        Route::post('schemes/{id}/status', [SchemeController::class, 'toggleStatus'])->name('schemes.toggle-status');
+
         Route::get('age-slabs', [SchemeController::class, 'ageSlabs'])->name('schemes.age-slabs');
         Route::post('age-slabs', [SchemeController::class, 'storeAgeSlab'])->name('schemes.age-slabs.store');
+        Route::put('age-slabs/{id}', [SchemeController::class, 'updateAgeSlab'])->name('schemes.age-slabs.update');
+        Route::delete('age-slabs/{id}', [SchemeController::class, 'destroyAgeSlab'])->name('schemes.age-slabs.destroy');
         Route::get('api/slab-by-age', [SchemeController::class, 'getSlabByAge'])->name('api.slab-by-age');
 
         // Member Enrolment

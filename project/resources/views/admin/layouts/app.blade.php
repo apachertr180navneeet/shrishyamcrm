@@ -26,7 +26,75 @@
         <link rel="stylesheet" href="{{asset('assets/admin/css/sweet-alert.css')}}" />
         @yield('style')
         <style>
-            
+            :root {
+                --bs-primary: #2563EB;
+                --bs-primary-rgb: 37, 99, 235;
+                --primary-navy: #1B365D;
+                --accent-gold: #D97706;
+                --accent-saffron: #EA580C;
+                --bg-app: #F8FAFC;
+            }
+            body {
+                font-family: 'Inter', 'Hind', system-ui, -apple-system, sans-serif !important;
+                background-color: var(--bg-app) !important;
+            }
+            .bg-menu-theme {
+                background-color: #0F172A !important;
+                color: #94A3B8 !important;
+            }
+            .bg-menu-theme .menu-header {
+                color: #64748B !important;
+            }
+            .bg-menu-theme .menu-link, .bg-menu-theme .menu-horizontal-prev, .bg-menu-theme .menu-horizontal-next {
+                color: #CBD5E1 !important;
+            }
+            .bg-menu-theme .menu-item.active > .menu-link:not(.menu-toggle) {
+                background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%) !important;
+                color: #FFFFFF !important;
+                box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3) !important;
+            }
+            .bg-menu-theme .menu-item:hover:not(.active) > .menu-link {
+                background-color: #1E293B !important;
+                color: #FFFFFF !important;
+            }
+            .bg-menu-theme .app-brand {
+                background-color: #0B1120 !important;
+                border-bottom: 1px solid #1E293B;
+            }
+            .bg-menu-theme .app-brand .app-brand-text {
+                color: #F8FAFC !important;
+            }
+            .btn-primary {
+                background-color: #2563EB !important;
+                border-color: #2563EB !important;
+            }
+            .btn-primary:hover {
+                background-color: #1D4ED8 !important;
+                border-color: #1D4ED8 !important;
+            }
+            .text-primary {
+                color: #2563EB !important;
+            }
+            .bg-label-primary {
+                background-color: #EFF6FF !important;
+                color: #2563EB !important;
+            }
+            .bg-label-success {
+                background-color: #DCFCE7 !important;
+                color: #15803D !important;
+            }
+            .bg-label-warning {
+                background-color: #FEF3C7 !important;
+                color: #B45309 !important;
+            }
+            .bg-label-danger {
+                background-color: #FEE2E2 !important;
+                color: #B91C1C !important;
+            }
+            .card {
+                border-radius: 12px !important;
+                border: 1px solid #E2E8F0 !important;
+            }
         </style>
         
     </head>
