@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Artisan;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -116,3 +117,45 @@ Route::name('admin.')->prefix('admin')->group(function () {
         Route::post('profile', [AdminAuthController::class, 'updateAdminProfile'])->name('update.profile');
     });
 });
+
+/*
+|--------------------------------------------------------------------------
+| Server Artisan Helper Routes
+|--------------------------------------------------------------------------
+| You can access these routes in the browser to run migrations/commands on the server.
+*/
+
+// Run Migrations (with --force for production)
+Route::get('/run-migrations', function () {
+    try {
+        Artisan::call('migrate', ['--force' => true]);
+        $output = Artisan::output();
+        return '<div style="font-family: monospace; padding: 20px; background: #1e1e1e; color: #00ff66; border-radius: 8px;">'
+            . '<h3>Migration Successful!</h3>'
+            . '<pre>' . ($output ?: 'Migrations ran successfully (no new migrations to execute).') . '</pre>'
+            . '</div>';
+    } catch (\Throwable $e) {
+        return '<div style="font-family: monospace; padding: 20px; background: #1e1e1e; color: #ff5555; border-radius: 8px;">'
+            . '<h3>Migration Error:</h3>'
+            . '<pre>' . $e->getMessage() . '</pre>'
+            . '</div>';
+    }
+});
+
+// Clear & Optimize Cache
+Route::get('/clear-cache', function () {
+    try {
+        Artisan::call('optimize:clear');
+        $output = Artisan::output();
+        return '<div style="font-family: monospace; padding: 20px; background: #1e1e1e; color: #00ff66; border-radius: 8px;">'
+            . '<h3>Cache Cleared Successfully!</h3>'
+            . '<pre>' . $output . '</pre>'
+            . '</div>';
+    } catch (\Throwable $e) {
+        return '<div style="font-family: monospace; padding: 20px; background: #1e1e1e; color: #ff5555; border-radius: 8px;">'
+            . '<h3>Error:</h3>'
+            . '<pre>' . $e->getMessage() . '</pre>'
+            . '</div>';
+    }
+});
+
