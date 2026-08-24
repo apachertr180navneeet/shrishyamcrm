@@ -43,16 +43,6 @@
 				</a>
 			</li>
 
-			<!-- Role Simulator Switcher -->
-			<li class="nav-item d-none d-md-block">
-				<div class="input-group input-group-sm">
-					<span class="input-group-text bg-light text-primary py-0"><i class="fas fa-user-tag"></i></span>
-					<select id="globalRoleSwitcher" class="form-select form-select-sm py-1" style="font-size: 12px;" onchange="SSWS.switchRole(this.value)">
-						<option value="Admin">Admin</option>
-						<option value="Agent">Agent Mode</option>
-					</select>
-				</div>
-			</li>
 
 			<!-- User Profile Dropdown -->
 			<li class="nav-item navbar-dropdown dropdown-user dropdown ms-1">
