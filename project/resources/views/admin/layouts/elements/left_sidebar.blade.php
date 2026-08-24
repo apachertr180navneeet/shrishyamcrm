@@ -5,8 +5,8 @@
 				<img src="{{ asset('assets/logo.svg') }}" alt="Shri Shyam Welfare Society Logo" style="width: 38px; height: 38px; object-fit: contain;">
 			</span>
 			<div class="d-flex flex-column text-start">
-				<span class="app-brand-text fw-bold text-heading fs-6 lh-1 mb-1" style="font-family: 'Hind', sans-serif;">श्री श्याम वेलफेयर सोसायटी</span>
-				<small class="text-muted fw-semibold" style="font-size: 11px; letter-spacing: 0.5px;">Welfare Society ERP</small>
+				<span class="app-brand-text fw-bold text-heading fs-6 lh-1 mb-1" style="font-family: 'Hind', sans-serif;">{{ __('erp.app_name_hindi') }}</span>
+				<small class="text-muted fw-semibold" style="font-size: 11px; letter-spacing: 0.5px;">{{ __('erp.welfare_society_erp') }}</small>
 			</div>
 		</a>
 
@@ -20,121 +20,121 @@
 	<ul class="menu-inner py-2">
 		<!-- Main Menu -->
 		<li class="menu-header small text-uppercase">
-			<span class="menu-header-text" data-i18n="mainMenu">Main Menu</span>
+			<span class="menu-header-text">{{ __('erp.main_menu') }}</span>
 		</li>
 		<li class="menu-item {{ request()->is('admin/dashboard') ? 'active' : '' }}">
 			<a href="{{ route('admin.dashboard') }}" class="menu-link">
 				<i class="menu-icon tf-icons fas fa-chart-pie"></i>
-				<div data-i18n="dashboard">Dashboard</div>
+				<div>{{ __('erp.dashboard') }}</div>
 			</a>
 		</li>
 
 		<!-- Master Records -->
 		<li class="menu-header small text-uppercase">
-			<span class="menu-header-text" data-i18n="masterRecords">Master Records</span>
+			<span class="menu-header-text">{{ __('erp.master_records') }}</span>
 		</li>
 		<li class="menu-item {{ request()->is('admin/schemes*') && !request()->is('admin/age-slabs*') ? 'active' : '' }}">
 			<a href="{{ route('admin.schemes.index') }}" class="menu-link">
 				<i class="menu-icon tf-icons fas fa-hand-holding-heart"></i>
-				<div data-i18n="schemesMaster">Schemes Master</div>
+				<div>{{ __('erp.schemes_master') }}</div>
 			</a>
 		</li>
 		<li class="menu-item {{ request()->is('admin/age-slabs*') ? 'active' : '' }}">
 			<a href="{{ route('admin.schemes.age-slabs') }}" class="menu-link">
 				<i class="menu-icon tf-icons fas fa-sliders-h"></i>
-				<div data-i18n="ageSlabs">Age Slabs</div>
+				<div>{{ __('erp.age_slabs') }}</div>
 			</a>
 		</li>
 
 		<!-- Member Enrolment -->
 		<li class="menu-header small text-uppercase">
-			<span class="menu-header-text" data-i18n="memberEnrolment">Member Enrolment</span>
+			<span class="menu-header-text">{{ __('erp.member_enrolment') }}</span>
 		</li>
 		<li class="menu-item {{ request()->is('admin/members') || (request()->is('admin/members/*') && !request()->is('admin/members/create')) ? 'active' : '' }}">
 			<a href="{{ route('admin.members.index') }}" class="menu-link">
 				<i class="menu-icon tf-icons fas fa-users"></i>
-				<div data-i18n="allMembers">All Members</div>
+				<div>{{ __('erp.all_members') }}</div>
 			</a>
 		</li>
 		<li class="menu-item {{ request()->is('admin/members/create') ? 'active' : '' }}">
 			<a href="{{ route('admin.members.create') }}" class="menu-link">
 				<i class="menu-icon tf-icons fas fa-user-plus"></i>
-				<div data-i18n="addMember">Add New Member</div>
+				<div>{{ __('erp.add_member') }}</div>
 			</a>
 		</li>
 
 		<!-- Agent Network -->
 		<li class="menu-header small text-uppercase">
-			<span class="menu-header-text" data-i18n="agentNetwork">Agent Network</span>
+			<span class="menu-header-text">{{ __('erp.agent_network') }}</span>
 		</li>
 		<li class="menu-item {{ request()->is('admin/agents*') ? 'active' : '' }}">
 			<a href="{{ route('admin.agents.index') }}" class="menu-link">
 				<i class="menu-icon tf-icons fas fa-user-tie"></i>
-				<div data-i18n="allAgents">All Agents</div>
+				<div>{{ __('erp.all_agents') }}</div>
 			</a>
 		</li>
 
 		<!-- Collections & Accounting -->
 		<li class="menu-header small text-uppercase">
-			<span class="menu-header-text" data-i18n="collections">Collections & Accounting</span>
+			<span class="menu-header-text">{{ __('erp.collections_accounting') }}</span>
 		</li>
 		<li class="menu-item {{ request()->is('admin/payment-entry*') ? 'active' : '' }}">
 			<a href="{{ route('admin.payments.create') }}" class="menu-link">
 				<i class="menu-icon tf-icons fas fa-cash-register"></i>
-				<div data-i18n="paymentEntry">Payment Entry</div>
+				<div>{{ __('erp.payment_entry') }}</div>
 			</a>
 		</li>
 		<li class="menu-item {{ request()->is('admin/payments') ? 'active' : '' }}">
 			<a href="{{ route('admin.payments.index') }}" class="menu-link">
 				<i class="menu-icon tf-icons fas fa-history"></i>
-				<div data-i18n="paymentList">Payment History</div>
+				<div>{{ __('erp.payment_history') }}</div>
 			</a>
 		</li>
 		<li class="menu-item {{ request()->is('admin/receipts*') ? 'active' : '' }}">
 			<a href="{{ route('admin.receipts.index') }}" class="menu-link">
 				<i class="menu-icon tf-icons fas fa-receipt"></i>
-				<div data-i18n="receipts">Receipts</div>
+				<div>{{ __('erp.receipts') }}</div>
 			</a>
 		</li>
 		<li class="menu-item {{ request()->is('admin/ledger*') ? 'active' : '' }}">
 			<a href="{{ route('admin.ledger.index') }}" class="menu-link">
 				<i class="menu-icon tf-icons fas fa-book-open"></i>
-				<div data-i18n="ledger">Financial Ledgers</div>
+				<div>{{ __('erp.ledger') }}</div>
 			</a>
 		</li>
 
 		<!-- Certificates & Events -->
 		<li class="menu-header small text-uppercase">
-			<span class="menu-header-text" data-i18n="certificatesEvents">Certificates & Events</span>
+			<span class="menu-header-text">{{ __('erp.certificates_events') }}</span>
 		</li>
 		<li class="menu-item {{ request()->is('admin/certificates*') ? 'active' : '' }}">
 			<a href="{{ route('admin.certificates.index') }}" class="menu-link">
 				<i class="menu-icon tf-icons fas fa-certificate"></i>
-				<div data-i18n="certificates">Certificates</div>
+				<div>{{ __('erp.certificates') }}</div>
 			</a>
 		</li>
 		<li class="menu-item {{ request()->is('admin/events*') ? 'active' : '' }}">
 			<a href="{{ route('admin.events.index') }}" class="menu-link">
 				<i class="menu-icon tf-icons fas fa-calendar-alt"></i>
-				<div data-i18n="events">Marriage Events</div>
+				<div>{{ __('erp.marriage_events') }}</div>
 			</a>
 		</li>
 		<li class="menu-item {{ request()->is('admin/payouts*') ? 'active' : '' }}">
 			<a href="{{ route('admin.payouts.index') }}" class="menu-link">
 				<i class="menu-icon tf-icons fas fa-hand-holding-usd"></i>
-				<div data-i18n="payouts">Beneficiary Payouts</div>
+				<div>{{ __('erp.payouts') }}</div>
 			</a>
 		</li>
 		<li class="menu-item {{ request()->is('admin/whatsapp*') ? 'active' : '' }}">
 			<a href="{{ route('admin.whatsapp.index') }}" class="menu-link">
 				<i class="menu-icon tf-icons fab fa-whatsapp"></i>
-				<div data-i18n="whatsapp">WhatsApp Center</div>
+				<div>{{ __('erp.whatsapp') }}</div>
 			</a>
 		</li>
 
 		<!-- Reports & Admin -->
 		<li class="menu-header small text-uppercase">
-			<span class="menu-header-text">{{ __('erp.reportsAdmin', [], 'en') ?: 'Reports & System' }}</span>
+			<span class="menu-header-text">{{ __('erp.reports_system') }}</span>
 		</li>
 		<li class="menu-item {{ request()->is('admin/reports*') ? 'active' : '' }}">
 			<a href="{{ route('admin.reports.index') }}" class="menu-link">

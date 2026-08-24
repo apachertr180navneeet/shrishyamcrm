@@ -2,28 +2,53 @@
 
 return [
     'app_name' => 'Shri Shyam Welfare Society ERP',
-    'app_name_hindi' => 'श्री श्याम वेलफेयर सोसायटी लोहीकी ईआरपी',
+    'app_name_hindi' => 'श्री श्याम वेलफेयर सोसायटी',
+    'welfare_society' => 'Shri Shyam Welfare Society',
+    'welfare_society_erp' => 'Welfare Society ERP',
+    
+    // Navigation Headers
+    'main_menu' => 'Main Menu',
+    'master_records' => 'Master Records',
+    'member_enrolment' => 'Member Enrolment',
+    'agent_network' => 'Agent Network',
+    'collections_accounting' => 'Collections & Accounting',
+    'certificates_events' => 'Certificates & Events',
+    'reports_system' => 'Reports & System',
+    
+    // Navigation Links
     'dashboard' => 'Dashboard',
     'master_data' => 'Master Data',
-    'schemes' => 'Schemes',
+    'schemes' => 'Schemes Master',
+    'schemes_master' => 'Schemes Master',
     'age_slabs' => 'Age Slabs',
     'members' => 'Members',
     'all_members' => 'All Members',
-    'add_member' => 'Register Member',
+    'add_member' => 'Add New Member',
     'agents' => 'Agent Network',
+    'all_agents' => 'All Agents',
     'payments' => 'Collections & Payments',
     'payment_entry' => 'Payment Entry',
+    'payment_history' => 'Payment History',
     'receipts' => 'Official Receipts',
-    'ledger' => 'Financial Ledger',
+    'ledger' => 'Financial Ledgers',
     'certificates' => 'Certificates',
-    'marriage_events' => 'Society Events',
+    'marriage_events' => 'Marriage Events',
     'payouts' => 'Beneficiary Payouts',
     'whatsapp' => 'WhatsApp Center',
     'reports' => 'Reports Center',
     'users' => 'Users & Roles',
     'settings' => 'Society Settings',
     'audit_logs' => 'Audit Trail',
-    'logout' => 'Logout',
+    
+    // Header & User Actions
+    'global_search_placeholder' => 'Global search (Name, Member No, Receipt...)',
+    'my_profile' => 'My Profile',
+    'change_password' => 'Change Password',
+    'logout' => 'Log Out',
+    'switch_language' => 'Switch Language',
+    'admin_dashboard' => 'Administrative Dashboard',
+    
+    // KPI & Stats
     'total_members' => 'Total Members',
     'active_members' => 'Active Members',
     'today_collection' => "Today's Collection",
@@ -31,6 +56,13 @@ return [
     'pending_amount' => 'Pending Dues',
     'total_events' => 'Total Events',
     'total_payouts' => 'Total Payouts',
+    'quick_actions' => 'Quick Actions',
+    'event_billing' => 'Event Billing',
+    'partial_payment' => 'Partial Payment',
+    'disburse_payout' => 'Disburse Payout',
+    'whatsapp_receipt' => 'WhatsApp Receipt',
+    
+    // Actions & Buttons
     'save' => 'Save Record',
     'submit' => 'Submit',
     'cancel' => 'Cancel',
@@ -40,4 +72,9 @@ return [
     'export_csv' => 'Export CSV',
     'print' => 'Print',
     'download_pdf' => 'Download PDF',
+    'edit' => 'Edit',
+    'delete' => 'Delete',
+    'view' => 'View',
+    'filter' => 'Filter',
+    'reset' => 'Reset',
 ];

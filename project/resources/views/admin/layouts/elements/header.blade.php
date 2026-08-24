@@ -21,7 +21,7 @@
 		<div class="navbar-nav align-items-center">
 			<div class="nav-item d-flex align-items-center">
 				<i class="bx bx-search fs-4 lh-0 me-2 text-muted"></i>
-				<input type="text" class="form-control border-0 shadow-none bg-transparent" placeholder="Global search (Name, Member No, Receipt...)" style="max-width: 320px;" onkeyup="if(event.key==='Enter') window.location.href='{{ route('admin.members.index') }}?search=' + encodeURIComponent(this.value)">
+				<input type="text" class="form-control border-0 shadow-none bg-transparent" placeholder="{{ __('erp.global_search_placeholder') }}" style="max-width: 320px;" onkeyup="if(event.key==='Enter') window.location.href='{{ route('admin.members.index') }}?search=' + encodeURIComponent(this.value)">
 			</div>
 		</div>
 
@@ -37,7 +37,7 @@
 
 			<!-- Bilingual Toggle Button -->
 			<li class="nav-item">
-				<a href="{{ route('lang.switch', app()->getLocale() === 'hi' ? 'en' : 'hi') }}" class="btn btn-sm btn-outline-primary px-2 py-1 d-flex align-items-center gap-1 shadow-sm" title="Switch Language">
+				<a href="{{ route('lang.switch', app()->getLocale() === 'hi' ? 'en' : 'hi') }}" class="btn btn-sm btn-outline-primary px-2 py-1 d-flex align-items-center gap-1 shadow-sm" title="{{ __('erp.switch_language') }}">
 					<i class="fas fa-globe"></i>
 					<span class="fw-semibold" style="font-size: 12px;">{{ app()->getLocale() === 'hi' ? 'English' : 'हिंदी' }}</span>
 				</a>
@@ -81,13 +81,13 @@
 					<li>
 						<a class="dropdown-item" href="{{ route('admin.profile') }}">
 							<i class="bx bx-user me-2 text-primary"></i>
-							<span class="align-middle">My Profile</span>
+							<span class="align-middle">{{ __('erp.my_profile') }}</span>
 						</a>
 					</li>
 					<li>
 						<a class="dropdown-item" href="{{ route('admin.change.password') }}">
 							<i class="bx bx-key me-2 text-warning"></i>
-							<span class="align-middle">Change Password</span>
+							<span class="align-middle">{{ __('erp.change_password') }}</span>
 						</a>
 					</li>
 					<li>
@@ -96,7 +96,7 @@
 					<li>
 						<a class="dropdown-item text-danger" href="{{ route('admin.logout') }}">
 							<i class="bx bx-power-off me-2 text-danger"></i>
-							<span class="align-middle fw-medium">Log Out</span>
+							<span class="align-middle fw-medium">{{ __('erp.logout') }}</span>
 						</a>
 					</li>
 				</ul>
