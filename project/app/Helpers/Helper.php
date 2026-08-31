@@ -11,7 +11,15 @@ class Helper
     public static function admin()
     {
         $admin = User::where('id', 1)->first();
-        return $admin;
+        return optional($admin);
+    }
+
+    /**
+     * Escape LIKE wildcards so user input cannot act as pattern metacharacters.
+     */
+    public static function likeEscape($value): string
+    {
+        return str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $value);
     }
 
     public static function slug($table, $name)
@@ -57,7 +65,7 @@ class Helper
     public static function cleanImage($string)
     {
         $string = str_replace(' ', '-', $string);
-        return preg_replace('/[^A-Za-z0-9.\-]/', '', $string);
+        return preg_replace('/[^A-Za-z0-9.\-_]/', '', $string);
     }
 
     public static function userDetail($user_id)

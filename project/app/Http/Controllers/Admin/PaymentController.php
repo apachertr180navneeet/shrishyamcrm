@@ -24,7 +24,7 @@ class PaymentController extends Controller
         }
 
         if ($request->filled('search')) {
-            $search = $request->search;
+            $search = \App\Helpers\Helper::likeEscape($request->search);
             $query->where(function ($q) use ($search) {
                 $q->where('receipt_no', 'like', "%{$search}%")
                   ->orWhere('reference_no', 'like', "%{$search}%")
@@ -68,13 +68,29 @@ class PaymentController extends Controller
         $request->validate([
             'member_id' => 'required|exists:members,id',
             'amount' => 'required|numeric|min:1',
-            'payment_type' => 'required|string',
-            'payment_mode' => 'required|string',
+            'payment_type' => 'required|string|in:Joining Fee,Monthly Support,Event Contribution,Special Donation',
+            'payment_mode' => 'required|string|in:Cash,UPI,Bank Transfer,Cheque',
             'payment_date' => 'required|date',
         ]);
 
         try {
-            $payment = PaymentService::processPayment($request->all());
+            // Agent scoping: agents can only record payments for their own members
+            $user = auth()->user();
+            $member = Member::findOrFail($request->member_id);
+            if ($user && $user->isAgent() && $user->agent_id && $member->agent_id !== $user->agent_id) {
+                return back()->withInput()->with('error', 'You are not authorised to record a payment for this member.');
+            }
+
+            // Pass only expected fields (prevent mass assignment injection)
+            $paymentData = $request->only([
+                'member_id', 'payment_type', 'payment_mode', 'reference_no',
+                'payment_date', 'remarks', 'amount',
+            ]);
+            if ($user && $user->isAgent() && $user->agent_id) {
+                $paymentData['agent_id'] = $user->agent_id;
+            }
+
+            $payment = PaymentService::processPayment($paymentData);
 
             return redirect()->route('admin.payments.receipt', $payment->id)
                 ->with('success', "Payment of ₹{$request->amount} recorded successfully. Receipt No: {$payment->receipt_no}");
@@ -93,7 +109,7 @@ class PaymentController extends Controller
         }
 
         if ($request->filled('search')) {
-            $search = $request->search;
+            $search = \App\Helpers\Helper::likeEscape($request->search);
             $query->where(function ($q) use ($search) {
                 $q->where('receipt_no', 'like', "%{$search}%")
                   ->orWhereHas('member', function ($mq) use ($search) {
@@ -123,6 +139,12 @@ class PaymentController extends Controller
 
     public function receiptPdf($id)
     {
+        $user = auth()->user();
+        $query = Payment::query();
+        if ($user && $user->isAgent() && $user->agent_id) {
+            $query->where('agent_id', $user->agent_id);
+        }
+        $query->findOrFail($id); // authorization check (404 if not scoped)
         $pdf = ReceiptService::generatePdf($id);
         return $pdf->download("SSWS_Receipt_{$id}.pdf");
     }
@@ -140,7 +162,12 @@ class PaymentController extends Controller
         $ledgerEntries = collect();
 
         if ($request->filled('member_id')) {
-            $selectedMember = Member::with(['scheme', 'agent', 'ledgers.creator', 'payments'])->find($request->member_id);
+            // Apply the same agent scope as the member list
+            $selectedQuery = Member::with(['scheme', 'agent', 'ledgers.creator', 'payments'])->where('id', $request->member_id);
+            if ($user && $user->isAgent() && $user->agent_id) {
+                $selectedQuery->where('agent_id', $user->agent_id);
+            }
+            $selectedMember = $selectedQuery->first();
             if ($selectedMember) {
                 $ledgerEntries = $selectedMember->ledgers()->orderBy('transaction_date')->orderBy('id')->get();
             }

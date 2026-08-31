@@ -20,7 +20,7 @@ class CertificateController extends Controller
         }
 
         if ($request->filled('search')) {
-            $search = $request->search;
+            $search = \App\Helpers\Helper::likeEscape($request->search);
             $query->where(function ($q) use ($search) {
                 $q->where('full_name', 'like', "%{$search}%")
                   ->orWhere('membership_no', 'like', "%{$search}%")
@@ -52,6 +52,12 @@ class CertificateController extends Controller
 
     public function downloadPdf($id)
     {
+        $user = auth()->user();
+        $query = Member::query();
+        if ($user && $user->isAgent() && $user->agent_id) {
+            $query->where('agent_id', $user->agent_id);
+        }
+        $query->findOrFail($id); // authorization check (404 if not scoped)
         $pdf = CertificateService::generatePdf($id);
         return $pdf->download("SSWS_Certificate_{$id}.pdf");
     }

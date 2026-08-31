@@ -17,14 +17,19 @@ class PaymentService
     public static function processPayment(array $data): Payment
     {
         return DB::transaction(function () use ($data) {
-            $member = Member::findOrFail($data['member_id']);
+            $member = Member::lockForUpdate()->findOrFail($data['member_id']);
             $agentId = $data['agent_id'] ?? $member->agent_id;
             $agent = $agentId ? Agent::find($agentId) : null;
-            $amount = (float)$data['amount'];
+            $amount = (float)($data['amount'] ?? 0);
+
+            if ($amount <= 0) {
+                throw new \InvalidArgumentException('Payment amount must be greater than zero.');
+            }
+
             $paymentDate = $data['payment_date'] ?? now()->toDateString();
             $paymentType = $data['payment_type'] ?? 'Monthly Support';
             $paymentMode = $data['payment_mode'] ?? 'Cash';
-            $referenceNo = $data['reference_no'] ?? ($paymentMode === 'Cash' ? 'CASH-' . rand(10000, 99999) : 'TXN' . rand(100000, 999999));
+            $referenceNo = $data['reference_no'] ?? ($paymentMode === 'Cash' ? 'CASH-' . rand(10000, 99999) : 'TXN' . random_int(100000, 999999));
             $remarks = $data['remarks'] ?? 'Payment received';
 
             // Generate official receipt number
@@ -63,9 +68,8 @@ class PaymentService
                 referenceNo: $referenceNo
             );
 
-            // 3. Update Member cumulative paid amount
-            $member->total_paid += $amount;
-            $member->save();
+            // 3. Update Member cumulative paid amount (atomic to avoid lost updates)
+            $member->increment('total_paid', $amount);
 
             // 4. Record Agent Commission if applicable
             if ($agent && (float)$agent->commission_rate > 0) {

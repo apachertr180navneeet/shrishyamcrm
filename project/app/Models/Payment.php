@@ -29,12 +29,12 @@ class Payment extends Model
 
     public function ledger()
     {
-        return $this->hasOne(Ledger::class);
+        return $this->hasMany(Ledger::class);
     }
 
     public function commission()
     {
-        return $this->hasOne(AgentCommission::class);
+        return $this->hasMany(AgentCommission::class);
     }
 
     public function getAmountInWordsAttribute(): string

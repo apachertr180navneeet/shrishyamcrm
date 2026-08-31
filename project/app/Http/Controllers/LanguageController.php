@@ -19,7 +19,12 @@ class LanguageController extends Controller
 
         $referer = $request->headers->get('referer');
         if ($referer) {
-            return redirect()->to($referer);
+            // Only allow redirecting back to the same host (prevents open-redirect)
+            $refererHost = parse_url($referer, PHP_URL_HOST);
+            $appHost = parse_url(config('app.url'), PHP_URL_HOST);
+            if ($refererHost && $appHost && $refererHost === $appHost) {
+                return redirect()->to($referer);
+            }
         }
 
         return redirect()->back();

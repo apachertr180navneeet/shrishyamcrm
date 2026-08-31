@@ -28,7 +28,8 @@ class MemberController extends Controller
         }
 
         if ($request->filled('search')) {
-            $search = $request->search;
+            // Escape LIKE wildcards so user input matches literally (MySQL default ESCAPE '\')
+            $search = \App\Helpers\Helper::likeEscape($request->search);
             $query->where(function ($q) use ($search) {
                 $q->where('full_name', 'like', "%{$search}%")
                   ->orWhere('membership_no', 'like', "%{$search}%")
@@ -64,7 +65,8 @@ class MemberController extends Controller
     {
         $schemes = Scheme::with('ageSlabs')->where('status', 'Active')->get();
         $agents = Agent::where('status', 'Active')->get();
-        $nextMemNum = 'MEM-' . date('Y') . '-' . (1001 + Member::count());
+        // Use the thread-safe number series to anticipate the next membership number
+        $nextMemNum = NumberSeriesService::peekNextNumber('MEM', ['prefix' => 'MEM-' . date('Y') . '-', 'initial_value' => 1001, 'padding' => 4]);
 
         return view('admin.members.create', compact('schemes', 'agents', 'nextMemNum'));
     }
@@ -86,7 +88,18 @@ class MemberController extends Controller
                 'address' => $request->file('address_doc'),
             ];
 
-            $member = MemberRegistrationService::register($request->all(), array_filter($files));
+            // Pass only expected member fields (prevent mass assignment injection)
+            $memberData = $request->only([
+                'membership_no', 'full_name', 'father_spouse_name', 'mother_name', 'gender',
+                'dob', 'mobile', 'gotra', 'caste', 'address', 'district', 'state', 'pincode',
+                'aadhaar_no', 'scheme_id', 'agent_id', 'joining_date', 'payment_mode',
+                'reference_no', 'initial_paid_amount', 'nominee1_name', 'nominee1_father',
+                'nominee1_relation', 'nominee1_mobile', 'nominee1_aadhaar', 'nominee1_address',
+                'nominee1_share', 'nominee2_name', 'nominee2_father', 'nominee2_relation',
+                'nominee2_mobile', 'nominee2_aadhaar', 'nominee2_address', 'nominee2_share',
+            ]);
+
+            $member = MemberRegistrationService::register($memberData, array_filter($files));
 
             return redirect()->route('admin.members.show', $member->id)
                 ->with('success', "Member {$member->full_name} enrolled successfully with Membership No: {$member->membership_no}!");
@@ -112,13 +125,24 @@ class MemberController extends Controller
 
     public function destroy($id)
     {
-        $member = Member::findOrFail($id);
+        $user = auth()->user();
+        $query = Member::query();
+        if ($user && $user->isAgent() && $user->agent_id) {
+            $query->where('agent_id', $user->agent_id);
+        }
+        $member = $query->findOrFail($id);
         $member->delete();
         return redirect()->route('admin.members.index')->with('success', 'Member record archived successfully.');
     }
 
     public function certificatePdf($id)
     {
+        $user = auth()->user();
+        $query = Member::query();
+        if ($user && $user->isAgent() && $user->agent_id) {
+            $query->where('agent_id', $user->agent_id);
+        }
+        $query->findOrFail($id); // authorization check (404 if not scoped)
         $pdf = CertificateService::generatePdf($id);
         return $pdf->download("SSWS_Certificate_{$id}.pdf");
     }

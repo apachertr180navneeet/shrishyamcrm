@@ -120,61 +120,65 @@ Route::name('admin.')->prefix('admin')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| Server Artisan Helper Routes
+| Server Artisan Helper Routes (Super Admin Only)
 |--------------------------------------------------------------------------
-| You can access these routes in the browser to run migrations/commands on the server.
+| These routes are restricted to authenticated super-admins to prevent
+| unauthorised database migration / seeder / cache manipulation.
 */
 
-// Run Migrations (with --force for production)
-Route::get('/run-migrations', function () {
-    try {
-        Artisan::call('migrate', ['--force' => true]);
-        $output = Artisan::output();
-        return '<div style="font-family: monospace; padding: 20px; background: #1e1e1e; color: #00ff66; border-radius: 8px;">'
-            . '<h3>Migration Successful!</h3>'
-            . '<pre>' . ($output ?: 'Migrations ran successfully (no new migrations to execute).') . '</pre>'
-            . '</div>';
-    } catch (\Throwable $e) {
-        return '<div style="font-family: monospace; padding: 20px; background: #1e1e1e; color: #ff5555; border-radius: 8px;">'
-            . '<h3>Migration Error:</h3>'
-            . '<pre>' . $e->getMessage() . '</pre>'
-            . '</div>';
-    }
-});
+Route::prefix('/server-tools')->name('server.')->middleware(['admin', 'role:super_admin'])->group(function () {
 
-// Clear & Optimize Cache
-Route::get('/clear-cache', function () {
-    try {
-        Artisan::call('optimize:clear');
-        $output = Artisan::output();
-        return '<div style="font-family: monospace; padding: 20px; background: #1e1e1e; color: #00ff66; border-radius: 8px;">'
-            . '<h3>Cache Cleared Successfully!</h3>'
-            . '<pre>' . $output . '</pre>'
-            . '</div>';
-    } catch (\Throwable $e) {
-        return '<div style="font-family: monospace; padding: 20px; background: #1e1e1e; color: #ff5555; border-radius: 8px;">'
-            . '<h3>Error:</h3>'
-            . '<pre>' . $e->getMessage() . '</pre>'
-            . '</div>';
-    }
-});
+    // Run Migrations (with --force for production)
+    Route::get('/run-migrations', function () {
+        try {
+            Artisan::call('migrate', ['--force' => true]);
+            $output = Artisan::output();
+            return '<div style="font-family: monospace; padding: 20px; background: #1e1e1e; color: #00ff66; border-radius: 8px;">'
+                . '<h3>Migration Successful!</h3>'
+                . '<pre>' . ($output ?: 'Migrations ran successfully (no new migrations to execute).') . '</pre>'
+                . '</div>';
+        } catch (\Throwable $e) {
+            return '<div style="font-family: monospace; padding: 20px; background: #1e1e1e; color: #ff5555; border-radius: 8px;">'
+                . '<h3>Migration Error:</h3>'
+                . '<pre>' . e($e->getMessage()) . '</pre>'
+                . '</div>';
+        }
+    })->name('run-migrations');
 
-// Run Seeders (Agents, Schemes, Roles)
-Route::get('/run-seeders', function () {
-    try {
-        (new \Database\Seeders\AgentSeeder())->run();
-        (new \Database\Seeders\SchemeSeeder())->run();
+    // Clear & Optimize Cache
+    Route::get('/clear-cache', function () {
+        try {
+            Artisan::call('optimize:clear');
+            $output = Artisan::output();
+            return '<div style="font-family: monospace; padding: 20px; background: #1e1e1e; color: #00ff66; border-radius: 8px;">'
+                . '<h3>Cache Cleared Successfully!</h3>'
+                . '<pre>' . e($output) . '</pre>'
+                . '</div>';
+        } catch (\Throwable $e) {
+            return '<div style="font-family: monospace; padding: 20px; background: #1e1e1e; color: #ff5555; border-radius: 8px;">'
+                . '<h3>Error:</h3>'
+                . '<pre>' . e($e->getMessage()) . '</pre>'
+                . '</div>';
+        }
+    })->name('clear-cache');
 
-        return '<div style="font-family: monospace; padding: 20px; background: #1e1e1e; color: #00ff66; border-radius: 8px;">'
-            . '<h3>Database Seeders Ran Successfully!</h3>'
-            . '<p>Agents count: ' . \App\Models\Agent::count() . '</p>'
-            . '<p>Schemes count: ' . \App\Models\Scheme::count() . '</p>'
-            . '</div>';
-    } catch (\Throwable $e) {
-        return '<div style="font-family: monospace; padding: 20px; background: #1e1e1e; color: #ff5555; border-radius: 8px;">'
-            . '<h3>Seeder Error:</h3>'
-            . '<pre>' . $e->getMessage() . '</pre>'
-            . '</div>';
-    }
+    // Run Seeders (Agents, Schemes, Roles)
+    Route::get('/run-seeders', function () {
+        try {
+            (new \Database\Seeders\AgentSeeder())->run();
+            (new \Database\Seeders\SchemeSeeder())->run();
+
+            return '<div style="font-family: monospace; padding: 20px; background: #1e1e1e; color: #00ff66; border-radius: 8px;">'
+                . '<h3>Database Seeders Ran Successfully!</h3>'
+                . '<p>Agents count: ' . \App\Models\Agent::count() . '</p>'
+                . '<p>Schemes count: ' . \App\Models\Scheme::count() . '</p>'
+                . '</div>';
+        } catch (\Throwable $e) {
+            return '<div style="font-family: monospace; padding: 20px; background: #1e1e1e; color: #ff5555; border-radius: 8px;">'
+                . '<h3>Seeder Error:</h3>'
+                . '<pre>' . e($e->getMessage()) . '</pre>'
+                . '</div>';
+        }
+    })->name('run-seeders');
 });
 

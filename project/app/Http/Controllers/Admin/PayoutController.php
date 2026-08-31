@@ -35,7 +35,10 @@ class PayoutController extends Controller
         ]);
 
         try {
-            $payout = PayoutService::createPayout($request->all());
+            $payout = PayoutService::createPayout($request->only([
+                'event_id', 'member_id', 'scheme_id', 'payout_type', 'beneficiary_name',
+                'relation', 'amount', 'payout_date', 'payment_mode', 'transaction_ref', 'remarks',
+            ]));
 
             return back()->with('success', "Beneficiary payout {$payout->payout_no} of ₹{$payout->amount} recorded successfully!");
         } catch (\Exception $e) {

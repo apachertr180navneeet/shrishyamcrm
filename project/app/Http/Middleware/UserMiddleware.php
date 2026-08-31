@@ -17,15 +17,17 @@ class UserMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
-        if(Auth::user()) {
-            $user = Auth::user();
-            if($user->role == "user") {
-                return $next($request);
-            }else{
-                return back()->with("error","Opps! You do not have access this");
-            }
-        }else{
-            return redirect()->route('login.get');
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('admin.login');
         }
+
+        if ($user->status !== 'active') {
+            Auth::logout();
+            return redirect()->route('admin.login')->with('error', 'Your account has been deactivated.');
+        }
+
+        // Authenticated users with an active status are permitted.
+        return $next($request);
     }
 }

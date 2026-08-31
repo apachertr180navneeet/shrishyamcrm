@@ -26,8 +26,8 @@ class SchemeSeeder extends Seeder
 
         $seniorSlabs = [
             ['slab_code' => 'SLAB-S1', 'min_age' => 18, 'max_age' => 40, 'joining_amount' => 1100, 'support_amount' => 200],
-            ['slab_code' => 'SLAB-S2', 'min_age' => 41, 'max_age' => 60, 'joining_amount' => 1500, 'support_amount' => 300],
-            ['slab_code' => 'SLAB-S3', 'min_age' => 60, 'max_age' => 75, 'joining_amount' => 2000, 'support_amount' => 400],
+            ['slab_code' => 'SLAB-S2', 'min_age' => 41, 'max_age' => 59, 'joining_amount' => 1500, 'support_amount' => 300],
+            ['slab_code' => 'SLAB-S3', 'min_age' => 60, 'max_age' => 74, 'joining_amount' => 2000, 'support_amount' => 400],
             ['slab_code' => 'SLAB-S4', 'min_age' => 75, 'max_age' => 120, 'joining_amount' => 2500, 'support_amount' => 500],
         ];
 
@@ -56,7 +56,7 @@ class SchemeSeeder extends Seeder
             ['slab_code' => 'SLAB-M1', 'min_age' => 0, 'max_age' => 5, 'joining_amount' => 1100, 'support_amount' => 100],
             ['slab_code' => 'SLAB-M2', 'min_age' => 6, 'max_age' => 9, 'joining_amount' => 1100, 'support_amount' => 200],
             ['slab_code' => 'SLAB-M3', 'min_age' => 10, 'max_age' => 13, 'joining_amount' => 2000, 'support_amount' => 300],
-            ['slab_code' => 'SLAB-M4', 'min_age' => 14, 'max_age' => 17, 'joining_amount' => 2500, 'support_amount' => 400],
+            ['slab_code' => 'SLAB-M4', 'min_age' => 14, 'max_age' => 16, 'joining_amount' => 2500, 'support_amount' => 400],
             ['slab_code' => 'SLAB-M5', 'min_age' => 17, 'max_age' => 120, 'joining_amount' => 2500, 'support_amount' => 500],
         ];
 

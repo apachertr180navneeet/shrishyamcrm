@@ -11,7 +11,7 @@ class WhatsAppLog extends Model
 
     protected $table = 'whatsapp_logs';
 
-    protected $guarded = [];
+    protected $guarded = ['id'];
 
     protected $casts = [
         'sent_at' => 'datetime',

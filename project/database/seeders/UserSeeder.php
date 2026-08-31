@@ -56,7 +56,7 @@ class UserSeeder extends Seeder
                 'last_name' => $u['last_name'],
                 'full_name' => $u['full_name'],
                 'slug' => $u['slug'],
-                'password' => Hash::make('123456'),
+                'password' => Hash::make('ShriShyam@123'),
                 'phone' => $u['phone'],
                 'role' => $u['role'],
                 'role_id' => $u['role_id'],

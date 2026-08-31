@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Agent;
+use App\Services\NumberSeriesService;
 
 class AgentController extends Controller
 {
@@ -13,7 +14,7 @@ class AgentController extends Controller
         $query = Agent::with(['members', 'payments']);
 
         if ($request->filled('search')) {
-            $search = $request->search;
+            $search = \App\Helpers\Helper::likeEscape($request->search);
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('agent_code', 'like', "%{$search}%")
@@ -37,17 +38,20 @@ class AgentController extends Controller
         $request->validate([
             'name' => 'required|string|max:150',
             'mobile' => 'required|string|max:20',
+            'email' => 'nullable|email|max:150',
             'district' => 'required|string|max:100',
             'commission_rate' => 'required|numeric|min:0|max:100',
         ]);
 
-        $count = Agent::count() + 1;
-        $agentCode = 'AGT-' . str_pad($count, 3, '0', STR_PAD_LEFT);
+        // Thread-safe, unique agent code generation
+        $agentCode = NumberSeriesService::getNextNumber('AGT', ['prefix' => 'AGT-', 'initial_value' => 1, 'padding' => 3]);
+        // Normalise the short "code" field to match the agent_code format
+        $code = str_replace('-', '', $agentCode);
 
         Agent::create([
             'agent_code' => $agentCode,
             'name' => $request->name,
-            'code' => 'AGT' . str_pad($count, 2, '0', STR_PAD_LEFT),
+            'code' => $code,
             'mobile' => $request->mobile,
             'email' => $request->email,
             'district' => $request->district,

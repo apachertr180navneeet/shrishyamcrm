@@ -55,7 +55,8 @@ class User extends Authenticatable
 
     public function hasPermission(string $permissionName): bool
     {
-        if ($this->hasRole('super_admin') || $this->role === 'super_admin' || $this->role === 'admin') {
+        if ($this->hasRole('super_admin') || $this->role === 'super_admin' || $this->role === 'admin' ||
+            ($this->roleModel && $this->roleModel->name === 'super_admin')) {
             return true;
         }
 
@@ -74,12 +75,12 @@ class User extends Authenticatable
 
     public function isSuperAdmin(): bool
     {
-        return $this->hasRole('super_admin');
+        return $this->hasRole('super_admin') || ($this->roleModel && $this->roleModel->name === 'super_admin');
     }
 
     public function isAgent(): bool
     {
-        return $this->hasRole('agent') || $this->agent_id !== null;
+        return $this->hasRole('agent') || ($this->agent_id !== null && $this->exists);
     }
 
     public function getAvatarFullPathAttribute()

@@ -23,6 +23,11 @@ class MemberSeeder extends Seeder
         $marriageScheme = Scheme::where('code', 'MARRIAGE')->first();
         $agents = Agent::all();
 
+        if ($agents->isEmpty()) {
+            $this->command?->warn('No agents found. Skipping member seeding.');
+            return;
+        }
+
         $firstNamesM = ['Ramchandra', 'Satyanarayan', 'Ghanashyam', 'Bhagwan Das', 'Jagdish', 'Kishore', 'Omprakash', 'Banwari Lal', 'Goyal', 'Subhash', 'Tarachand', 'Mahavir', 'Dharamvir', 'Bhikam Chand', 'Harish', 'Nirmal', 'Sohan Lal', 'Prabhu Dayal', 'Radheshyam', 'Shriniwas', 'Vijay', 'Manoj', 'Mukesh', 'Rajesh', 'Sanjay', 'Sunil', 'Devender'];
         $firstNamesF = ['Shanti', 'Kamla', 'Rami', 'Bhagwati', 'Kausalya', 'Ganga', 'Geeta', 'Saraswati', 'Savitri', 'Laxmi', 'Parvati', 'Sita', 'Suman', 'Bimla', 'Sunita', 'Anita', 'Manju', 'Rekha', 'Prem', 'Santosh', 'Renu', 'Kavita', 'Pooja', 'Aarti', 'Kiran'];
         $lastNames = ['Sharma', 'Verma', 'Yadav', 'Saini', 'Gupta', 'Shekhawat', 'Khandelwal', 'Jangir', 'Agarwal', 'Choudhary', 'Rathore', 'Meena', 'Kanwar', 'Garg', 'Bhardwaj'];

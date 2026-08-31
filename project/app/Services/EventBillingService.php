@@ -21,16 +21,22 @@ class EventBillingService
         return DB::transaction(function () use ($data) {
             $eventId = $data['event_id'] ?? null;
             $billingMonth = $data['billing_month'] ?? Carbon::now()->format('Y-m'); // e.g. 2026-07
+
+            // Validate month format before Carbon parsing to avoid crashes on bad input
+            if (!preg_match('/^\d{4}-\d{2}$/', $billingMonth)) {
+                throw new Exception("Invalid billing month format: {$billingMonth}.");
+            }
             $monthName = Carbon::createFromFormat('Y-m', $billingMonth)->format('F Y');
             $schemeId = $data['scheme_id'] ?? null;
             $eventsCount = (int)($data['events_count'] ?? 1);
             $ratePerEvent = (float)($data['rate_per_event'] ?? 200.0);
             $totalPerMember = $eventsCount * $ratePerEvent;
 
-            // 1. Check for Duplicate Billing
+            // 1. Check for Duplicate Billing (row-locked to prevent concurrent duplicates)
             $existing = EventBilling::where('billing_month', $billingMonth)
                 ->when($eventId, fn($q) => $q->where('event_id', $eventId))
                 ->when($schemeId, fn($q) => $q->where('scheme_id', $schemeId))
+                ->lockForUpdate()
                 ->first();
 
             if ($existing) {

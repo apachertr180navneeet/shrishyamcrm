@@ -68,7 +68,9 @@ class MarriageEventController extends Controller
         ]);
 
         try {
-            $billing = EventBillingService::processConsolidatedBilling($request->all());
+            $billing = EventBillingService::processConsolidatedBilling($request->only([
+                'event_id', 'billing_month', 'events_count', 'rate_per_event',
+            ]));
 
             return back()->with('success', "Consolidated billing for {$billing->month_name} applied successfully to {$billing->billed_members_count} active members. Total: ₹" . number_format($billing->total_billing_amount, 2));
         } catch (\Exception $e) {

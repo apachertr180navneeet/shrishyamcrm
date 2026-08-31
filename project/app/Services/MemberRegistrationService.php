@@ -112,7 +112,12 @@ class MemberRegistrationService
             if (!empty($files)) {
                 foreach ($files as $type => $file) {
                     if ($file && $file->isValid()) {
-                        $filename = time() . '_' . $file->getClientOriginalName();
+                        // Sanitise filename: random + safe original extension (prevents path traversal)
+                        $safeExt = strtolower(pathinfo($file->getClientOriginalName(), PATHINFO_EXTENSION));
+                        if (!preg_match('/^(jpg|jpeg|png|gif|pdf|webp)$/', $safeExt)) {
+                            throw new \InvalidArgumentException("Unsupported file type for {$type}: .{$safeExt}");
+                        }
+                        $filename = 'member_' . $member->id . '_' . $type . '_' . time() . '_' . random_int(1000, 9999) . '.' . $safeExt;
                         $path = $file->storeAs('uploads/documents', $filename, 'public');
 
                         MemberDocument::create([

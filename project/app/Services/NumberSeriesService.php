@@ -57,6 +57,28 @@ class NumberSeriesService
     }
 
     /**
+     * Anticipate (without consuming) the next sequential number for display purposes.
+     */
+    public static function peekNextNumber(string $code, array $defaults = []): string
+    {
+        $series = NumberSeries::where('code', $code)->lockForUpdate()->first();
+
+        $currentYear = Carbon::now()->format('Y');
+
+        if (!$series) {
+            $prefix = $defaults['prefix'] ?? "{$code}-{$currentYear}-";
+            $initialVal = $defaults['initial_value'] ?? 1001;
+            $padding = $defaults['padding'] ?? 4;
+            $numberPart = str_pad($initialVal, $padding, '0', STR_PAD_LEFT);
+            return str_replace('YYYY', $currentYear, $prefix) . $numberPart;
+        }
+
+        $prefix = str_replace('YYYY', $currentYear, $series->prefix);
+        $numberPart = str_pad($series->current_value, $series->padding, '0', STR_PAD_LEFT);
+        return $prefix . $numberPart;
+    }
+
+    /**
      * Initialize standard series if not present
      */
     public static function seedStandardSeries(): void

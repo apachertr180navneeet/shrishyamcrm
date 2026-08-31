@@ -17,7 +17,6 @@ class PayoutService
     public static function createPayout(array $data): Payout
     {
         return DB::transaction(function () use ($data) {
-            $count = Payout::count() + 1;
             $payoutNo = NumberSeriesService::getNextNumber('PAY', ['prefix' => 'PAY-' . Carbon::now()->format('Y') . '-', 'initial_value' => 1, 'padding' => 3]);
 
             $payout = Payout::create([
@@ -33,17 +32,22 @@ class PayoutService
                 'approved_by' => auth()->check() ? auth()->user()->full_name : 'Super Admin',
                 'disbursed_by' => auth()->check() ? auth()->user()->full_name : 'Super Admin',
                 'payment_mode' => $data['payment_mode'] ?? 'Bank Transfer',
-                'transaction_ref' => $data['transaction_ref'] ?? ('UTR' . rand(100000, 999999)),
-                'status' => $data['status'] ?? 'Disbursed',
+                'transaction_ref' => $data['transaction_ref'] ?? ('UTR' . random_int(100000, 999999)),
+                'status' => ($data['status'] ?? 'Disbursed'),
                 'remarks' => $data['remarks'] ?? 'Beneficiary assistance disbursed',
             ]);
 
-            // Update associated event status and payout amount if linked
+            // Mark event Completed only when cumulative disbursed payouts reach the target amount
             if (!empty($data['event_id'])) {
                 $event = MarriageEvent::find($data['event_id']);
-                if ($event) {
-                    $event->status = 'Completed';
-                    $event->save();
+                if ($event && $event->target_amount > 0) {
+                    $totalDisbursed = Payout::where('event_id', $event->id)
+                        ->where('status', 'Disbursed')
+                        ->sum('amount');
+                    if ($totalDisbursed >= (float)$event->target_amount) {
+                        $event->status = 'Completed';
+                        $event->save();
+                    }
                 }
             }
 
@@ -59,19 +63,43 @@ class PayoutService
     }
 
     /**
-     * Advance approval status workflow (Eligible -> Pending Approval -> Approved -> Disbursed -> Rejected)
+     * Allowed status transitions (state machine).
      */
+    private const ALLOWED_TRANSITIONS = [
+        'Eligible'          => ['Pending Approval', 'Rejected'],
+        'Pending Approval'  => ['Approved', 'Rejected'],
+        'Approved'          => ['Disbursed', 'Rejected'],
+        'Disbursed'         => [],
+        'Rejected'          => [],
+    ];
+
     public static function updateStatus(int $payoutId, string $newStatus, ?string $remarks = null): Payout
     {
+        $newStatus = trim($newStatus);
+
+        if (!array_key_exists($newStatus, self::ALLOWED_TRANSITIONS)) {
+            throw new \InvalidArgumentException("Invalid payout status: {$newStatus}.");
+        }
+
         return DB::transaction(function () use ($payoutId, $newStatus, $remarks) {
-            $payout = Payout::findOrFail($payoutId);
+            $payout = Payout::lockForUpdate()->findOrFail($payoutId);
             $oldStatus = $payout->status;
+
+            // Enforce state machine transitions
+            $allowed = self::ALLOWED_TRANSITIONS[$oldStatus] ?? [];
+            if (!in_array($newStatus, $allowed, true)) {
+                throw new \InvalidArgumentException("Cannot transition payout {$payout->payout_no} from '{$oldStatus}' to '{$newStatus}'.");
+            }
+
             $payout->status = $newStatus;
 
             if ($newStatus === 'Approved') {
                 $payout->approved_by = auth()->check() ? auth()->user()->full_name : 'Super Admin';
             } elseif ($newStatus === 'Disbursed') {
                 $payout->disbursed_by = auth()->check() ? auth()->user()->full_name : 'Super Admin';
+                if (empty($payout->approved_by)) {
+                    throw new \InvalidArgumentException('Payout must be Approved before it can be disbursed.');
+                }
             }
 
             if ($remarks) {

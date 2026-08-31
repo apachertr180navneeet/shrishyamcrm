@@ -17,12 +17,16 @@ class CheckRoleOrPermission
         $user = auth()->user();
 
         // Super Admin has unrestricted access
-        if ($user->isSuperAdmin() || $user->role === 'super_admin' || $user->role === 'admin') {
+        if ($user->isSuperAdmin() || $user->role === 'super_admin' || $user->role === 'admin' || ($user->roleModel && $user->roleModel->name === 'super_admin')) {
             return $next($request);
         }
 
+        // Deny if no roles/permissions were specified — fail closed rather than open.
         if (empty($rolesOrPermissions)) {
-            return $next($request);
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['error' => 'Unauthorized. You do not have permission to perform this action.'], 403);
+            }
+            return redirect()->route('admin.dashboard')->with('error', 'You do not have permission to access this module.');
         }
 
         foreach ($rolesOrPermissions as $item) {
