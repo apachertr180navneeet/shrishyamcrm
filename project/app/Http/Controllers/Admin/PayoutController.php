@@ -14,14 +14,15 @@ class PayoutController extends Controller
 {
     public function index()
     {
-        $payouts = Payout::with(['event', 'member', 'scheme'])->latest('payout_date')->get();
+        $payouts = Payout::with(['event', 'member', 'scheme'])->latest('id')->get();
         $events = MarriageEvent::where('status', '!=', 'Completed')->get();
         $members = Member::where('status', 'Active')->get();
         $schemes = Scheme::where('status', 'Active')->get();
         $totalDisbursed = Payout::where('status', 'Disbursed')->sum('amount');
         $totalPending = Payout::where('status', 'Pending Approval')->sum('amount');
+        $nextPayoutNo = \App\Services\NumberSeriesService::peekNextNumber('PAY', ['prefix' => 'PAY-' . date('Y') . '-', 'initial_value' => 1, 'padding' => 3]);
 
-        return view('admin.payouts.index', compact('payouts', 'events', 'members', 'schemes', 'totalDisbursed', 'totalPending'));
+        return view('admin.payouts.index', compact('payouts', 'events', 'members', 'schemes', 'totalDisbursed', 'totalPending', 'nextPayoutNo'));
     }
 
     public function store(Request $request)
@@ -31,16 +32,27 @@ class PayoutController extends Controller
             'amount' => 'required|numeric|min:1',
             'payout_date' => 'required|date',
             'payment_mode' => 'required|string',
-            'payout_type' => 'required|string',
+            'payout_type' => 'nullable|string',
+            'event_id' => 'nullable|exists:marriage_events,id',
+            'member_id' => 'nullable|exists:members,id',
+            'scheme_id' => 'nullable|exists:schemes,id',
+            'relation' => 'nullable|string|max:100',
+            'transaction_ref' => 'nullable|string|max:100',
+            'remarks' => 'nullable|string|max:500',
+            'status' => 'nullable|string|in:Disbursed,Pending Approval,Approved',
         ]);
 
         try {
-            $payout = PayoutService::createPayout($request->only([
+            $data = $request->only([
                 'event_id', 'member_id', 'scheme_id', 'payout_type', 'beneficiary_name',
-                'relation', 'amount', 'payout_date', 'payment_mode', 'transaction_ref', 'remarks',
-            ]));
+                'relation', 'amount', 'payout_date', 'payment_mode', 'transaction_ref', 'remarks', 'status'
+            ]);
+            $data['payout_type'] = $request->payout_type ?: 'Marriage Assistance';
+            $data['status'] = $request->status ?: 'Disbursed';
 
-            return back()->with('success', "Beneficiary payout {$payout->payout_no} of ₹{$payout->amount} recorded successfully!");
+            $payout = PayoutService::createPayout($data);
+
+            return back()->with('success', "Beneficiary payout {$payout->payout_no} of ₹" . number_format($payout->amount) . " recorded successfully!");
         } catch (\Exception $e) {
             return back()->with('error', 'Error recording payout: ' . $e->getMessage());
         }
