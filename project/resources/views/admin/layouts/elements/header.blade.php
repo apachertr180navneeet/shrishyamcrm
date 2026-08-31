@@ -3,9 +3,10 @@
     $avatarUrl = (!empty($authUser?->avatar) && file_exists(public_path($authUser->avatar)))
         ? asset($authUser->avatar)
         : asset('assets/admin/img/avatars/1.png');
-    $userName = $authUser->full_name ?? ($authUser->first_name ?? 'Shri Navneet Sharma');
-    $userRole = ucfirst($authUser->role ?? 'Super Admin');
-    $userEmail = $authUser->email ?? 'admin@shrishyamwelfare.org';
+    $userName = $authUser->full_name ?? ($authUser->first_name ?? 'User');
+    $rawRole = $authUser?->roleModel ? $authUser->roleModel->name : ($authUser?->role ?? 'User');
+    $userRole = ucwords(str_replace('_', ' ', $rawRole));
+    $userEmail = $authUser->email ?? '';
 @endphp
 
 <nav class="layout-navbar container-fluid navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme"

@@ -88,8 +88,7 @@ const SSWS = {
     },
 
     init() {
-        this.applyLanguage(this.currentLang);
-        this.applyRole(this.currentRole);
+        // UI Helpers
     },
 
     toggleLanguage() {
@@ -112,27 +111,6 @@ const SSWS = {
                 el.innerText = dict[key];
             }
         });
-    },
-
-    switchRole(role) {
-        this.currentRole = role;
-        localStorage.setItem('SSWS_ROLE', this.currentRole);
-        this.applyRole(role);
-        this.showToast(`Switched active view role to: ${role}`, 'info');
-    },
-
-    applyRole(role) {
-        const roleSwitcher = document.getElementById('globalRoleSwitcher');
-        if (roleSwitcher) roleSwitcher.value = role;
-
-        const roleBadge = document.getElementById('displayRoleBadge');
-        if (roleBadge) roleBadge.innerText = role;
-
-        const banner = document.getElementById('agentViewBanner');
-        if (banner) {
-            if (role === 'Agent') banner.classList.remove('d-none');
-            else banner.classList.add('d-none');
-        }
     },
 
     showToast(message, type = 'success', duration = 3500) {
