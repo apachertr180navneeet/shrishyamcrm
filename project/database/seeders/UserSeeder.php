@@ -49,27 +49,32 @@ class UserSeeder extends Seeder
         ];
 
         foreach ($users as $u) {
-            $user = User::updateOrCreate(
-                ['email' => $u['email']],
-                [
-                    'first_name' => $u['first_name'],
-                    'last_name' => $u['last_name'],
-                    'full_name' => $u['full_name'],
-                    'slug' => $u['slug'],
-                    'password' => Hash::make('123456'),
-                    'phone' => $u['phone'],
-                    'role' => $u['role'],
-                    'role_id' => $u['role_id'],
-                    'agent_id' => null,
-                    'address' => 'Lohki, District Mahendragarh, Haryana',
-                    'city' => 'Narnaul',
-                    'state' => 'Haryana',
-                    'country' => 'India',
-                    'country_code' => 91,
-                    'zipcode' => '123001',
-                    'status' => 'active',
-                ]
-            );
+            $user = User::where('email', $u['email'])->orWhere('phone', $u['phone'])->first();
+            $data = [
+                'email' => $u['email'],
+                'first_name' => $u['first_name'],
+                'last_name' => $u['last_name'],
+                'full_name' => $u['full_name'],
+                'slug' => $u['slug'],
+                'password' => Hash::make('123456'),
+                'phone' => $u['phone'],
+                'role' => $u['role'],
+                'role_id' => $u['role_id'],
+                'agent_id' => null,
+                'address' => 'Lohki, District Mahendragarh, Haryana',
+                'city' => 'Narnaul',
+                'state' => 'Haryana',
+                'country' => 'India',
+                'country_code' => 91,
+                'zipcode' => '123001',
+                'status' => 'active',
+            ];
+
+            if ($user) {
+                $user->update($data);
+            } else {
+                $user = User::create($data);
+            }
 
             if ($u['role_id']) {
                 $user->roles()->sync([$u['role_id']]);

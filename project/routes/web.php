@@ -159,3 +159,22 @@ Route::get('/clear-cache', function () {
     }
 });
 
+// Run Seeders (Agents, Schemes, Roles)
+Route::get('/run-seeders', function () {
+    try {
+        (new \Database\Seeders\AgentSeeder())->run();
+        (new \Database\Seeders\SchemeSeeder())->run();
+
+        return '<div style="font-family: monospace; padding: 20px; background: #1e1e1e; color: #00ff66; border-radius: 8px;">'
+            . '<h3>Database Seeders Ran Successfully!</h3>'
+            . '<p>Agents count: ' . \App\Models\Agent::count() . '</p>'
+            . '<p>Schemes count: ' . \App\Models\Scheme::count() . '</p>'
+            . '</div>';
+    } catch (\Throwable $e) {
+        return '<div style="font-family: monospace; padding: 20px; background: #1e1e1e; color: #ff5555; border-radius: 8px;">'
+            . '<h3>Seeder Error:</h3>'
+            . '<pre>' . $e->getMessage() . '</pre>'
+            . '</div>';
+    }
+});
+

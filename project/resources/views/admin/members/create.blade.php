@@ -110,7 +110,7 @@
                 </div>
             </div>
 
-            <form action="{{ route('admin.members.store') }}" method="POST" id="memberWizardForm">
+            <form action="{{ route('admin.members.store') }}" method="POST" id="memberWizardForm" enctype="multipart/form-data">
                 @csrf
 
                 <!-- STEP 1: Basic Information -->
@@ -204,7 +204,7 @@
                                 <i class="fas fa-camera fs-2 text-primary mb-2"></i>
                                 <h6 class="fw-semibold mb-1">Member Passport Photo</h6>
                                 <small class="text-muted d-block mb-2">JPG, PNG up to 2MB</small>
-                                <input type="file" class="form-control form-control-sm">
+                                <input type="file" name="photo" class="form-control form-control-sm" accept="image/*">
                             </div>
                         </div>
                         <div class="col-md-6 col-12">
@@ -212,7 +212,7 @@
                                 <i class="fas fa-file-pdf fs-2 text-warning mb-2"></i>
                                 <h6 class="fw-semibold mb-1">Aadhaar / ID Card Copy</h6>
                                 <small class="text-muted d-block mb-2">PDF, JPG up to 5MB</small>
-                                <input type="file" class="form-control form-control-sm">
+                                <input type="file" name="aadhaar_doc" class="form-control form-control-sm" accept=".pdf,image/*">
                             </div>
                         </div>
                     </div>
@@ -293,17 +293,21 @@
                         <div class="col-md-6 col-12">
                             <label class="form-label fw-semibold">Select Society Scheme (योजना का चयन करें) <span class="text-danger">*</span></label>
                             <select name="scheme_id" id="schemeSelect" class="form-select" required onchange="calculateAgeAndSlab()">
-                                @foreach($schemes as $sch)
-                                <option value="{{ $sch->id }}" data-code="{{ $sch->code }}">{{ $sch->name_hindi }} ({{ $sch->name }})</option>
-                                @endforeach
+                                @forelse($schemes as $sch)
+                                <option value="{{ $sch->id }}" data-code="{{ $sch->code }}" {{ $loop->first ? 'selected' : '' }}>{{ $sch->name_hindi ?? $sch->name }} ({{ $sch->name }})</option>
+                                @empty
+                                <option value="">-- No Active Schemes Available --</option>
+                                @endforelse
                             </select>
                         </div>
                         <div class="col-md-6 col-12">
                             <label class="form-label fw-semibold">Assigned Agent (आवंटित एजेंट) <span class="text-danger">*</span></label>
-                            <select name="agent_id" class="form-select" required>
-                                @foreach($agents as $agt)
-                                <option value="{{ $agt->id }}">{{ $agt->name }} ({{ $agt->agent_code }} - {{ $agt->district }})</option>
-                                @endforeach
+                            <select name="agent_id" id="agentSelect" class="form-select" required>
+                                @forelse($agents as $agt)
+                                <option value="{{ $agt->id }}" {{ $loop->first ? 'selected' : '' }}>{{ $agt->name }} ({{ $agt->agent_code }} - {{ $agt->district }})</option>
+                                @empty
+                                <option value="">-- No Active Agents Available --</option>
+                                @endforelse
                             </select>
                         </div>
 
@@ -379,20 +383,20 @@
                                     <h6 class="fw-bold text-success mb-3"><i class="fas fa-receipt me-1"></i> Summary of Enrolment</h6>
                                     <ul class="list-unstyled mb-0">
                                         <li class="d-flex justify-content-between py-1 border-bottom">
-                                            <span class="text-muted">Society Registration Fee:</span>
-                                            <strong class="text-success" id="summaryJoining">₹1,500</strong>
+                                             <span class="text-muted">Society Registration Fee:</span>
+                                             <strong class="text-success" id="summaryJoining">₹1,500</strong>
                                         </li>
                                         <li class="d-flex justify-content-between py-1 border-bottom">
-                                            <span class="text-muted">Monthly Recurring Support:</span>
-                                            <strong class="text-primary" id="summarySupport">₹300 / mo</strong>
+                                             <span class="text-muted">Monthly Recurring Support:</span>
+                                             <strong class="text-primary" id="summarySupport">₹300 / mo</strong>
                                         </li>
                                         <li class="d-flex justify-content-between py-1 border-bottom">
-                                            <span class="text-muted">Official Society Receipt:</span>
-                                            <span class="badge bg-success">Auto-Generated</span>
+                                             <span class="text-muted">Official Society Receipt:</span>
+                                             <span class="badge bg-success">Auto-Generated</span>
                                         </li>
                                         <li class="d-flex justify-content-between py-1">
-                                            <span class="text-muted">Membership Certificate:</span>
-                                            <span class="badge bg-warning">Gold-Border Ready</span>
+                                             <span class="text-muted">Membership Certificate:</span>
+                                             <span class="badge bg-warning">Gold-Border Ready</span>
                                         </li>
                                     </ul>
                                 </div>
@@ -416,7 +420,24 @@
 
 @section('script')
 <script>
+let currentStep = 1;
+
 function goToStep(stepNumber) {
+    if (stepNumber > currentStep) {
+        // Validate inputs in the current active pane before moving forward
+        const currentPane = document.getElementById('stepPane' + currentStep);
+        if (currentPane) {
+            const inputs = currentPane.querySelectorAll('input, select, textarea');
+            for (let input of inputs) {
+                if (!input.checkValidity()) {
+                    input.reportValidity();
+                    return false;
+                }
+            }
+        }
+    }
+
+    currentStep = stepNumber;
     for (let i = 1; i <= 5; i++) {
         const pane = document.getElementById('stepPane' + i);
         const ind = document.getElementById('stepIndicator' + i);
@@ -449,6 +470,7 @@ function calculateAgeAndSlab() {
     document.getElementById('calculatedAge').value = age;
 
     const schemeSelect = document.getElementById('schemeSelect');
+    if (!schemeSelect || !schemeSelect.value) return;
     const schemeId = schemeSelect.value;
 
     fetch("{{ route('admin.api.slab-by-age') }}?scheme_id=" + schemeId + "&age=" + age)
@@ -468,6 +490,30 @@ function calculateAgeAndSlab() {
 
 document.addEventListener("DOMContentLoaded", function () {
     calculateAgeAndSlab();
+
+    const form = document.getElementById('memberWizardForm');
+    if (form) {
+        form.addEventListener('submit', function (e) {
+            const inputs = this.querySelectorAll('input, select, textarea');
+            for (let input of inputs) {
+                if (!input.checkValidity()) {
+                    e.preventDefault();
+                    const pane = input.closest('.wizard-pane');
+                    if (pane) {
+                        const stepNum = parseInt(pane.id.replace('stepPane', ''));
+                        if (stepNum) {
+                            goToStep(stepNum);
+                        }
+                    }
+                    setTimeout(() => {
+                        input.focus();
+                        input.reportValidity();
+                    }, 150);
+                    return false;
+                }
+            }
+        });
+    }
 });
 </script>
 @endsection

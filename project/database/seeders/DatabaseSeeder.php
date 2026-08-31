@@ -15,6 +15,8 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             NumberSeriesSeeder::class,
             UserSeeder::class,
+            AgentSeeder::class,
+            SchemeSeeder::class,
         ]);
     }
 }
