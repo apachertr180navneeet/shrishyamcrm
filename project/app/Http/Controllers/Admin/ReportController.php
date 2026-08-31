@@ -24,7 +24,8 @@ class ReportController extends Controller
     {
         $user = auth()->user();
         $type = $this->normaliseType($request->get('type'));
-        $agents = Agent::where('status', 'Active')->get();
+        $isAgent = $user && $user->isAgent() && $user->agent_id;
+        $agents = $isAgent ? Agent::where('id', $user->agent_id)->get() : Agent::where('status', 'Active')->get();
 
         $data = [];
 

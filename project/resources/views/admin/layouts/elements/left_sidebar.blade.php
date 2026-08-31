@@ -76,16 +76,15 @@
 			</a>
 		</li>
 
-		<!-- Agent Network -->
-		<li class="menu-header small text-uppercase">
-			<span class="menu-header-text">{{ __('erp.agent_network') }}</span>
-		</li>
-		<li class="menu-item {{ request()->is('admin/agents*') ? 'active' : '' }}">
-			<a href="{{ route('admin.agents.index') }}" class="menu-link">
-				<i class="menu-icon tf-icons fas fa-user-tie"></i>
-				<div>{{ __('erp.all_agents') }}</div>
+		@if(auth()->check() && auth()->user()->isAgent() && auth()->user()->agent_id)
+		<!-- Agent Profile -->
+		<li class="menu-item {{ request()->is('admin/agents/' . auth()->user()->agent_id) ? 'active' : '' }}">
+			<a href="{{ route('admin.agents.show', auth()->user()->agent_id) }}" class="menu-link">
+				<i class="menu-icon tf-icons fas fa-id-badge"></i>
+				<div>{{ __('erp.my_profile') }}</div>
 			</a>
 		</li>
+		@endif
 
 		<!-- Collections & Accounting -->
 		<li class="menu-header small text-uppercase">

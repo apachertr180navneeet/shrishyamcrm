@@ -17,6 +17,8 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             AgentSeeder::class,
             SchemeSeeder::class,
+            MemberSeeder::class,
+            EventAndPayoutSeeder::class,
         ]);
     }
 }

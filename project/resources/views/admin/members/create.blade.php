@@ -302,13 +302,19 @@
                         </div>
                         <div class="col-md-6 col-12">
                             <label class="form-label fw-semibold">Assigned Agent (आवंटित एजेंट) <span class="text-danger">*</span></label>
-                            <select name="agent_id" id="agentSelect" class="form-select" required>
-                                @forelse($agents as $agt)
-                                <option value="{{ $agt->id }}" {{ $loop->first ? 'selected' : '' }}>{{ $agt->name }} ({{ $agt->agent_code }} - {{ $agt->district }})</option>
-                                @empty
-                                <option value="">-- No Active Agents Available --</option>
-                                @endforelse
-                            </select>
+                            @if(auth()->check() && auth()->user()->isAgent() && auth()->user()->agent_id)
+                                @php $currentAgent = $agents->first(); @endphp
+                                <input type="hidden" name="agent_id" value="{{ auth()->user()->agent_id }}">
+                                <input type="text" class="form-control bg-light fw-semibold" value="{{ $currentAgent ? $currentAgent->name . ' (' . $currentAgent->agent_code . ' - ' . $currentAgent->district . ')' : 'Assigned to your agent profile' }}" readonly>
+                            @else
+                                <select name="agent_id" id="agentSelect" class="form-select" required>
+                                    @forelse($agents as $agt)
+                                    <option value="{{ $agt->id }}" {{ $loop->first ? 'selected' : '' }}>{{ $agt->name }} ({{ $agt->agent_code }} - {{ $agt->district }})</option>
+                                    @empty
+                                    <option value="">-- No Active Agents Available --</option>
+                                    @endforelse
+                                </select>
+                            @endif
                         </div>
 
                         <!-- Auto Determined Slab Details Card -->

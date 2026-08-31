@@ -30,7 +30,7 @@ class DashboardController extends Controller
         $totalMembers = (clone $memberQuery)->count();
         $activeMembers = (clone $memberQuery)->where('status', 'Active')->count();
         $inactiveMembers = (clone $memberQuery)->where('status', '!=', 'Active')->count();
-        $totalAgents = Agent::where('status', 'Active')->count();
+        $totalAgents = $isAgent ? 1 : Agent::where('status', 'Active')->count();
 
         // Payment metrics
         $paymentQuery = Payment::where('status', 'Verified');
@@ -56,7 +56,9 @@ class DashboardController extends Controller
         $marriageMembersCount = $marriageScheme ? (clone $memberQuery)->where('scheme_id', $marriageScheme->id)->count() : 0;
 
         // Top Agents
-        $topAgents = Agent::withSum('payments', 'amount')->orderBy('payments_sum_amount', 'desc')->take(5)->get();
+        $topAgents = $isAgent
+            ? Agent::where('id', $agentId)->withSum('payments', 'amount')->get()
+            : Agent::withSum('payments', 'amount')->orderBy('payments_sum_amount', 'desc')->take(5)->get();
 
         // Recent Payments
         $recentPayments = (clone $paymentQuery)->with(['member', 'agent'])->latest('payment_date')->take(6)->get();

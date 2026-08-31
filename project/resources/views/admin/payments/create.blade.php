@@ -101,13 +101,19 @@
                                 <input type="date" name="payment_date" class="form-control" value="{{ date('Y-m-d') }}" required>
                             </div>
                             <div class="col-md-6 col-12">
-                                <label class="form-label fw-semibold">Collecting Agent (वैकल्पिक)</label>
-                                <select name="agent_id" id="agentSelect" class="form-select">
-                                    <option value="">-- HQ Direct Collection --</option>
-                                    @foreach($agents as $a)
-                                    <option value="{{ $a->id }}">{{ $a->name }} ({{ $a->agent_code }})</option>
-                                    @endforeach
-                                </select>
+                                <label class="form-label fw-semibold">Collecting Agent (संग्रहकर्ता एजेंट)</label>
+                                @if(auth()->check() && auth()->user()->isAgent() && auth()->user()->agent_id)
+                                    @php $currentAgent = $agents->first(); @endphp
+                                    <input type="hidden" name="agent_id" value="{{ auth()->user()->agent_id }}">
+                                    <input type="text" class="form-control bg-light fw-semibold" value="{{ $currentAgent ? $currentAgent->name . ' (' . $currentAgent->agent_code . ')' : 'Your Agent Profile' }}" readonly>
+                                @else
+                                    <select name="agent_id" id="agentSelect" class="form-select">
+                                        <option value="">-- HQ Direct Collection --</option>
+                                        @foreach($agents as $a)
+                                        <option value="{{ $a->id }}">{{ $a->name }} ({{ $a->agent_code }})</option>
+                                        @endforeach
+                                    </select>
+                                @endif
                             </div>
                         </div>
 

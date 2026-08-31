@@ -27,7 +27,7 @@
                         <input type="text" name="search" class="form-control" placeholder="Search by name, member no, mobile, aadhaar..." value="{{ request('search') }}">
                     </div>
                 </div>
-                <div class="col-lg-3 col-md-6 col-12">
+                <div class="{{ (auth()->check() && auth()->user()->isAgent() && auth()->user()->agent_id) ? 'col-lg-5' : 'col-lg-3' }} col-md-6 col-12">
                     <select name="scheme_id" class="form-select" onchange="this.form.submit()">
                         <option value="">All Schemes (सभी योजनाएं)</option>
                         @foreach($schemes as $sch)
@@ -35,6 +35,7 @@
                         @endforeach
                     </select>
                 </div>
+                @if(!(auth()->check() && auth()->user()->isAgent() && auth()->user()->agent_id))
                 <div class="col-lg-3 col-md-6 col-12">
                     <select name="agent_id" class="form-select" onchange="this.form.submit()">
                         <option value="">All Agents (सभी एजेंट)</option>
@@ -43,6 +44,7 @@
                         @endforeach
                     </select>
                 </div>
+                @endif
                 <div class="col-lg-2 col-md-6 col-12 d-flex gap-2">
                     <button type="submit" class="btn btn-primary w-100">Filter</button>
                     <a href="{{ route('admin.members.index') }}" class="btn btn-outline-secondary">Reset</a>

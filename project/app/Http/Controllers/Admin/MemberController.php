@@ -56,15 +56,18 @@ class MemberController extends Controller
 
         $members = $query->latest('id')->paginate(15)->withQueryString();
         $schemes = Scheme::where('status', 'Active')->get();
-        $agents = Agent::where('status', 'Active')->get();
+        $isAgent = $user && $user->isAgent() && $user->agent_id;
+        $agents = $isAgent ? Agent::where('id', $user->agent_id)->get() : Agent::where('status', 'Active')->get();
 
         return view('admin.members.index', compact('members', 'schemes', 'agents'));
     }
 
     public function create()
     {
+        $user = auth()->user();
+        $isAgent = $user && $user->isAgent() && $user->agent_id;
         $schemes = Scheme::with('ageSlabs')->where('status', 'Active')->get();
-        $agents = Agent::where('status', 'Active')->get();
+        $agents = $isAgent ? Agent::where('id', $user->agent_id)->get() : Agent::where('status', 'Active')->get();
         // Use the thread-safe number series to anticipate the next membership number
         $nextMemNum = NumberSeriesService::peekNextNumber('MEM', ['prefix' => 'MEM-' . date('Y') . '-', 'initial_value' => 1001, 'padding' => 4]);
 
@@ -73,6 +76,11 @@ class MemberController extends Controller
 
     public function store(Request $request)
     {
+        $user = auth()->user();
+        if ($user && $user->isAgent() && $user->agent_id) {
+            $request->merge(['agent_id' => $user->agent_id]);
+        }
+
         $request->validate([
             'full_name' => 'required|string|max:150',
             'mobile' => 'required|string|max:20',

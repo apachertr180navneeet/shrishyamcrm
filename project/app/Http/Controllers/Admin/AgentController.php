@@ -11,6 +11,11 @@ class AgentController extends Controller
 {
     public function index(Request $request)
     {
+        $user = auth()->user();
+        if ($user && $user->isAgent() && $user->agent_id) {
+            return redirect()->route('admin.agents.show', $user->agent_id);
+        }
+
         $query = Agent::with(['members', 'payments']);
 
         if ($request->filled('search')) {
@@ -35,6 +40,11 @@ class AgentController extends Controller
 
     public function store(Request $request)
     {
+        $user = auth()->user();
+        if ($user && $user->isAgent()) {
+            abort(403, 'Unauthorized. Agents cannot register new agents.');
+        }
+
         $request->validate([
             'name' => 'required|string|max:150',
             'mobile' => 'required|string|max:20',
@@ -65,6 +75,11 @@ class AgentController extends Controller
 
     public function show($id)
     {
+        $user = auth()->user();
+        if ($user && $user->isAgent() && $user->agent_id && (int)$id !== (int)$user->agent_id) {
+            abort(403, 'Unauthorized access to other agent profiles.');
+        }
+
         $agent = Agent::with(['members.scheme', 'payments.member'])->findOrFail($id);
         return view('admin.agents.show', compact('agent'));
     }

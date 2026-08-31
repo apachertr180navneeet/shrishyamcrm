@@ -53,11 +53,12 @@ class PaymentController extends Controller
     {
         $user = auth()->user();
         $membersQuery = Member::with(['scheme', 'agent'])->where('status', 'Active');
-        if ($user && $user->isAgent() && $user->agent_id) {
+        $isAgent = $user && $user->isAgent() && $user->agent_id;
+        if ($isAgent) {
             $membersQuery->where('agent_id', $user->agent_id);
         }
         $members = $membersQuery->get();
-        $agents = Agent::where('status', 'Active')->get();
+        $agents = $isAgent ? Agent::where('id', $user->agent_id)->get() : Agent::where('status', 'Active')->get();
         $selectedMemberId = $request->member_id;
 
         return view('admin.payments.create', compact('members', 'agents', 'selectedMemberId'));
