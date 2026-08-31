@@ -19,7 +19,7 @@
 
     <!-- Agent Cards Grid -->
     <div class="row g-4">
-        @foreach($agents as $agent)
+        @forelse($agents as $agent)
         <div class="col-xl-4 col-md-6 col-12">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body p-4">
@@ -34,7 +34,8 @@
                         </div>
                         <div>
                             <h5 class="fw-bold mb-0 text-heading">{{ $agent->name }}</h5>
-                            <small class="text-muted"><i class="fas fa-map-marker-alt me-1 text-danger"></i> {{ $agent->district }}</small>
+                            <small class="text-muted d-block"><i class="fas fa-map-marker-alt me-1 text-danger"></i> {{ $agent->district ?? 'N/A' }}</small>
+                            <small class="text-muted"><i class="fas fa-phone me-1 text-primary"></i> {{ $agent->mobile ?? ($agent->user?->phone ?? 'N/A') }}</small>
                         </div>
                     </div>
 
@@ -67,7 +68,22 @@
                 </div>
             </div>
         </div>
-        @endforeach
+        @empty
+        <div class="col-12">
+            <div class="card border-0 shadow-sm p-5 text-center">
+                <div class="avatar avatar-xl bg-label-primary mx-auto mb-3" style="width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
+                    <i class="fas fa-user-tie fs-2"></i>
+                </div>
+                <h5 class="fw-bold mb-1">No Society Agents Registered</h5>
+                <p class="text-muted mb-3">Agents created in User Management (with role Agent) or registered here will be listed here.</p>
+                <div>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAgentModal">
+                        <i class="fas fa-user-plus me-1"></i> Register First Agent
+                    </button>
+                </div>
+            </div>
+        </div>
+        @endforelse
     </div>
 </div>
 
@@ -102,9 +118,19 @@
                             <input type="email" name="email" class="form-control" placeholder="agent@mail.com">
                         </div>
                         <div class="col-6">
-                            <label class="form-label fw-semibold">Commission Rate (%)</label>
+                            <label class="form-label fw-semibold">Commission Rate (%) <span class="text-danger">*</span></label>
                             <input type="number" name="commission_rate" class="form-control" value="5.00" step="0.5" required>
                         </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Agent Login Password (लॉगिन पासवर्ड) <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="password" name="password" id="agentPasswordInput" class="form-control" placeholder="Set password for agent (min 6 characters)" minlength="6" required>
+                            <button class="btn btn-outline-secondary" type="button" onclick="const p = document.getElementById('agentPasswordInput'); p.type = p.type === 'password' ? 'text' : 'password';">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <small class="text-muted">Agent will log in with their Mobile/Email and this password.</small>
                     </div>
                     <div class="mb-0">
                         <label class="form-label fw-semibold">Office / Residential Address</label>

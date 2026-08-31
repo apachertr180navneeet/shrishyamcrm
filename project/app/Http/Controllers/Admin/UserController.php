@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\Agent;
+use App\Services\NumberSeriesService;
 use Illuminate\Support\Facades\Hash;
 use App\Services\AuditService;
 
@@ -51,6 +52,25 @@ class UserController extends Controller
 
         $user->roles()->sync([$role->id]);
 
+        // Auto-create and link Agent record if role is agent and no agent is linked
+        if ($role->name === 'agent' && !$user->agent_id) {
+            $agentCode = NumberSeriesService::getNextNumber('AGT', ['prefix' => 'AGT-', 'initial_value' => 1, 'padding' => 3]);
+            $code = str_replace('-', '', $agentCode);
+            $agent = Agent::create([
+                'agent_code' => $agentCode,
+                'name' => $user->full_name,
+                'code' => $code,
+                'mobile' => $user->phone,
+                'email' => $user->email,
+                'district' => 'Mahendragarh',
+                'address' => $user->address ?: '',
+                'commission_rate' => 5.0,
+                'status' => 'Active',
+                'user_id' => $user->id,
+            ]);
+            $user->update(['agent_id' => $agent->id]);
+        }
+
         AuditService::log('create', 'users', (string)$user->id, null, ['name' => $user->full_name, 'role' => $role->name]);
 
         return back()->with('success', "User {$user->full_name} created successfully with role {$role->display_name}.");
@@ -88,6 +108,24 @@ class UserController extends Controller
         }
 
         $user->roles()->sync([$role->id]);
+
+        if ($role->name === 'agent' && !$user->agent_id) {
+            $agentCode = NumberSeriesService::getNextNumber('AGT', ['prefix' => 'AGT-', 'initial_value' => 1, 'padding' => 3]);
+            $code = str_replace('-', '', $agentCode);
+            $agent = Agent::create([
+                'agent_code' => $agentCode,
+                'name' => $user->full_name,
+                'code' => $code,
+                'mobile' => $user->phone,
+                'email' => $user->email,
+                'district' => 'Mahendragarh',
+                'address' => $user->address ?: '',
+                'commission_rate' => 5.0,
+                'status' => 'Active',
+                'user_id' => $user->id,
+            ]);
+            $user->update(['agent_id' => $agent->id]);
+        }
 
         AuditService::log('update', 'users', (string)$user->id, null, ['name' => $user->full_name, 'role' => $role->name]);
 
