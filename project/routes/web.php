@@ -50,25 +50,11 @@ Route::name('admin.')->prefix('admin')->group(function () {
         // Dashboard
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-        // Schemes & Age Slabs
-        Route::get('schemes', [SchemeController::class, 'index'])->name('schemes.index');
-        Route::post('schemes', [SchemeController::class, 'store'])->name('schemes.store');
-        Route::put('schemes/{id}', [SchemeController::class, 'update'])->name('schemes.update');
-        Route::delete('schemes/{id}', [SchemeController::class, 'destroy'])->name('schemes.destroy');
-        Route::post('schemes/{id}/status', [SchemeController::class, 'toggleStatus'])->name('schemes.toggle-status');
-
-        Route::get('age-slabs', [SchemeController::class, 'ageSlabs'])->name('schemes.age-slabs');
-        Route::post('age-slabs', [SchemeController::class, 'storeAgeSlab'])->name('schemes.age-slabs.store');
-        Route::put('age-slabs/{id}', [SchemeController::class, 'updateAgeSlab'])->name('schemes.age-slabs.update');
-        Route::delete('age-slabs/{id}', [SchemeController::class, 'destroyAgeSlab'])->name('schemes.age-slabs.destroy');
-        Route::get('api/slab-by-age', [SchemeController::class, 'getSlabByAge'])->name('api.slab-by-age');
+        // ---- Agent-accessible routes (scoped to agent's own data) ----
 
         // Member Enrolment
         Route::resource('members', MemberController::class);
         Route::get('members/{id}/certificate/pdf', [MemberController::class, 'certificatePdf'])->name('members.certificate.pdf');
-
-        // Agent Network
-        Route::resource('agents', AgentController::class)->only(['index', 'store', 'show']);
 
         // Collections & Payments
         Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
@@ -84,16 +70,6 @@ Route::name('admin.')->prefix('admin')->group(function () {
         Route::get('certificates/{id}', [CertificateController::class, 'show'])->name('certificates.show');
         Route::get('certificates/{id}/pdf', [CertificateController::class, 'downloadPdf'])->name('certificates.pdf');
 
-        // Marriage Events
-        Route::get('events', [MarriageEventController::class, 'index'])->name('events.index');
-        Route::post('events', [MarriageEventController::class, 'store'])->name('events.store');
-        Route::post('events/billing', [MarriageEventController::class, 'billMembers'])->name('events.billing');
-
-        // Beneficiary Payouts
-        Route::get('payouts', [PayoutController::class, 'index'])->name('payouts.index');
-        Route::post('payouts', [PayoutController::class, 'store'])->name('payouts.store');
-        Route::post('payouts/{id}/status', [PayoutController::class, 'updateStatus'])->name('payouts.update-status');
-
         // WhatsApp Center
         Route::get('whatsapp', [WhatsAppController::class, 'index'])->name('whatsapp.index');
         Route::post('whatsapp/send', [WhatsAppController::class, 'send'])->name('whatsapp.send');
@@ -102,19 +78,49 @@ Route::name('admin.')->prefix('admin')->group(function () {
         Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
         Route::get('reports/export', [ReportController::class, 'export'])->name('reports.export');
 
-        // User Management (Super Admin)
-        Route::resource('users', UserController::class)->only(['index', 'store', 'update', 'destroy']);
-
-        // Society Settings (Super Admin)
-        Route::get('settings', [SettingController::class, 'index'])->name('settings.index');
-        Route::post('settings', [SettingController::class, 'update'])->name('settings.update');
-
         // Profile & Account Settings
         Route::get('change-password', [AdminAuthController::class, 'changePassword'])->name('change.password');
         Route::post('update-password', [AdminAuthController::class, 'updatePassword'])->name('update.password');
         Route::get('logout', [AdminAuthController::class, 'logout'])->name('logout');
         Route::get('profile', [AdminAuthController::class, 'adminProfile'])->name('profile');
         Route::post('profile', [AdminAuthController::class, 'updateAdminProfile'])->name('update.profile');
+
+        // ---- Admin / Super-Admin-only routes (agents blocked) ----
+
+        // Schemes & Age Slabs
+        Route::middleware(['role:admin,super_admin'])->group(function () {
+            Route::get('schemes', [SchemeController::class, 'index'])->name('schemes.index');
+            Route::post('schemes', [SchemeController::class, 'store'])->name('schemes.store');
+            Route::put('schemes/{id}', [SchemeController::class, 'update'])->name('schemes.update');
+            Route::delete('schemes/{id}', [SchemeController::class, 'destroy'])->name('schemes.destroy');
+            Route::post('schemes/{id}/status', [SchemeController::class, 'toggleStatus'])->name('schemes.toggle-status');
+
+            Route::get('age-slabs', [SchemeController::class, 'ageSlabs'])->name('schemes.age-slabs');
+            Route::post('age-slabs', [SchemeController::class, 'storeAgeSlab'])->name('schemes.age-slabs.store');
+            Route::put('age-slabs/{id}', [SchemeController::class, 'updateAgeSlab'])->name('schemes.age-slabs.update');
+            Route::delete('age-slabs/{id}', [SchemeController::class, 'destroyAgeSlab'])->name('schemes.age-slabs.destroy');
+            Route::get('api/slab-by-age', [SchemeController::class, 'getSlabByAge'])->name('api.slab-by-age');
+
+            // Agent Network (manage agents)
+            Route::resource('agents', AgentController::class)->only(['index', 'store', 'show']);
+
+            // Marriage Events
+            Route::get('events', [MarriageEventController::class, 'index'])->name('events.index');
+            Route::post('events', [MarriageEventController::class, 'store'])->name('events.store');
+            Route::post('events/billing', [MarriageEventController::class, 'billMembers'])->name('events.billing');
+
+            // Beneficiary Payouts
+            Route::get('payouts', [PayoutController::class, 'index'])->name('payouts.index');
+            Route::post('payouts', [PayoutController::class, 'store'])->name('payouts.store');
+            Route::post('payouts/{id}/status', [PayoutController::class, 'updateStatus'])->name('payouts.update-status');
+
+            // User Management (Super Admin)
+            Route::resource('users', UserController::class)->only(['index', 'store', 'update', 'destroy']);
+
+            // Society Settings (Super Admin)
+            Route::get('settings', [SettingController::class, 'index'])->name('settings.index');
+            Route::post('settings', [SettingController::class, 'update'])->name('settings.update');
+        });
     });
 });
 

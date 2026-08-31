@@ -24,9 +24,9 @@ class AdminMiddleware
             return redirect()->route('admin.login')->with('error', 'Your account has been deactivated. Please contact administration.');
         }
 
-        // Enforce that the user has an administrative role (admin / super_admin).
-        // Prevents agents (or other low-privilege users) from accessing admin routes.
-        if (!$user->hasRole(['admin', 'super_admin'])) {
+        // Allow administrative users plus field agents (who get scoped to their own data).
+        // Prevents other low-privilege users from accessing the panel.
+        if (!$user->hasRole(['admin', 'super_admin', 'agent'])) {
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();

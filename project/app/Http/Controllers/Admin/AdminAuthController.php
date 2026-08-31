@@ -53,14 +53,21 @@ class AdminAuthController extends Controller
                 "password" => "required",
             ]);
 
-            // Ensure only admin-role users can authenticate.
+            // Ensure only admin/agent-role users with active status can authenticate.
             if (Auth::attempt([
                 'email' => $request->email,
                 'password' => $request->password,
-                'role' => 'admin',
                 'status' => 'active',
             ])) {
-                return redirect()->route("admin.dashboard")->with("success", "Welcome to your dashboard.");
+                $user = Auth::user();
+                if (in_array($user->role, ['admin', 'agent'], true)) {
+                    return redirect()->route('admin.dashboard')->with('success', 'Welcome to your dashboard.');
+                }
+                // Authenticated but wrong role (e.g. a plain/disabled user role)
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+                return back()->with('error', 'Invalid credentials');
             }
 
             return back()->with("error","Invalid credentials");

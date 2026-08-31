@@ -30,6 +30,7 @@
 		</li>
 
 		<!-- Master Records -->
+		@if(auth()->check() && auth()->user()->hasRole(['admin', 'super_admin']))
 		<li class="menu-header small text-uppercase">
 			<span class="menu-header-text">{{ __('erp.master_records') }}</span>
 		</li>
@@ -45,6 +46,18 @@
 				<div>{{ __('erp.age_slabs') }}</div>
 			</a>
 		</li>
+
+		<!-- Agent Network -->
+		<li class="menu-header small text-uppercase">
+			<span class="menu-header-text">{{ __('erp.agent_network') }}</span>
+		</li>
+		<li class="menu-item {{ request()->is('admin/agents*') ? 'active' : '' }}">
+			<a href="{{ route('admin.agents.index') }}" class="menu-link">
+				<i class="menu-icon tf-icons fas fa-user-tie"></i>
+				<div>{{ __('erp.all_agents') }}</div>
+			</a>
+		</li>
+		@endif
 
 		<!-- Member Enrolment -->
 		<li class="menu-header small text-uppercase">
