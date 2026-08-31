@@ -45,9 +45,12 @@ class MemberRegistrationService
                 : ($slab ? (float)$slab->support_amount : 200.0);
 
             // 3. Generate Sequential Membership Number
-            $memNo = !empty($data['membership_no']) 
-                ? $data['membership_no'] 
-                : NumberSeriesService::getNextNumber('MEM', ['prefix' => 'MEM-' . Carbon::now()->format('Y') . '-', 'initial_value' => 1001, 'padding' => 4]);
+            if (empty($data['membership_no']) || Member::where('membership_no', $data['membership_no'])->exists()) {
+                $memNo = NumberSeriesService::getNextNumber('MEM', ['prefix' => 'MEM-' . Carbon::now()->format('Y') . '-', 'initial_value' => 1001, 'padding' => 4]);
+            } else {
+                $memNo = $data['membership_no'];
+                NumberSeriesService::getNextNumber('MEM', ['prefix' => 'MEM-' . Carbon::now()->format('Y') . '-', 'initial_value' => 1001, 'padding' => 4]);
+            }
 
             $joiningDate = $data['joining_date'] ?? now()->toDateString();
 
