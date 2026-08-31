@@ -20,6 +20,42 @@ class AgentController extends Controller
             return redirect()->route('admin.agents.show', $user->agent_id);
         }
 
+        // Auto-ensure any user with agent role has an Agent record
+        $agentUsers = User::where(function($q) {
+            $q->where('role', 'agent')
+              ->orWhereHas('roles', fn($rq) => $rq->where('name', 'agent'));
+        })->get();
+
+        foreach ($agentUsers as $au) {
+            if (!$au->agent_id) {
+                $agent = Agent::where('user_id', $au->id)
+                    ->orWhere('email', $au->email)
+                    ->orWhere('mobile', $au->phone)
+                    ->first();
+
+                if (!$agent) {
+                    $agentCode = NumberSeriesService::getNextNumber('AGT', ['prefix' => 'AGT-', 'initial_value' => 1, 'padding' => 3]);
+                    $code = str_replace('-', '', $agentCode);
+                    $agent = Agent::create([
+                        'agent_code' => $agentCode,
+                        'name' => $au->full_name,
+                        'code' => $code,
+                        'mobile' => $au->phone,
+                        'email' => $au->email,
+                        'district' => $au->city ?: 'Mahendragarh',
+                        'address' => $au->address ?: '',
+                        'commission_rate' => 5.0,
+                        'status' => 'Active',
+                        'user_id' => $au->id,
+                    ]);
+                } else {
+                    $agent->update(['user_id' => $au->id]);
+                }
+
+                $au->update(['agent_id' => $agent->id]);
+            }
+        }
+
         $query = Agent::with(['members', 'payments', 'user']);
 
         if ($request->filled('search')) {
@@ -50,7 +86,9 @@ class AgentController extends Controller
         }
 
         $request->validate([
-            'name' => 'required|string|max:150',
+            'name' => 'nullable|string|max:150',
+            'first_name' => 'nullable|string|max:100',
+            'last_name' => 'nullable|string|max:100',
             'mobile' => 'required|string|max:20',
             'email' => 'nullable|email|max:150',
             'district' => 'required|string|max:100',
@@ -58,7 +96,19 @@ class AgentController extends Controller
             'password' => 'required|string|min:6',
         ]);
 
-        // 1. Thread-safe, unique agent code generation
+        // Compute full name, first name, last name
+        if ($request->filled('first_name')) {
+            $firstName = $request->first_name;
+            $lastName = $request->last_name ?? '';
+            $fullName = trim($firstName . ' ' . $lastName);
+        } else {
+            $fullName = $request->name ?: 'Agent User';
+            $nameParts = explode(' ', trim($fullName));
+            $firstName = $nameParts[0] ?? 'Agent';
+            $lastName = isset($nameParts[1]) ? implode(' ', array_slice($nameParts, 1)) : ($request->district ?? 'Representative');
+        }
+
+        // 1. Unique agent code generation
         $agentCode = NumberSeriesService::getNextNumber('AGT', ['prefix' => 'AGT-', 'initial_value' => 1, 'padding' => 3]);
         $code = str_replace('-', '', $agentCode);
         $agentRole = Role::where('name', 'agent')->first();
@@ -66,16 +116,13 @@ class AgentController extends Controller
 
         // 2. Direct storage in Users table first
         $agentUser = User::where('email', $email)->orWhere('phone', $request->mobile)->first();
-        $nameParts = explode(' ', trim($request->name));
-        $firstName = $nameParts[0] ?? 'Agent';
-        $lastName = isset($nameParts[1]) ? implode(' ', array_slice($nameParts, 1)) : ($request->district ?? 'Representative');
 
         if (!$agentUser) {
             $agentUser = User::create([
                 'first_name' => $firstName,
                 'last_name' => $lastName,
-                'full_name' => $request->name,
-                'slug' => Str::slug($request->name . '-' . rand(100, 999)),
+                'full_name' => $fullName,
+                'slug' => Str::slug($fullName . '-' . rand(100, 999)),
                 'email' => $email,
                 'phone' => $request->mobile,
                 'password' => Hash::make($request->password),
@@ -94,7 +141,7 @@ class AgentController extends Controller
             $agentUser->update([
                 'first_name' => $firstName,
                 'last_name' => $lastName,
-                'full_name' => $request->name,
+                'full_name' => $fullName,
                 'role' => 'agent',
                 'role_id' => $agentRole?->id ?? $agentUser->role_id,
                 'password' => Hash::make($request->password),
@@ -123,7 +170,7 @@ class AgentController extends Controller
         // 4. Pass agent_id back into user table
         $agentUser->update(['agent_id' => $agent->id]);
 
-        return back()->with('success', "Agent {$agent->name} ({$agent->agent_code}) successfully created in User records with login ID: {$agentUser->email}!");
+        return back()->with('success', "Agent {$agent->name} ({$agent->agent_code}) successfully created as user with login ID: {$agentUser->email}!");
     }
 
     public function show($id)

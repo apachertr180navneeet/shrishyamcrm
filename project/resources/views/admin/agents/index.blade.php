@@ -98,9 +98,15 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Agent Full Name <span class="text-danger">*</span></label>
-                        <input type="text" name="name" class="form-control" placeholder="e.g. Rameshwar Lal Sharma" required>
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">First Name (पहला नाम) <span class="text-danger">*</span></label>
+                            <input type="text" name="first_name" class="form-control" placeholder="e.g. Rameshwar" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Last Name (अंतिम नाम)</label>
+                            <input type="text" name="last_name" class="form-control" placeholder="e.g. Sharma">
+                        </div>
                     </div>
                     <div class="row g-3 mb-3">
                         <div class="col-6">
