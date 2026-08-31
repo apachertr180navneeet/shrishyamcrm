@@ -76,16 +76,6 @@
 			</a>
 		</li>
 
-		@if(auth()->check() && auth()->user()->isAgent() && auth()->user()->agent_id)
-		<!-- Agent Profile -->
-		<li class="menu-item {{ request()->is('admin/agents/' . auth()->user()->agent_id) ? 'active' : '' }}">
-			<a href="{{ route('admin.agents.show', auth()->user()->agent_id) }}" class="menu-link">
-				<i class="menu-icon tf-icons fas fa-id-badge"></i>
-				<div>{{ __('erp.my_profile') }}</div>
-			</a>
-		</li>
-		@endif
-
 		<!-- Collections & Accounting -->
 		<li class="menu-header small text-uppercase">
 			<span class="menu-header-text">{{ __('erp.collections_accounting') }}</span>
