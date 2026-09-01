@@ -132,7 +132,6 @@ Route::name('admin.')->prefix('admin')->group(function () {
 | unauthorised database migration / seeder / cache manipulation.
 */
 
-Route::prefix('/server-tools')->name('server.')->middleware(['admin', 'role:super_admin'])->group(function () {
 
     // Run Migrations (with --force for production)
     Route::get('/run-migrations', function () {
@@ -186,5 +185,4 @@ Route::prefix('/server-tools')->name('server.')->middleware(['admin', 'role:supe
                 . '</div>';
         }
     })->name('run-seeders');
-});
 
