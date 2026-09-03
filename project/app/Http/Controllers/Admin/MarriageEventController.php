@@ -16,42 +16,70 @@ class MarriageEventController extends Controller
 {
     public function index()
     {
-        $events = MarriageEvent::with(['member', 'scheme', 'payouts', 'contributions'])->latest('event_date')->paginate(10);
-        $members = Member::with(['scheme', 'nominees'])->where('status', 'Active')->get();
+        $events = MarriageEvent::with(['member', 'scheme'])
+            ->withCount([
+                'contributions',
+                'contributions as paid_count' => function ($q) {
+                    $q->where('payment_status', 'Paid');
+                },
+            ])
+            ->withSum('contributions as expected_sum', 'contribution_amount')
+            ->withSum(['contributions as collected_sum' => function ($q) {
+                $q->where('payment_status', 'Paid');
+            }], 'contribution_amount')
+            ->latest('event_date')
+            ->paginate(10);
+
         $schemes = Scheme::where('status', 'Active')->get();
         $billings = EventBilling::with(['event', 'creator'])->latest('billing_date')->take(10)->get();
 
+        // Optimized lightweight member dropdown list
+        $members = Member::where('status', 'Active')
+            ->select('id', 'membership_no', 'full_name')
+            ->orderBy('full_name')
+            ->get();
+
         // Aggregate list of daughters and female members for Bride / Girl Name dropdown
         $girlsList = collect();
-        foreach ($members as $mem) {
-            // 1. Daughters / Female nominees
-            foreach ($mem->nominees as $nom) {
-                if (strtolower($nom->relation ?? '') === 'daughter' || strtolower($nom->gender ?? '') === 'female') {
-                    $girlsList->push([
-                        'type' => 'nominee',
-                        'girl_name' => $nom->name,
-                        'father_name' => $mem->full_name,
-                        'member_id' => $mem->id,
-                        'scheme_id' => $mem->scheme_id,
-                        'member_name' => $mem->full_name,
-                        'membership_no' => $mem->membership_no,
-                        'label' => "{$nom->name} (Daughter of {$mem->full_name} - {$mem->membership_no})",
-                    ]);
-                }
-            }
-            // 2. Female members themselves
-            if (strtolower($mem->gender ?? '') === 'female') {
+
+        // 1. Direct query for daughters / female nominees
+        $nomineeGirls = \App\Models\Nominee::where(function ($q) {
+            $q->whereRaw('LOWER(relation) = ?', ['daughter'])
+              ->orWhereRaw('LOWER(relation) = ?', ['female']);
+        })->with('member:id,membership_no,full_name,scheme_id')->get();
+
+        foreach ($nomineeGirls as $nom) {
+            if ($nom->member) {
                 $girlsList->push([
-                    'type' => 'member',
-                    'girl_name' => $mem->full_name,
-                    'father_name' => $mem->father_spouse_name ?: '',
-                    'member_id' => $mem->id,
-                    'scheme_id' => $mem->scheme_id,
-                    'member_name' => $mem->full_name,
-                    'membership_no' => $mem->membership_no,
-                    'label' => "{$mem->full_name} (Member: {$mem->membership_no})",
+                    'type' => 'nominee',
+                    'girl_name' => $nom->name,
+                    'father_name' => $nom->member->full_name,
+                    'member_id' => $nom->member->id,
+                    'scheme_id' => $nom->member->scheme_id,
+                    'member_name' => $nom->member->full_name,
+                    'membership_no' => $nom->member->membership_no,
+                    'label' => "{$nom->name} (Daughter of {$nom->member->full_name} - {$nom->member->membership_no})",
                 ]);
             }
+        }
+
+        // 2. Direct query for female members
+        $femaleMembers = Member::where('status', 'Active')
+            ->where('gender', 'Female')
+            ->select('id', 'membership_no', 'full_name', 'father_spouse_name', 'scheme_id')
+            ->get();
+
+        foreach ($femaleMembers as $mem) {
+            $girlsList->push([
+                'type' => 'member',
+                'girl_name' => $mem->full_name,
+                'father_name' => $mem->father_spouse_name ?: '',
+                'member_id' => $mem->id,
+                'scheme_id' => $mem->scheme_id,
+                'member_name' => $mem->full_name,
+                'membership_no' => $mem->membership_no,
+                'label' => "{$mem->full_name} (Member: {$mem->membership_no})",
+            ]);
         }
 
         return view('admin.events.index', compact('events', 'members', 'schemes', 'billings', 'girlsList'));
@@ -148,13 +176,24 @@ class MarriageEventController extends Controller
 
         $contributions = $query->paginate(20)->withQueryString();
 
+        $rawStats = $event->contributions()
+            ->selectRaw("
+                COUNT(*) as total_members,
+                COALESCE(SUM(contribution_amount), 0) as total_expected,
+                COALESCE(SUM(CASE WHEN payment_status = 'Paid' THEN contribution_amount ELSE 0 END), 0) as total_collected,
+                COALESCE(SUM(CASE WHEN payment_status = 'Pending' THEN contribution_amount ELSE 0 END), 0) as total_pending,
+                COUNT(CASE WHEN payment_status = 'Paid' THEN 1 END) as paid_count,
+                COUNT(CASE WHEN payment_status = 'Pending' THEN 1 END) as pending_count
+            ")
+            ->first();
+
         $stats = [
-            'total_members' => $event->contributions()->count(),
-            'total_expected' => (float)$event->contributions()->sum('contribution_amount'),
-            'total_collected' => (float)$event->contributions()->where('payment_status', 'Paid')->sum('contribution_amount'),
-            'total_pending' => (float)$event->contributions()->where('payment_status', 'Pending')->sum('contribution_amount'),
-            'paid_count' => $event->contributions()->where('payment_status', 'Paid')->count(),
-            'pending_count' => $event->contributions()->where('payment_status', 'Pending')->count(),
+            'total_members' => (int)($rawStats->total_members ?? 0),
+            'total_expected' => (float)($rawStats->total_expected ?? 0),
+            'total_collected' => (float)($rawStats->total_collected ?? 0),
+            'total_pending' => (float)($rawStats->total_pending ?? 0),
+            'paid_count' => (int)($rawStats->paid_count ?? 0),
+            'pending_count' => (int)($rawStats->pending_count ?? 0),
         ];
 
         return view('admin.events.contributions', compact('event', 'contributions', 'stats'));

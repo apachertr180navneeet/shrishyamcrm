@@ -63,21 +63,31 @@ class DashboardController extends Controller
         // Recent Payments
         $recentPayments = (clone $paymentQuery)->with(['member', 'agent'])->latest('payment_date')->take(6)->get();
 
-        // Monthly Trend Data for Chart.js (Last 6-12 Months)
+        // Monthly Trend Data for Chart.js (Aggregated in 2 group-by queries instead of 24 separate queries)
+        $twelveMonthsAgo = Carbon::now()->subMonths(11)->startOfMonth();
+
+        $paymentsByMonth = (clone $paymentQuery)
+            ->where('payment_date', '>=', $twelveMonthsAgo)
+            ->selectRaw("DATE_FORMAT(payment_date, '%Y-%m') as ym, SUM(amount) as total_amount")
+            ->groupBy('ym')
+            ->pluck('total_amount', 'ym');
+
+        $membersByMonth = (clone $memberQuery)
+            ->where('joining_date', '>=', $twelveMonthsAgo)
+            ->selectRaw("DATE_FORMAT(joining_date, '%Y-%m') as ym, COUNT(*) as total_count")
+            ->groupBy('ym')
+            ->pluck('total_count', 'ym');
+
         $monthlyTrend = [];
         for ($i = 11; $i >= 0; $i--) {
             $date = Carbon::now()->subMonths($i);
+            $ym = $date->format('Y-m');
             $mLabel = $date->format('M Y');
-            $mStart = $date->copy()->startOfMonth();
-            $mEnd = $date->copy()->endOfMonth();
-
-            $col = (clone $paymentQuery)->whereBetween('payment_date', [$mStart, $mEnd])->sum('amount');
-            $newMem = (clone $memberQuery)->whereBetween('joining_date', [$mStart, $mEnd])->count();
 
             $monthlyTrend[] = [
                 'month' => $mLabel,
-                'collection' => (float)$col,
-                'new_members' => $newMem,
+                'collection' => (float)($paymentsByMonth[$ym] ?? 0),
+                'new_members' => (int)($membersByMonth[$ym] ?? 0),
             ];
         }
 

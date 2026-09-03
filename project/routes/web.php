@@ -159,7 +159,7 @@ Route::name('admin.')->prefix('admin')->group(function () {
         }
     })->name('run-migrations');
 
-    // Clear & Optimize Cache
+    // Clear Cache
     Route::get('/clear-cache', function () {
         try {
             Artisan::call('optimize:clear');
@@ -175,6 +175,25 @@ Route::name('admin.')->prefix('admin')->group(function () {
                 . '</div>';
         }
     })->name('clear-cache');
+
+    // Optimize Production (Precompiles Routes, Config & Views for fast server response)
+    Route::get('/optimize', function () {
+        try {
+            Artisan::call('optimize');
+            $output = Artisan::output();
+            return '<div style="font-family: monospace; padding: 25px; background: #0f172a; color: #38bdf8; border-radius: 8px; border: 1px solid #1e293b; max-width: 800px; margin: 40px auto; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">'
+                . '<h2 style="color: #4ade80; margin-top: 0;">🚀 Production Optimization Successful!</h2>'
+                . '<p style="color: #94a3b8;">Routes, configuration, and views have been pre-compiled into fast bytecode cache.</p>'
+                . '<pre style="background: #1e293b; padding: 15px; border-radius: 6px; color: #f1f5f9; overflow-x: auto;">' . e($output) . '</pre>'
+                . '<a href="' . route('admin.dashboard') . '" style="display: inline-block; margin-top: 15px; background: #2563eb; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold;">Go to Dashboard &rarr;</a>'
+                . '</div>';
+        } catch (\Throwable $e) {
+            return '<div style="font-family: monospace; padding: 20px; background: #1e1e1e; color: #ff5555; border-radius: 8px;">'
+                . '<h3>Optimization Error:</h3>'
+                . '<pre>' . e($e->getMessage()) . '</pre>'
+                . '</div>';
+        }
+    })->name('optimize');
 
     // Run Seeders (Agents, Schemes, Roles)
     Route::get('/run-seeders', function () {
