@@ -11,6 +11,9 @@
                     <p class="text-muted mb-0">Manage girl child marriage welfare grants (₹51,000 assistance), event collections, and member contribution billing.</p>
                 </div>
                 <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#monthlyBroadcastModal">
+                        <i class="fab fa-whatsapp me-1"></i> Common Message to Members
+                    </button>
                     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#eventBillingModal">
                         <i class="fas fa-calculator me-1"></i> Bill Members for Event
                     </button>
@@ -21,6 +24,26 @@
             </div>
         </div>
     </div>
+
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <div class="d-flex align-items-center justify-content-between">
+                <div><i class="fas fa-check-circle me-2"></i> {{ session('success') }}</div>
+                @if(session('whatsapp_broadcast_url'))
+                    <a href="{{ session('whatsapp_broadcast_url') }}" target="_blank" class="btn btn-sm btn-success ms-3 shadow-sm">
+                        <i class="fab fa-whatsapp me-1"></i> Open WhatsApp Web Now
+                    </a>
+                @endif
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i> {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
 
     <!-- Events Cards Grid -->
     <div class="row g-4">
@@ -54,6 +77,14 @@
                             <small class="text-muted d-block">Assistance Grant Pool</small>
                             <strong class="fs-5 text-success">₹{{ number_format($event->target_amount) }}</strong>
                         </div>
+                        <div class="col-md-6 col-12">
+                            <small class="text-muted d-block">Member Collection (सहयोग राशि)</small>
+                            <strong class="fs-6 text-info">₹{{ number_format($event->rate_per_event ?? 200) }} / member</strong>
+                        </div>
+                        <div class="col-md-6 col-12">
+                            <small class="text-muted d-block">Linked Member</small>
+                            <span class="badge bg-label-secondary">{{ $event->member ? $event->member->full_name . ' (' . $event->member->membership_no . ')' : 'Direct Welfare' }}</span>
+                        </div>
                     </div>
 
                     <div class="bg-lighter p-3 rounded mb-3">
@@ -63,7 +94,7 @@
 
                     <div class="d-flex align-items-center justify-content-between pt-2 border-top">
                         <small class="text-muted">{{ $event->description }}</small>
-                        @if($event->status != 'Completed')
+                        @if($event->status != 'Completed' && auth()->check() && (auth()->user()->hasRole(['admin', 'super_admin']) || auth()->user()->role === 'admin' || auth()->user()->role === 'super_admin'))
                         <a href="{{ route('admin.payouts.index') }}" class="btn btn-sm btn-outline-success">
                             <i class="fas fa-hand-holding-usd me-1"></i> Disburse Grant
                         </a>
@@ -78,51 +109,167 @@
 
 <!-- Add Event Modal -->
 <div class="modal fade" id="addEventModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <form action="{{ route('admin.events.store') }}" method="POST">
                 @csrf
-                <div class="modal-header">
-                    <h5 class="modal-title fw-bold">Create Marriage Welfare Event</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-header" style="background: #1B365D; color: #fff;">
+                    <h5 class="modal-title fw-bold text-white"><i class="fas fa-hand-holding-heart me-2"></i>Create Marriage Welfare Event</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body p-4">
+                    <!-- Girl Name Dropdown -->
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Event Title <span class="text-danger">*</span></label>
-                        <input type="text" name="title" class="form-control" placeholder="e.g. Kumari Pooja Marriage Assistance" required>
+                        <label class="form-label fw-semibold">
+                            <i class="fas fa-female text-danger me-1"></i> Select Girl's Name (कन्या का नाम - सूची से चुनें) <span class="text-danger">*</span>
+                        </label>
+                        <select id="girlDropdownSelect" class="form-select form-select-lg mb-2" onchange="onGirlSelectChange(this)">
+                            <option value="">-- Choose Registered Daughter / Member --</option>
+                            @foreach($girlsList as $g)
+                            <option value="{{ $g['girl_name'] }}"
+                                data-father="{{ $g['father_name'] }}"
+                                data-member-id="{{ $g['member_id'] }}"
+                                data-member-name="{{ $g['member_name'] }}">
+                                {{ $g['label'] }}
+                            </option>
+                            @endforeach
+                            <option value="__custom__">➕ Other / Enter Name Manually (अन्य नाम दर्ज करें)</option>
+                        </select>
+                        <input type="text" name="girl_name" id="girlNameField" class="form-control" placeholder="Girl's Full Name (e.g. कुमारी पूजा शर्मा)" required>
                     </div>
+
                     <div class="row g-3 mb-3">
-                        <div class="col-6">
-                            <label class="form-label fw-semibold">Girl's Name <span class="text-danger">*</span></label>
-                            <input type="text" name="girl_name" class="form-control" placeholder="e.g. Kumari Pooja Sharma" required>
+                        <div class="col-md-6 col-12">
+                            <label class="form-label fw-semibold">Father / Guardian Name (पिता/अभिभावक)</label>
+                            <input type="text" name="father_name" id="fatherNameField" class="form-control" placeholder="e.g. श्री राधेश्याम शर्मा">
                         </div>
-                        <div class="col-6">
-                            <label class="form-label fw-semibold">Father / Member</label>
-                            <input type="text" name="father_name" class="form-control" placeholder="e.g. Radheshyam Sharma">
-                        </div>
-                    </div>
-                    <div class="row g-3 mb-3">
-                        <div class="col-6">
-                            <label class="form-label fw-semibold">Event Date <span class="text-danger">*</span></label>
-                            <input type="date" name="event_date" class="form-control" required>
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label fw-semibold">Grant Target (₹) <span class="text-danger">*</span></label>
-                            <input type="number" name="target_amount" class="form-control" value="51000" required>
+                        <div class="col-md-6 col-12">
+                            <label class="form-label fw-semibold">Linked Member ID</label>
+                            <select name="member_id" id="linkedMemberSelect" class="form-select">
+                                <option value="">-- No Direct Member Link --</option>
+                                @foreach($members as $mem)
+                                <option value="{{ $mem->id }}">{{ $mem->membership_no }} - {{ $mem->full_name }}</option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>
+
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Venue (स्थल)</label>
-                        <input type="text" name="venue" class="form-control" placeholder="e.g. Shri Shyam Dharamshala, Lohki">
+                        <label class="form-label fw-semibold">Event Title (कार्यक्रम शीर्षक)</label>
+                        <input type="text" name="title" id="eventTitleField" class="form-control" placeholder="e.g. कुमारी पूजा विवाह सहायता कार्यक्रम">
                     </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6 col-12">
+                            <label class="form-label fw-semibold">Event Date (विवाह दिनांक) <span class="text-danger">*</span></label>
+                            <input type="date" name="event_date" class="form-control" required value="{{ date('Y-m-d') }}">
+                        </div>
+                        <div class="col-md-6 col-12">
+                            <label class="form-label fw-semibold text-primary">
+                                <i class="fas fa-coins me-1"></i> Member Collection Amount (प्रति सदस्य सहयोग राशि ₹) <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-primary text-white fw-bold">₹</span>
+                                <input type="number" name="rate_per_event" class="form-control fw-bold text-primary" value="200" min="0" step="10" required placeholder="e.g. 200">
+                            </div>
+                            <small class="text-muted">Amount to collect from each active member for this event</small>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6 col-12">
+                            <label class="form-label fw-semibold">Assistance Grant Pool (कन्यादान राशि ₹) <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" name="target_amount" class="form-control fw-bold text-success" value="51000" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-12">
+                            <label class="form-label fw-semibold">Venue (स्थल)</label>
+                            <input type="text" name="venue" class="form-control" value="श्री श्याम धर्मशाला, लोहीकी">
+                        </div>
+                    </div>
+
                     <div class="mb-0">
-                        <label class="form-label fw-semibold">Description</label>
+                        <label class="form-label fw-semibold">Description / Notes</label>
                         <textarea name="description" class="form-control" rows="2" placeholder="Event notes..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Create Event</button>
+                    <button type="submit" class="btn btn-primary" style="background: #1B365D;">Save Marriage Event</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Monthly All-Events Common Message Modal ("All Event ka ek saath data jayega") -->
+<div class="modal fade" id="monthlyBroadcastModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <form action="{{ route('admin.events.broadcast-send') }}" method="POST">
+                @csrf
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title text-white fw-bold">
+                        <i class="fab fa-whatsapp me-2"></i>माह के सभी कार्यक्रमों का साझा संदेश (Monthly Common Message)
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="text-muted small mb-3">
+                        इस माह के सभी विवाह कार्यक्रमों का संपूर्ण डेटा एक साथ एकत्रित करके सदस्यों को एक ही संदेश में भेजा जाएगा।
+                    </p>
+
+                    <!-- Month Picker -->
+                    <div class="row g-3 mb-3 align-items-center">
+                        <div class="col-md-6 col-12">
+                            <label class="form-label fw-semibold">
+                                <i class="fas fa-calendar-alt text-primary me-1"></i> Month (माह चुनें) <span class="text-danger">*</span>
+                            </label>
+                            <input type="month" name="month" id="broadcastMonthInput" class="form-control form-control-lg" value="{{ date('Y-m') }}" onchange="fetchMonthEventsData(this.value)" required>
+                        </div>
+                        <div class="col-md-6 col-12 text-md-end">
+                            <div class="p-3 bg-light rounded border text-start text-md-end">
+                                <span class="badge bg-primary fs-6 mb-1" id="broadcastEventsBadge">Loading events...</span>
+                                <div class="text-success fw-bold fs-6" id="broadcastTotalRate">प्रति सदस्य देय: ₹--</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Live Events Preview list -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">इस माह के पंजीकृत कार्यक्रम (Scheduled Events in Month):</label>
+                        <div id="eventsListContainer" class="p-3 bg-light rounded border" style="max-height: 140px; overflow-y: auto;">
+                            <div class="text-muted small"><i class="fas fa-spinner fa-spin me-1"></i> Fetching events...</div>
+                        </div>
+                    </div>
+
+                    <!-- Message Textarea -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label fw-semibold mb-0">
+                                <i class="fas fa-comment-dots text-success me-1"></i> Common Message to Users (साझा संदेश) <span class="text-danger">*</span>
+                            </label>
+                            <button type="button" class="btn btn-sm btn-link text-decoration-none p-0" onclick="fetchMonthEventsData(document.getElementById('broadcastMonthInput').value)">
+                                <i class="fas fa-sync-alt me-1"></i> Reset to Default Template
+                            </button>
+                        </div>
+                        <textarea name="message" id="broadcastMessageBody" class="form-control font-monospace" rows="9" required placeholder="Message content will appear here..."></textarea>
+                    </div>
+
+                    <div class="alert alert-info py-2 px-3 small d-flex align-items-center mb-0">
+                        <i class="fas fa-info-circle me-2 fs-5"></i>
+                        <div>
+                            "Send" बटन दबाने पर यह साझा संदेश सभी सक्रिय सदस्यों के व्हाट्सएप लॉग में दर्ज हो जाएगा और व्हाट्सएप वेब के जरिए प्रेषित किया जा सकेगा।
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success btn-lg px-4 shadow">
+                        <i class="fab fa-whatsapp me-2"></i> Send (भेजें)
+                    </button>
                 </div>
             </form>
         </div>
@@ -196,5 +343,79 @@ function updateTotalCharge() {
     const total = count * rate;
     document.getElementById('totalDebitPerMember').innerText = '₹' + total.toFixed(2);
 }
+
+function onGirlSelectChange(select) {
+    const selectedOption = select.options[select.selectedIndex];
+    const girlNameField = document.getElementById('girlNameField');
+    const fatherField = document.getElementById('fatherNameField');
+    const memberSelect = document.getElementById('linkedMemberSelect');
+    const titleField = document.getElementById('eventTitleField');
+
+    if (select.value === '__custom__') {
+        girlNameField.value = '';
+        girlNameField.focus();
+        return;
+    }
+
+    if (select.value) {
+        girlNameField.value = select.value;
+        const father = selectedOption.getAttribute('data-father') || '';
+        const memberId = selectedOption.getAttribute('data-member-id') || '';
+
+        if (father) fatherField.value = father;
+        if (memberId && memberSelect) memberSelect.value = memberId;
+        titleField.value = 'विवाह सहायता कार्यक्रम - सुपुत्री ' + select.value;
+    }
+}
+
+function fetchMonthEventsData(monthStr) {
+    if (!monthStr) return;
+    const container = document.getElementById('eventsListContainer');
+    const badge = document.getElementById('broadcastEventsBadge');
+    const rateEl = document.getElementById('broadcastTotalRate');
+    const msgArea = document.getElementById('broadcastMessageBody');
+
+    container.innerHTML = '<div class="text-muted small"><i class="fas fa-spinner fa-spin me-1"></i> Loading events for ' + monthStr + '...</div>';
+
+    fetch('{{ route("admin.api.events-by-month") }}?month=' + encodeURIComponent(monthStr))
+        .then(res => res.json())
+        .then(data => {
+            badge.innerText = data.events_count + ' Event(s) Found';
+            rateEl.innerText = 'प्रति सदस्य कुल देय: ₹' + (data.total_rate || 0);
+            msgArea.value = data.default_message || '';
+
+            if (data.events && data.events.length > 0) {
+                let html = '<div class="list-group list-group-flush">';
+                data.events.forEach((ev, idx) => {
+                    html += `<div class="list-group-item px-0 py-1 border-0 d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong class="text-primary">${idx + 1}. ${ev.girl_name}</strong>
+                            ${ev.father_name ? `<small class="text-muted"> (पिता: ${ev.father_name})</small>` : ''}
+                            <small class="text-muted d-block">दिनांक: ${ev.event_date.split('T')[0]} | स्थल: ${ev.venue || 'N/A'}</small>
+                        </div>
+                        <span class="badge bg-success">सहयोग: ₹${parseFloat(ev.rate_per_event || 200).toFixed(0)}</span>
+                    </div>`;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = '<div class="text-muted small py-2">इस माह (' + monthStr + ') में कोई पंजीकृत विवाह कार्यक्रम नहीं है। सामान्य मासिक सहयोग लागू होगा।</div>';
+            }
+        })
+        .catch(err => {
+            container.innerHTML = '<div class="text-danger small">Error loading events: ' + err.message + '</div>';
+        });
+}
+
+// Pre-load on modal open
+document.addEventListener('DOMContentLoaded', function() {
+    const broadcastModal = document.getElementById('monthlyBroadcastModal');
+    if (broadcastModal) {
+        broadcastModal.addEventListener('shown.bs.modal', function () {
+            const currentMonth = document.getElementById('broadcastMonthInput').value;
+            fetchMonthEventsData(currentMonth);
+        });
+    }
+});
 </script>
 @endsection

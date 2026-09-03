@@ -10,6 +10,18 @@ use App\Services\CertificateService;
 
 class CertificateController extends Controller
 {
+    public function __construct()
+    {
+        // Enforce Admin only access
+        $this->middleware(function ($request, $next) {
+            $user = auth()->user();
+            if ($user && $user->isAgent() && !$user->hasRole(['admin', 'super_admin'])) {
+                abort(403, 'Unauthorized. Certificates can only be accessed by Admin.');
+            }
+            return $next($request);
+        });
+    }
+
     public function index(Request $request)
     {
         $user = auth()->user();

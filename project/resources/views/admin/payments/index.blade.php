@@ -7,11 +7,11 @@
         <div class="card-body p-4">
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
                 <div>
-                    <h4 class="fw-bold mb-1" style="font-family: 'Hind', sans-serif;">भुगतान इतिहास (Payment Transactions History)</h4>
+                    <h4 class="fw-bold mb-1" style="font-family: 'Hind', sans-serif;"><i class="fas fa-receipt text-primary me-2"></i>रसीद इतिहास (Receipt History)</h4>
                     <p class="text-muted mb-0">Total Verified Collections: <strong class="text-success fs-5">₹{{ number_format($totalCollected) }}</strong></p>
                 </div>
                 <a href="{{ route('admin.payments.create') }}" class="btn btn-primary">
-                    <i class="fas fa-cash-register me-1"></i> Record New Payment Entry
+                    <i class="fas fa-cash-register me-1"></i> Record Receipt Entry
                 </a>
             </div>
         </div>

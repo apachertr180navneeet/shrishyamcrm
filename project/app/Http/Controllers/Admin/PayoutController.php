@@ -12,6 +12,17 @@ use App\Services\PayoutService;
 
 class PayoutController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            $user = auth()->user();
+            if ($user && $user->isAgent() && !$user->hasRole(['admin', 'super_admin'])) {
+                abort(403, 'Unauthorized. Beneficiary payouts can only be accessed by Admin.');
+            }
+            return $next($request);
+        });
+    }
+
     public function index()
     {
         $payouts = Payout::with(['event', 'member', 'scheme'])->latest('id')->get();

@@ -15,67 +15,120 @@
     </div>
 
     <div class="row g-4">
-        <!-- Message Dispatch Form -->
-        <div class="col-lg-5 col-12">
+        <!-- Message Dispatch Form / Tabs -->
+        <div class="col-lg-6 col-12">
             <div class="card border-0 shadow-sm">
-                <div class="card-header border-bottom py-3">
-                    <h5 class="card-title mb-0 fw-semibold">
-                        <i class="fab fa-whatsapp text-success me-2"></i> Send Instant WhatsApp Message
-                    </h5>
+                <div class="card-header border-bottom p-0">
+                    <ul class="nav nav-tabs nav-fill" role="tablist">
+                        <li class="nav-item">
+                            <button type="button" class="nav-link active py-3 fw-semibold" role="tab" data-bs-toggle="tab" data-bs-target="#tab-monthly-broadcast">
+                                <i class="fas fa-bullhorn text-success me-2"></i> सभी कार्यक्रमों का साझा संदेश (Common Message)
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button type="button" class="nav-link py-3 fw-semibold" role="tab" data-bs-toggle="tab" data-bs-target="#tab-single-message">
+                                <i class="fas fa-user me-2 text-primary"></i> व्यक्तिगत संदेश
+                            </button>
+                        </li>
+                    </ul>
                 </div>
                 <div class="card-body p-4">
-                    <form action="{{ route('admin.whatsapp.send') }}" method="POST" target="_blank">
-                        @csrf
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Select Member (सदस्य चुनें)</label>
-                            <select name="member_id" id="memberSelect" class="form-select" onchange="populateMemberDetails()">
-                                <option value="">-- Choose Society Member --</option>
-                                @foreach($members as $m)
-                                <option value="{{ $m->id }}" data-name="{{ $m->full_name }}" data-mobile="{{ $m->mobile }}" data-memno="{{ $m->membership_no }}" data-scheme="{{ $m->scheme ? $m->scheme->name_hindi : '' }}">
-                                    {{ $m->membership_no }} - {{ $m->full_name }} ({{ $m->mobile }})
-                                </option>
-                                @endforeach
-                            </select>
+                    <div class="tab-content p-0">
+                        <!-- Tab 1: Monthly All Events Broadcast -->
+                        <div class="tab-pane fade show active" id="tab-monthly-broadcast" role="tabpanel">
+                            <form action="{{ route('admin.events.broadcast-send') }}" method="POST">
+                                @csrf
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">
+                                        <i class="fas fa-calendar-alt text-primary me-1"></i> Month (माह चुनें) <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="month" name="month" id="waBroadcastMonth" class="form-control" value="{{ date('Y-m') }}" onchange="fetchWaMonthEvents(this.value)" required>
+                                        <button type="button" class="btn btn-outline-primary" onclick="fetchWaMonthEvents(document.getElementById('waBroadcastMonth').value)">
+                                            <i class="fas fa-sync-alt me-1"></i> Load Events
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="small fw-semibold text-muted">इस माह के कार्यक्रम (Month Events):</span>
+                                        <span class="badge bg-primary" id="waEventsBadge">Checking...</span>
+                                    </div>
+                                    <div id="waEventsList" class="p-2 bg-light rounded border small" style="max-height: 120px; overflow-y: auto;">
+                                        Loading events...
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">
+                                        <i class="fas fa-comment-alt text-success me-1"></i> Common Message to Users (साझा संदेश) <span class="text-danger">*</span>
+                                    </label>
+                                    <textarea name="message" id="waBroadcastMessage" class="form-control font-monospace" rows="8" required placeholder="Generating common message..."></textarea>
+                                </div>
+
+                                <button type="submit" class="btn btn-success btn-lg w-100 shadow">
+                                    <i class="fab fa-whatsapp me-2"></i> Send Common Message to All Members (भेजें)
+                                </button>
+                            </form>
                         </div>
 
-                        <div class="row g-3 mb-3">
-                            <div class="col-6">
-                                <label class="form-label fw-semibold">Recipient Name <span class="text-danger">*</span></label>
-                                <input type="text" name="recipient_name" id="recipientName" class="form-control" placeholder="Member Name" required>
-                            </div>
-                            <div class="col-6">
-                                <label class="form-label fw-semibold">Mobile (10 digits) <span class="text-danger">*</span></label>
-                                <input type="tel" name="mobile" id="recipientMobile" class="form-control" placeholder="Mobile No" required>
-                            </div>
-                        </div>
+                        <!-- Tab 2: Single Member Message -->
+                        <div class="tab-pane fade" id="tab-single-message" role="tabpanel">
+                            <form action="{{ route('admin.whatsapp.send') }}" method="POST" target="_blank">
+                                @csrf
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Select Member (सदस्य चुनें)</label>
+                                    <select name="member_id" id="memberSelect" class="form-select" onchange="populateMemberDetails()">
+                                        <option value="">-- Choose Society Member --</option>
+                                        @foreach($members as $m)
+                                        <option value="{{ $m->id }}" data-name="{{ $m->full_name }}" data-mobile="{{ $m->mobile }}" data-memno="{{ $m->membership_no }}" data-scheme="{{ $m->scheme ? $m->scheme->name_hindi : '' }}">
+                                            {{ $m->membership_no }} - {{ $m->full_name }} ({{ $m->mobile }})
+                                        </option>
+                                        @endforeach
+                                    </select>
+                                </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Message Template Type</label>
-                            <select name="message_type" id="templateSelect" class="form-select" onchange="applyTemplate()">
-                                <option value="Receipt">Payment Receipt (रसीद सूचना)</option>
-                                <option value="Event Reminder">Event Reminder (विवाह कार्यक्रम सूचना)</option>
-                                <option value="Due Alert">Monthly Dues Reminder (सहयोग राशि सूचना)</option>
-                                <option value="Welcome">Welcome Greeting (सोसायटी स्वागत संदेश)</option>
-                            </select>
-                        </div>
+                                <div class="row g-3 mb-3">
+                                    <div class="col-6">
+                                        <label class="form-label fw-semibold">Recipient Name <span class="text-danger">*</span></label>
+                                        <input type="text" name="recipient_name" id="recipientName" class="form-control" placeholder="Member Name" required>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label fw-semibold">Mobile (10 digits) <span class="text-danger">*</span></label>
+                                        <input type="tel" name="mobile" id="recipientMobile" class="form-control" placeholder="Mobile No" required>
+                                    </div>
+                                </div>
 
-                        <div class="mb-4">
-                            <label class="form-label fw-semibold">Message Text (संदेश) <span class="text-danger">*</span></label>
-                            <textarea name="message_body" id="messageBody" class="form-control" rows="5" required>जय श्री श्याम 🙏
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Message Template Type</label>
+                                    <select name="message_type" id="templateSelect" class="form-select" onchange="applyTemplate()">
+                                        <option value="Receipt">Payment Receipt (रसीद सूचना)</option>
+                                        <option value="Event Reminder">Event Reminder (विवाह कार्यक्रम सूचना)</option>
+                                        <option value="Due Alert">Monthly Dues Reminder (सहयोग राशि सूचना)</option>
+                                        <option value="Welcome">Welcome Greeting (सोसायटी स्वागत संदेश)</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold">Message Text (संदेश) <span class="text-danger">*</span></label>
+                                    <textarea name="message_body" id="messageBody" class="form-control" rows="5" required>जय श्री श्याम 🙏
 
 श्री श्याम वेलफेयर सोसायटी लोहीकी की ओर से आपका हार्दिक स्वागत है। आपके सहयोग से समाज सेवा का कार्य निरंतर गतिमान है।</textarea>
-                        </div>
+                                </div>
 
-                        <button type="submit" class="btn btn-success btn-lg w-100 shadow">
-                            <i class="fab fa-whatsapp me-2"></i> Open & Send via WhatsApp
-                        </button>
-                    </form>
+                                <button type="submit" class="btn btn-success btn-lg w-100 shadow">
+                                    <i class="fab fa-whatsapp me-2"></i> Open & Send via WhatsApp
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- WhatsApp Sent Logs -->
-        <div class="col-lg-7 col-12">
+        <div class="col-lg-6 col-12">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-header border-bottom py-3">
                     <h5 class="card-title mb-0 fw-semibold">
@@ -98,16 +151,17 @@
                             <tr>
                                 <td><strong>{{ $log->recipient_name }}</strong></td>
                                 <td>{{ $log->mobile }}</td>
-                                <td><span class="badge bg-label-primary">{{ $log->message_type }}</span></td>
-                                <td>{{ $log->created_at ? $log->created_at->format('d M, h:i A') : '' }}</td>
-                                <td><span class="badge bg-success">Sent</span></td>
+                                <td><span class="badge bg-label-info">{{ $log->message_type }}</span></td>
+                                <td><small class="text-muted">{{ $log->sent_at ? $log->sent_at->diffForHumans() : '-' }}</small></td>
+                                <td>
+                                    <span class="badge {{ $log->status === 'Sent' ? 'bg-success' : 'bg-warning' }}">
+                                        {{ $log->status }}
+                                    </span>
+                                </td>
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="5" class="text-center py-5 text-muted">
-                                    <i class="fab fa-whatsapp fs-1 text-success d-block mb-2"></i>
-                                    No WhatsApp messages logged yet. Use the form on the left to send notifications.
-                                </td>
+                                <td colspan="5" class="text-center py-4 text-muted">No WhatsApp messages dispatched yet.</td>
                             </tr>
                             @endforelse
                         </tbody>
@@ -121,6 +175,44 @@
 
 @section('script')
 <script>
+function fetchWaMonthEvents(monthStr) {
+    if (!monthStr) return;
+    const badge = document.getElementById('waEventsBadge');
+    const list = document.getElementById('waEventsList');
+    const msg = document.getElementById('waBroadcastMessage');
+
+    badge.innerText = 'Loading...';
+    list.innerHTML = 'Fetching events for ' + monthStr + '...';
+
+    fetch('{{ route("admin.api.events-by-month") }}?month=' + encodeURIComponent(monthStr))
+        .then(res => res.json())
+        .then(data => {
+            badge.innerText = (data.events_count || 0) + ' Events | देय: ₹' + (data.total_rate || 0);
+            msg.value = data.default_message || '';
+
+            if (data.events && data.events.length > 0) {
+                let html = '<ul class="mb-0 ps-3">';
+                data.events.forEach(e => {
+                    html += `<li><strong>${e.girl_name}</strong> - ${e.event_date.split('T')[0]} (सहयोग: ₹${e.rate_per_event || 200})</li>`;
+                });
+                html += '</ul>';
+                list.innerHTML = html;
+            } else {
+                list.innerHTML = '<span class="text-muted">इस माह (' + monthStr + ') में कोई विवाह कार्यक्रम पंजीकृत नहीं है।</span>';
+            }
+        })
+        .catch(err => {
+            list.innerHTML = '<span class="text-danger">Error loading events: ' + err.message + '</span>';
+        });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const mInput = document.getElementById('waBroadcastMonth');
+    if (mInput) {
+        fetchWaMonthEvents(mInput.value);
+    }
+});
+
 function populateMemberDetails() {
     const select = document.getElementById('memberSelect');
     const option = select.options[select.selectedIndex];

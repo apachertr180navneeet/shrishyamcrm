@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\PayoutController;
 use App\Http\Controllers\Admin\WhatsAppController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SettingController;
 
 /*
@@ -54,9 +55,8 @@ Route::name('admin.')->prefix('admin')->group(function () {
 
         // Member Enrolment
         Route::resource('members', MemberController::class);
-        Route::get('members/{id}/certificate/pdf', [MemberController::class, 'certificatePdf'])->name('members.certificate.pdf');
 
-        // Collections & Payments
+        // Collections & Payments (Receipt Entry & History)
         Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
         Route::get('payment-entry', [PaymentController::class, 'create'])->name('payments.create');
         Route::post('payments', [PaymentController::class, 'store'])->name('payments.store');
@@ -64,11 +64,6 @@ Route::name('admin.')->prefix('admin')->group(function () {
         Route::get('receipts/{id}', [PaymentController::class, 'receipt'])->name('payments.receipt');
         Route::get('receipts/{id}/pdf', [PaymentController::class, 'receiptPdf'])->name('payments.receipt.pdf');
         Route::get('ledger', [PaymentController::class, 'ledger'])->name('ledger.index');
-
-        // Certificates
-        Route::get('certificates', [CertificateController::class, 'index'])->name('certificates.index');
-        Route::get('certificates/{id}', [CertificateController::class, 'show'])->name('certificates.show');
-        Route::get('certificates/{id}/pdf', [CertificateController::class, 'downloadPdf'])->name('certificates.pdf');
 
         // WhatsApp Center
         Route::get('whatsapp', [WhatsAppController::class, 'index'])->name('whatsapp.index');
@@ -87,8 +82,16 @@ Route::name('admin.')->prefix('admin')->group(function () {
 
         // ---- Admin / Super-Admin-only routes (agents blocked) ----
 
-        // Schemes & Age Slabs
         Route::middleware(['role:admin,super_admin'])->group(function () {
+            // Member Certificate Download (Admin Only)
+            Route::get('members/{id}/certificate/pdf', [MemberController::class, 'certificatePdf'])->name('members.certificate.pdf');
+
+            // Certificates (Admin Only - Hidden & Blocked for Agents)
+            Route::get('certificates', [CertificateController::class, 'index'])->name('certificates.index');
+            Route::get('certificates/{id}', [CertificateController::class, 'show'])->name('certificates.show');
+            Route::get('certificates/{id}/pdf', [CertificateController::class, 'downloadPdf'])->name('certificates.pdf');
+
+            // Schemes & Age Slabs
             Route::get('schemes', [SchemeController::class, 'index'])->name('schemes.index');
             Route::post('schemes', [SchemeController::class, 'store'])->name('schemes.store');
             Route::put('schemes/{id}', [SchemeController::class, 'update'])->name('schemes.update');
@@ -104,18 +107,22 @@ Route::name('admin.')->prefix('admin')->group(function () {
             // Agent Network (manage agents)
             Route::resource('agents', AgentController::class)->only(['index', 'store', 'show']);
 
-            // Marriage Events
+            // Marriage Events & All-Events Broadcast
             Route::get('events', [MarriageEventController::class, 'index'])->name('events.index');
             Route::post('events', [MarriageEventController::class, 'store'])->name('events.store');
             Route::post('events/billing', [MarriageEventController::class, 'billMembers'])->name('events.billing');
+            Route::get('api/events-by-month', [MarriageEventController::class, 'eventsByMonth'])->name('api.events-by-month');
+            Route::post('events/broadcast-send', [MarriageEventController::class, 'sendBroadcast'])->name('events.broadcast-send');
 
-            // Beneficiary Payouts
+            // Beneficiary Payouts (Admin Only - Blocked for Agents)
             Route::get('payouts', [PayoutController::class, 'index'])->name('payouts.index');
             Route::post('payouts', [PayoutController::class, 'store'])->name('payouts.store');
             Route::post('payouts/{id}/status', [PayoutController::class, 'updateStatus'])->name('payouts.update-status');
 
-            // User Management (Super Admin)
+            // User & Role Management
             Route::resource('users', UserController::class)->only(['index', 'store', 'update', 'destroy']);
+            Route::resource('roles', RoleController::class)->only(['index', 'store']);
+            Route::put('roles/{id}/permissions', [RoleController::class, 'updatePermissions'])->name('roles.permissions.update');
 
             // Society Settings (Super Admin)
             Route::get('settings', [SettingController::class, 'index'])->name('settings.index');

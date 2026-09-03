@@ -402,5 +402,14 @@ function openEditSchemeModal(scheme) {
     const modal = new bootstrap.Modal(document.getElementById('editSchemeModal'));
     modal.show();
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.location.hash === '#addSchemeModal' || window.location.hash === '#addScheme') {
+        const addModal = document.getElementById('addSchemeModal');
+        if (addModal) {
+            new bootstrap.Modal(addModal).show();
+        }
+    }
+});
 </script>
 @endsection

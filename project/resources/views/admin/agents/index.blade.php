@@ -151,4 +151,17 @@
         </div>
     </div>
 </div>
+
+@section('script')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.location.hash === '#addAgentModal' || window.location.hash === '#addAgent') {
+        const addModal = document.getElementById('addAgentModal');
+        if (addModal) {
+            new bootstrap.Modal(addModal).show();
+        }
+    }
+});
+</script>
+@endsection
 @endsection
