@@ -110,6 +110,8 @@ Route::name('admin.')->prefix('admin')->group(function () {
             // Marriage Events & All-Events Broadcast
             Route::get('events', [MarriageEventController::class, 'index'])->name('events.index');
             Route::post('events', [MarriageEventController::class, 'store'])->name('events.store');
+            Route::get('events/{id}/contributions', [MarriageEventController::class, 'contributions'])->name('events.contributions');
+            Route::get('api/scheme-members-preview', [MarriageEventController::class, 'previewSchemeMembers'])->name('api.scheme-members-preview');
             Route::post('events/billing', [MarriageEventController::class, 'billMembers'])->name('events.billing');
             Route::get('api/events-by-month', [MarriageEventController::class, 'eventsByMonth'])->name('api.events-by-month');
             Route::post('events/broadcast-send', [MarriageEventController::class, 'sendBroadcast'])->name('events.broadcast-send');

@@ -31,6 +31,9 @@ class WhatsAppService
         $msg .= "योजना: *{$schemeName}*\n\n";
         $msg .= "✅ *भुगतान रसीद विवरण:*\n";
         $msg .= "रसीद नं: *{$payment->receipt_no}*\n";
+        if ($payment->event) {
+            $msg .= "कार्यक्रम: *{$payment->event->title}*\n";
+        }
         $msg .= "दिनांक: *{$payment->payment_date->format('d-m-Y')}*\n";
         $msg .= "प्राप्त राशि: *₹" . number_format($payment->amount, 2) . "*\n";
         $msg .= "भुगतान माध्यम: *{$payment->payment_mode}*\n";

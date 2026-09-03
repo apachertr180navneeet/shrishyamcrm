@@ -27,6 +27,16 @@ class Payment extends Model
         return $this->belongsTo(Agent::class);
     }
 
+    public function event()
+    {
+        return $this->belongsTo(MarriageEvent::class, 'event_id');
+    }
+
+    public function eventContribution()
+    {
+        return $this->belongsTo(EventContribution::class, 'event_contribution_id');
+    }
+
     public function ledger()
     {
         return $this->hasMany(Ledger::class);

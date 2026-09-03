@@ -38,4 +38,34 @@ class MarriageEvent extends Model
     {
         return $this->hasMany(EventBilling::class, 'event_id');
     }
+
+    public function contributions()
+    {
+        return $this->hasMany(EventContribution::class, 'event_id')->orderBy('member_name');
+    }
+
+    public function getTotalExpectedContributionAttribute(): float
+    {
+        return (float)$this->contributions()->sum('contribution_amount');
+    }
+
+    public function getTotalCollectedContributionAttribute(): float
+    {
+        return (float)$this->contributions()->where('payment_status', 'Paid')->sum('contribution_amount');
+    }
+
+    public function getTotalPendingContributionAttribute(): float
+    {
+        return (float)$this->contributions()->where('payment_status', 'Pending')->sum('contribution_amount');
+    }
+
+    public function getPaidCountAttribute(): int
+    {
+        return $this->contributions()->where('payment_status', 'Paid')->count();
+    }
+
+    public function getPendingCountAttribute(): int
+    {
+        return $this->contributions()->where('payment_status', 'Pending')->count();
+    }
 }

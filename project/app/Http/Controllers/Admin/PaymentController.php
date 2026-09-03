@@ -17,7 +17,7 @@ class PaymentController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        $query = Payment::with(['member.scheme', 'agent']);
+        $query = Payment::with(['member.scheme', 'agent', 'event']);
 
         if ($user && $user->isAgent() && $user->agent_id) {
             $query->where('agent_id', $user->agent_id);
@@ -31,8 +31,15 @@ class PaymentController extends Controller
                   ->orWhereHas('member', function ($mq) use ($search) {
                       $mq->where('full_name', 'like', "%{$search}%")
                          ->orWhere('membership_no', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('event', function ($eq) use ($search) {
+                      $eq->where('title', 'like', "%{$search}%");
                   });
             });
+        }
+
+        if ($request->filled('event_id')) {
+            $query->where('event_id', $request->event_id);
         }
 
         if ($request->filled('payment_type')) {
@@ -45,8 +52,9 @@ class PaymentController extends Controller
 
         $payments = $query->latest('payment_date')->paginate(15)->withQueryString();
         $totalCollected = (clone $query)->where('status', 'Verified')->sum('amount');
+        $events = \App\Models\MarriageEvent::orderBy('title')->get();
 
-        return view('admin.payments.index', compact('payments', 'totalCollected'));
+        return view('admin.payments.index', compact('payments', 'totalCollected', 'events'));
     }
 
     public function create(Request $request)
@@ -61,7 +69,17 @@ class PaymentController extends Controller
         $agents = $isAgent ? Agent::where('id', $user->agent_id)->get() : Agent::where('status', 'Active')->get();
         $selectedMemberId = $request->member_id;
 
-        return view('admin.payments.create', compact('members', 'agents', 'selectedMemberId'));
+        $selectedContribution = null;
+        if ($request->filled('contribution_id')) {
+            $selectedContribution = \App\Models\EventContribution::with(['event', 'member'])->find($request->contribution_id);
+            if ($selectedContribution) {
+                $selectedMemberId = $selectedContribution->member_id;
+            }
+        }
+
+        $events = \App\Models\MarriageEvent::with('scheme')->orderBy('title')->get();
+
+        return view('admin.payments.create', compact('members', 'agents', 'selectedMemberId', 'selectedContribution', 'events'));
     }
 
     public function store(Request $request)
@@ -72,6 +90,8 @@ class PaymentController extends Controller
             'payment_type' => 'required|string|in:Joining Fee,Monthly Support,Event Contribution,Special Donation',
             'payment_mode' => 'required|string|in:Cash,UPI,Bank Transfer,Cheque',
             'payment_date' => 'required|date',
+            'event_id' => 'nullable|exists:marriage_events,id',
+            'event_contribution_id' => 'nullable|exists:event_contributions,id',
         ]);
 
         try {
@@ -79,13 +99,12 @@ class PaymentController extends Controller
             $user = auth()->user();
             $member = Member::findOrFail($request->member_id);
             if ($user && $user->isAgent() && $user->agent_id && $member->agent_id !== $user->agent_id) {
-                return back()->withInput()->with('error', 'You are not authorised to record a payment for this member.');
+                return back()->withInput()->with('error', 'Unauthorized: You can only record collections for members assigned to your agency.');
             }
 
-            // Pass only expected fields (prevent mass assignment injection)
             $paymentData = $request->only([
                 'member_id', 'payment_type', 'payment_mode', 'reference_no',
-                'payment_date', 'remarks', 'amount',
+                'payment_date', 'remarks', 'amount', 'event_id', 'event_contribution_id',
             ]);
             if ($user && $user->isAgent() && $user->agent_id) {
                 $paymentData['agent_id'] = $user->agent_id;
@@ -94,7 +113,7 @@ class PaymentController extends Controller
             $payment = PaymentService::processPayment($paymentData);
 
             return redirect()->route('admin.payments.receipt', $payment->id)
-                ->with('success', "Payment of ₹{$request->amount} recorded successfully. Receipt No: {$payment->receipt_no}");
+                ->with('success', "Payment of ₹" . number_format($payment->amount, 2) . " recorded successfully. Receipt No: {$payment->receipt_no}");
         } catch (\Exception $e) {
             return back()->withInput()->with('error', 'Error recording payment: ' . $e->getMessage());
         }
@@ -103,7 +122,7 @@ class PaymentController extends Controller
     public function receipts(Request $request)
     {
         $user = auth()->user();
-        $query = Payment::with(['member.scheme', 'agent'])->where('status', 'Verified');
+        $query = Payment::with(['member.scheme', 'agent', 'event'])->where('status', 'Verified');
 
         if ($user && $user->isAgent() && $user->agent_id) {
             $query->where('agent_id', $user->agent_id);
@@ -128,7 +147,7 @@ class PaymentController extends Controller
     public function receipt($id)
     {
         $user = auth()->user();
-        $query = Payment::with(['member.scheme', 'member.agent', 'agent']);
+        $query = Payment::with(['member.scheme', 'member.agent', 'agent', 'event']);
         if ($user && $user->isAgent() && $user->agent_id) {
             $query->where('agent_id', $user->agent_id);
         }

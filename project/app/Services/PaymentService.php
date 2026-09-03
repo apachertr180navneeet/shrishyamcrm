@@ -6,6 +6,8 @@ use App\Models\Payment;
 use App\Models\Member;
 use App\Models\Agent;
 use App\Models\AgentCommission;
+use App\Models\EventContribution;
+use App\Models\MarriageEvent;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
@@ -21,6 +23,24 @@ class PaymentService
             $agentId = $data['agent_id'] ?? $member->agent_id;
             $agent = $agentId ? Agent::find($agentId) : null;
             $amount = (float)($data['amount'] ?? 0);
+
+            $eventContributionId = $data['event_contribution_id'] ?? null;
+            $eventId = $data['event_id'] ?? null;
+            $eventContribution = null;
+
+            if ($eventContributionId) {
+                $eventContribution = EventContribution::lockForUpdate()->find($eventContributionId);
+                if ($eventContribution) {
+                    if ($eventContribution->payment_status === 'Paid') {
+                        throw new \Exception("This event contribution has already been paid (Receipt No: {$eventContribution->receipt_no}).");
+                    }
+                    $eventId = $eventContribution->event_id;
+                    $data['payment_type'] = 'Event Contribution';
+                    if ($amount <= 0) {
+                        $amount = (float)$eventContribution->contribution_amount;
+                    }
+                }
+            }
 
             if ($amount <= 0) {
                 throw new \InvalidArgumentException('Payment amount must be greater than zero.');
@@ -43,6 +63,8 @@ class PaymentService
                 'receipt_no' => $receiptNo,
                 'san_code' => $sanCode,
                 'member_id' => $member->id,
+                'event_id' => $eventId,
+                'event_contribution_id' => $eventContributionId,
                 'agent_id' => $agent ? $agent->id : null,
                 'amount' => $amount,
                 'payment_type' => $paymentType,
@@ -55,11 +77,33 @@ class PaymentService
                 'remarks' => $remarks,
             ]);
 
+            // 1b. Update EventContribution if linked
+            if ($eventContribution) {
+                $eventContribution->update([
+                    'payment_status' => 'Paid',
+                    'payment_date' => $paymentDate,
+                    'payment_id' => $payment->id,
+                    'receipt_no' => $receiptNo,
+                    'collected_by' => auth()->check() ? auth()->id() : null,
+                    'agent_id' => $agent ? $agent->id : $eventContribution->agent_id,
+                ]);
+
+                if ($eventContribution->event) {
+                    $eventContribution->event->increment('collected_amount', $amount);
+                }
+            } elseif ($eventId) {
+                $event = MarriageEvent::find($eventId);
+                if ($event) {
+                    $event->increment('collected_amount', $amount);
+                }
+            }
+
             // 2. Post Credit to Member Ledger
+            $eventTitleSuffix = $eventContribution ? " [{$eventContribution->event_name}]" : '';
             LedgerService::postEntry(
                 memberId: $member->id,
                 entryType: 'Payment',
-                description: "Payment received via {$paymentMode} ({$paymentType}) - Receipt #{$receiptNo}",
+                description: "Payment received via {$paymentMode} ({$paymentType}{$eventTitleSuffix}) - Receipt #{$receiptNo}",
                 debit: 0.0,
                 credit: $amount,
                 transactionDate: $paymentDate,

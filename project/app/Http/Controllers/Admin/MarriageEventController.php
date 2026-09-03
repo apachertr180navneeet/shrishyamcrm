@@ -16,27 +16,28 @@ class MarriageEventController extends Controller
 {
     public function index()
     {
-        $events = MarriageEvent::with(['member', 'payouts', 'billings', 'scheme'])->latest('event_date')->get();
-        $members = Member::with('nominees')->where('status', 'Active')->get();
+        $events = MarriageEvent::with(['member', 'scheme', 'payouts', 'contributions'])->latest('event_date')->paginate(10);
+        $members = Member::with(['scheme', 'nominees'])->where('status', 'Active')->get();
         $schemes = Scheme::where('status', 'Active')->get();
-        $billings = EventBilling::with(['event', 'scheme'])->latest('billing_date')->take(10)->get();
+        $billings = EventBilling::with(['event', 'creator'])->latest('billing_date')->take(10)->get();
 
-        // Prepare girls dropdown list (from nominees + female members)
+        // Aggregate list of daughters and female members for Bride / Girl Name dropdown
         $girlsList = collect();
-
-        // 1. Daughters & female nominees
         foreach ($members as $mem) {
-            foreach ($mem->nominees as $nominee) {
-                $isDaughter = in_array(strtolower($nominee->relation ?? ''), ['daughter', 'girl', 'sister', 'पुत्री', 'बेटी', 'बहन']);
-                $girlsList->push([
-                    'type' => 'nominee',
-                    'girl_name' => $nominee->name,
-                    'father_name' => $nominee->father_husband_name ?: $mem->full_name,
-                    'member_id' => $mem->id,
-                    'member_name' => $mem->full_name,
-                    'membership_no' => $mem->membership_no,
-                    'label' => "{$nominee->name} (D/o {$mem->full_name} - {$mem->membership_no})",
-                ]);
+            // 1. Daughters / Female nominees
+            foreach ($mem->nominees as $nom) {
+                if (strtolower($nom->relation ?? '') === 'daughter' || strtolower($nom->gender ?? '') === 'female') {
+                    $girlsList->push([
+                        'type' => 'nominee',
+                        'girl_name' => $nom->name,
+                        'father_name' => $mem->full_name,
+                        'member_id' => $mem->id,
+                        'scheme_id' => $mem->scheme_id,
+                        'member_name' => $mem->full_name,
+                        'membership_no' => $mem->membership_no,
+                        'label' => "{$nom->name} (Daughter of {$mem->full_name} - {$mem->membership_no})",
+                    ]);
+                }
             }
             // 2. Female members themselves
             if (strtolower($mem->gender ?? '') === 'female') {
@@ -45,6 +46,7 @@ class MarriageEventController extends Controller
                     'girl_name' => $mem->full_name,
                     'father_name' => $mem->father_spouse_name ?: '',
                     'member_id' => $mem->id,
+                    'scheme_id' => $mem->scheme_id,
                     'member_name' => $mem->full_name,
                     'membership_no' => $mem->membership_no,
                     'label' => "{$mem->full_name} (Member: {$mem->membership_no})",
@@ -61,8 +63,9 @@ class MarriageEventController extends Controller
             'title' => 'nullable|string|max:200',
             'girl_name' => 'required|string|max:100',
             'event_date' => 'required|date',
-            'target_amount' => 'required|numeric|min:0',
-            'rate_per_event' => 'required|numeric|min:0',
+            'scheme_id' => 'required|exists:schemes,id',
+            'target_amount' => 'nullable|numeric|min:0',
+            'rate_per_event' => 'nullable|numeric|min:0',
         ]);
 
         $title = $request->title ?: "विवाह सहायता कार्यक्रम - सुपुत्री {$request->girl_name}";
@@ -75,20 +78,86 @@ class MarriageEventController extends Controller
             'girl_name' => $request->girl_name,
             'father_name' => $request->father_name,
             'member_id' => $request->member_id ?: null,
-            'scheme_id' => $request->scheme_id ?: null,
+            'scheme_id' => $request->scheme_id,
             'event_date' => $request->event_date,
             'venue' => $request->venue ?: 'श्री श्याम धर्मशाला, लोहीकी',
-            'target_amount' => $request->target_amount,
+            'target_amount' => $request->target_amount ?: 51000.00,
             'collected_amount' => 0,
-            'beneficiary_payout_amount' => $request->target_amount,
+            'beneficiary_payout_amount' => $request->target_amount ?: 51000.00,
             'rate_per_event' => $request->rate_per_event ?? 200.00,
             'status' => 'Upcoming',
             'description' => $request->description,
         ]);
 
-        AuditService::log('create', 'events', (string)$event->id, null, ['code' => $eventCode, 'title' => $event->title, 'rate' => $event->rate_per_event]);
+        // Automatically identify Scheme members, calculate age-slabs, and generate EventContribution records
+        $generatedCount = \App\Services\ContributionCalculationService::generateEventContributions($event);
 
-        return back()->with('success', "Society Marriage Event {$eventCode} for {$event->girl_name} created successfully!");
+        AuditService::log('create', 'events', (string)$event->id, null, [
+            'code' => $eventCode,
+            'title' => $event->title,
+            'scheme_id' => $event->scheme_id,
+            'contributions_generated' => $generatedCount
+        ]);
+
+        return redirect()->route('admin.events.contributions', $event->id)
+            ->with('success', "विवाह कार्यक्रम {$eventCode} ({$event->girl_name}) सफलतापूर्वक दर्ज किया गया! योजना के {$generatedCount} सदस्यों का आयु-वर्ग अनुसार अंशदान तैयार हो गया है।");
+    }
+
+    /**
+     * Live Preview of Scheme Members, Age Slabs, and Contribution amounts.
+     */
+    public function previewSchemeMembers(Request $request)
+    {
+        $request->validate([
+            'scheme_id' => 'required|exists:schemes,id',
+            'event_date' => 'nullable|date',
+        ]);
+
+        $preview = \App\Services\ContributionCalculationService::getPreviewForScheme(
+            (int)$request->scheme_id,
+            $request->event_date
+        );
+
+        return response()->json($preview);
+    }
+
+    /**
+     * Dedicated Event Contributions List & Tracking page.
+     */
+    public function contributions($id, Request $request)
+    {
+        $event = MarriageEvent::with(['scheme', 'member'])->findOrFail($id);
+        
+        $query = $event->contributions()->with(['member.scheme', 'member.agent', 'payment']);
+
+        if ($request->filled('status')) {
+            $query->where('payment_status', $request->status);
+        }
+
+        if ($request->filled('search')) {
+            $search = \App\Helpers\Helper::likeEscape($request->search);
+            $query->where(function ($q) use ($search) {
+                $q->where('member_name', 'like', "%{$search}%")
+                  ->orWhere('receipt_no', 'like', "%{$search}%")
+                  ->orWhereHas('member', function ($mq) use ($search) {
+                      $mq->where('membership_no', 'like', "%{$search}%")
+                         ->orWhere('mobile', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $contributions = $query->paginate(20)->withQueryString();
+
+        $stats = [
+            'total_members' => $event->contributions()->count(),
+            'total_expected' => (float)$event->contributions()->sum('contribution_amount'),
+            'total_collected' => (float)$event->contributions()->where('payment_status', 'Paid')->sum('contribution_amount'),
+            'total_pending' => (float)$event->contributions()->where('payment_status', 'Pending')->sum('contribution_amount'),
+            'paid_count' => $event->contributions()->where('payment_status', 'Paid')->count(),
+            'pending_count' => $event->contributions()->where('payment_status', 'Pending')->count(),
+        ];
+
+        return view('admin.events.contributions', compact('event', 'contributions', 'stats'));
     }
 
     public function billMembers(Request $request)

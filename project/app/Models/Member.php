@@ -66,6 +66,11 @@ class Member extends Model
         return $this->hasMany(Payout::class);
     }
 
+    public function eventContributions()
+    {
+        return $this->hasMany(EventContribution::class, 'member_id')->latest('event_date');
+    }
+
     public function calculateCurrentBalance(): float
     {
         $lastLedger = $this->ledgers()->latest('id')->first();
