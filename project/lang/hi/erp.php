@@ -37,7 +37,7 @@ return [
     'receipts' => 'आधिकारिक रसीदें',
     'ledger' => 'वित्तीय खाता (लेजर)',
     'certificates' => 'सदस्यता प्रमाण पत्र',
-    'marriage_events' => 'विवाह कार्यक्रम',
+    'marriage_events' => 'कार्यक्रम (Events)',
     'payouts' => 'हितग्राही भुगतान',
     'whatsapp' => 'व्हाट्सएप केंद्र',
     'reports' => 'रिपोर्ट्स सेंटर',

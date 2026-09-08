@@ -37,7 +37,7 @@ return [
     'receipts' => 'Official Receipts',
     'ledger' => 'Financial Ledgers',
     'certificates' => 'Certificates',
-    'marriage_events' => 'Marriage Events',
+    'marriage_events' => 'Events',
     'payouts' => 'Beneficiary Payouts',
     'whatsapp' => 'WhatsApp Center',
     'reports' => 'Reports Center',

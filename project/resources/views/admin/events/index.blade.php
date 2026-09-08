@@ -7,8 +7,8 @@
         <div class="card-body p-4">
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
                 <div>
-                    <h4 class="fw-bold mb-1" style="font-family: 'Hind', sans-serif;">विवाह सहायता कार्यक्रम (Marriage Events & Support Pool)</h4>
-                    <p class="text-muted mb-0">Manage girl child marriage welfare grants (₹51,000 assistance), event collections, and member contribution billing.</p>
+                    <h4 class="fw-bold mb-1" style="font-family: 'Hind', sans-serif;">कल्याण सहायता कार्यक्रम (Events & Support Pool)</h4>
+                    <p class="text-muted mb-0">Manage welfare assistance grants, event collections, and member contribution billing.</p>
                 </div>
                 <div class="d-flex gap-2">
                     <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#monthlyBroadcastModal">
@@ -18,7 +18,7 @@
                         <i class="fas fa-calculator me-1"></i> Bill Members for Event
                     </button>
                     <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#addEventModal">
-                        <i class="fas fa-plus me-1"></i> Create Marriage Event
+                        <i class="fas fa-plus me-1"></i> Create Event
                     </button>
                 </div>
             </div>
@@ -65,7 +65,7 @@
                 <div class="card-body p-4">
                     <div class="row g-3 mb-3">
                         <div class="col-md-6 col-12">
-                            <small class="text-muted d-block">Girl / Bride Name</small>
+                            <small class="text-muted d-block">Beneficiary / Girl Name</small>
                             <strong class="fs-6 text-primary">{{ $event->girl_name }}</strong>
                         </div>
                         <div class="col-md-6 col-12">
@@ -73,7 +73,7 @@
                             <strong class="fs-6">{{ $event->father_name ?? ($event->member ? $event->member->full_name : 'N/A') }}</strong>
                         </div>
                         <div class="col-md-6 col-12">
-                            <small class="text-muted d-block">Marriage Date</small>
+                            <small class="text-muted d-block">Event Date</small>
                             <strong><i class="fas fa-calendar-alt text-danger me-1"></i> {{ $event->event_date ? $event->event_date->format('d M Y') : '' }}</strong>
                         </div>
                         <div class="col-md-6 col-12">
@@ -96,7 +96,7 @@
                     </div>
 
                     <div class="bg-lighter p-3 rounded mb-3">
-                        <small class="text-muted d-block mb-1">Venue / विवाह स्थल</small>
+                        <small class="text-muted d-block mb-1">Venue / स्थल</small>
                         <span class="text-dark"><i class="fas fa-map-marker-alt text-danger me-1"></i> {{ $event->venue ?? 'Shri Shyam Dharamshala, Lohki' }}</span>
                     </div>
 
@@ -125,7 +125,7 @@
             <form action="{{ route('admin.events.store') }}" method="POST" id="createEventForm">
                 @csrf
                 <div class="modal-header" style="background: #1B365D; color: #fff;">
-                    <h5 class="modal-title fw-bold text-white"><i class="fas fa-hand-holding-heart me-2"></i>Create Marriage Welfare Event</h5>
+                    <h5 class="modal-title fw-bold text-white"><i class="fas fa-calendar-plus me-2"></i>Create Event (कार्यक्रम जोड़ें)</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
@@ -148,10 +148,10 @@
                             <!-- Girl Name Dropdown -->
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">
-                                    <i class="fas fa-female text-danger me-1"></i> Select Girl / Bride (कन्या का नाम) <span class="text-danger">*</span>
+                                    <i class="fas fa-user text-primary me-1"></i> Select Beneficiary / Girl (हितग्राही / कन्या का नाम) <span class="text-danger">*</span>
                                 </label>
                                 <select id="girlDropdownSelect" class="form-select form-select-lg mb-2" onchange="onGirlSelectChange(this)">
-                                    <option value="">-- Choose Registered Daughter / Member --</option>
+                                    <option value="">-- Choose Registered Member / Beneficiary --</option>
                                     @foreach($girlsList as $g)
                                     <option value="{{ $g['girl_name'] }}"
                                         data-scheme-id="{{ $g['scheme_id'] ?? '' }}"
@@ -163,7 +163,7 @@
                                     @endforeach
                                     <option value="__custom__">➕ Other / Enter Name Manually (अन्य नाम दर्ज करें)</option>
                                 </select>
-                                <input type="text" name="girl_name" id="girlNameField" class="form-control" placeholder="Girl's Full Name (e.g. कुमारी पूजा शर्मा)" required>
+                                <input type="text" name="girl_name" id="girlNameField" class="form-control" placeholder="Beneficiary's Full Name (e.g. कुमारी पूजा शर्मा)" required>
                             </div>
 
                             <div class="row g-3 mb-3">
@@ -184,16 +184,16 @@
 
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Event Title (कार्यक्रम शीर्षक)</label>
-                                <input type="text" name="title" id="eventTitleField" class="form-control" placeholder="e.g. कुमारी पूजा विवाह सहायता कार्यक्रम">
+                                <input type="text" name="title" id="eventTitleField" class="form-control" placeholder="e.g. कल्याण सहायता कार्यक्रम शीर्षक">
                             </div>
 
                             <div class="row g-3 mb-3">
                                 <div class="col-6">
-                                    <label class="form-label fw-semibold">Event Date (विवाह दिनांक) <span class="text-danger">*</span></label>
+                                    <label class="form-label fw-semibold">Event Date (कार्यक्रम दिनांक) <span class="text-danger">*</span></label>
                                     <input type="date" name="event_date" id="eventDateField" class="form-control" required value="{{ date('Y-m-d') }}" onchange="triggerMemberPreview()">
                                 </div>
                                 <div class="col-6">
-                                    <label class="form-label fw-semibold">Grant Pool (कन्यादान ₹)</label>
+                                    <label class="form-label fw-semibold">Grant Pool (सहायता राशि ₹)</label>
                                     <input type="number" name="target_amount" class="form-control fw-bold text-success" value="51000">
                                 </div>
                             </div>
@@ -411,7 +411,7 @@ function onGirlSelectChange(select) {
 
         if (father) fatherField.value = father;
         if (memberId && memberSelect) memberSelect.value = memberId;
-        titleField.value = 'विवाह सहायता कार्यक्रम - सुपुत्री ' + select.value;
+        titleField.value = 'सहायता कार्यक्रम - ' + select.value;
     }
 }
 
