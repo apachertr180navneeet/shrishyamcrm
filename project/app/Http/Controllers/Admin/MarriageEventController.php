@@ -125,6 +125,8 @@ class MarriageEventController extends Controller
 
         $eventCode = NumberSeriesService::getNextNumber('EVT', ['prefix' => 'EVT-' . date('Y') . '-', 'initial_value' => 1, 'padding' => 2]);
 
+        $targetAmount = $request->filled('target_amount') ? (float)$request->target_amount : null;
+
         $event = MarriageEvent::create([
             'event_code' => $eventCode,
             'title' => $title,
@@ -135,9 +137,9 @@ class MarriageEventController extends Controller
             'scheme_id' => $request->scheme_id,
             'event_date' => $request->event_date,
             'venue' => $request->venue ?: 'श्री श्याम धर्मशाला, लोहीकी',
-            'target_amount' => $request->target_amount ?: 51000.00,
+            'target_amount' => $targetAmount ?: 0,
             'collected_amount' => 0,
-            'beneficiary_payout_amount' => $request->target_amount ?: 51000.00,
+            'beneficiary_payout_amount' => $targetAmount ?: 0,
             'rate_per_event' => $request->rate_per_event ?? 200.00,
             'status' => 'Upcoming',
             'description' => $request->description,
@@ -145,6 +147,14 @@ class MarriageEventController extends Controller
 
         // Automatically identify Scheme members, calculate age-slabs, and generate EventContribution records
         $generatedCount = \App\Services\ContributionCalculationService::generateEventContributions($event);
+
+        $totalContributionSum = (float)$event->contributions()->sum('contribution_amount');
+        if ((!$targetAmount || $targetAmount <= 0) && $totalContributionSum > 0) {
+            $event->update([
+                'target_amount' => $totalContributionSum,
+                'beneficiary_payout_amount' => $totalContributionSum,
+            ]);
+        }
 
         AuditService::log('create', 'events', (string)$event->id, null, [
             'code' => $eventCode,

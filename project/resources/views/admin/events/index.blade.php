@@ -208,7 +208,7 @@
                                 </div>
                                 <div class="col-6">
                                     <label class="form-label fw-semibold" id="grantPoolFieldLabel">Grant Pool (सहायता राशि ₹)</label>
-                                    <input type="number" name="target_amount" class="form-control fw-bold text-success" value="51000">
+                                    <input type="number" name="target_amount" id="eventTargetAmount" class="form-control fw-bold text-success" value="0" placeholder="0" step="0.01">
                                 </div>
                             </div>
 
@@ -542,6 +542,7 @@ function triggerMemberPreview() {
     const container = document.getElementById('previewTableContainer');
     const badge = document.getElementById('previewCountBadge');
     const totalEl = document.getElementById('previewTotalAmount');
+    const targetAmountInput = document.getElementById('eventTargetAmount');
 
     if (!schemeId) {
         container.innerHTML = `
@@ -553,6 +554,9 @@ function triggerMemberPreview() {
         `;
         badge.innerText = '0 Members';
         totalEl.innerText = '₹0.00';
+        if (targetAmountInput) {
+            targetAmountInput.value = '0';
+        }
         return;
     }
 
@@ -561,8 +565,13 @@ function triggerMemberPreview() {
     fetch('{{ route("admin.api.scheme-members-preview") }}?scheme_id=' + encodeURIComponent(schemeId) + '&event_date=' + encodeURIComponent(eventDate))
         .then(res => res.json())
         .then(data => {
+            const total = Number(data.total_contribution || 0);
             badge.innerText = (data.members_count || 0) + ' Members';
-            totalEl.innerText = '₹' + Number(data.total_contribution || 0).toLocaleString('en-IN', {minimumFractionDigits: 2});
+            totalEl.innerText = '₹' + total.toLocaleString('en-IN', {minimumFractionDigits: 2});
+
+            if (targetAmountInput) {
+                targetAmountInput.value = total;
+            }
 
             if (data.members && data.members.length > 0) {
                 let html = `
