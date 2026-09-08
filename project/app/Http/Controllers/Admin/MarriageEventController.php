@@ -35,75 +35,101 @@ class MarriageEventController extends Controller
 
         // Optimized lightweight member dropdown list
         $members = Member::where('status', 'Active')
-            ->select('id', 'membership_no', 'full_name')
+            ->select('id', 'membership_no', 'full_name', 'gender', 'scheme_id', 'age', 'dob', 'father_spouse_name')
             ->orderBy('full_name')
             ->get();
 
-        // Aggregate list of daughters and female members for Bride / Girl Name dropdown
-        $girlsList = collect();
+        // Aggregate list of registered daughters, sons, and members for dynamic Beneficiary dropdown
+        $beneficiariesList = collect();
 
-        // 1. Direct query for daughters / female nominees
-        $nomineeGirls = \App\Models\Nominee::where(function ($q) {
-            $q->whereRaw('LOWER(relation) = ?', ['daughter'])
-              ->orWhereRaw('LOWER(relation) = ?', ['female']);
-        })->with('member:id,membership_no,full_name,scheme_id')->get();
+        // 1. Direct query for all nominees (daughters, sons, spouses, etc.)
+        $nominees = \App\Models\Nominee::with('member:id,membership_no,full_name,scheme_id,father_spouse_name')->get();
 
-        foreach ($nomineeGirls as $nom) {
+        foreach ($nominees as $nom) {
             if ($nom->member) {
-                $girlsList->push([
+                $relLower = strtolower(trim($nom->relation ?? ''));
+                $isDaughter = in_array($relLower, ['daughter', 'female', 'beti', 'putri']);
+                $isSon = in_array($relLower, ['son', 'male', 'beta', 'putra']);
+
+                $tag = $isDaughter ? 'Daughter / पुत्री' : ($isSon ? 'Son / पुत्र' : ($nom->relation ?: 'Nominee'));
+                $targetSchemeType = $isDaughter ? 'daughter' : ($isSon ? 'son' : 'other');
+
+                $beneficiariesList->push([
                     'type' => 'nominee',
-                    'girl_name' => $nom->name,
+                    'target_type' => $targetSchemeType,
+                    'beneficiary_name' => $nom->name,
                     'father_name' => $nom->member->full_name,
                     'member_id' => $nom->member->id,
                     'scheme_id' => $nom->member->scheme_id,
                     'member_name' => $nom->member->full_name,
                     'membership_no' => $nom->member->membership_no,
-                    'label' => "{$nom->name} (Daughter of {$nom->member->full_name} - {$nom->member->membership_no})",
+                    'label' => "{$nom->name} [{$tag}] (Of {$nom->member->full_name} - {$nom->member->membership_no})",
                 ]);
             }
         }
 
-        // 2. Direct query for female members
-        $femaleMembers = Member::where('status', 'Active')
-            ->where('gender', 'Female')
-            ->select('id', 'membership_no', 'full_name', 'father_spouse_name', 'scheme_id')
-            ->get();
+        // 2. Direct query for all active members
+        foreach ($members as $mem) {
+            $isFemale = strtolower($mem->gender ?? '') === 'female';
+            $targetType = $isFemale ? 'daughter' : 'son';
 
-        foreach ($femaleMembers as $mem) {
-            $girlsList->push([
+            $beneficiariesList->push([
                 'type' => 'member',
-                'girl_name' => $mem->full_name,
+                'target_type' => $targetType,
+                'beneficiary_name' => $mem->full_name,
                 'father_name' => $mem->father_spouse_name ?: '',
                 'member_id' => $mem->id,
                 'scheme_id' => $mem->scheme_id,
                 'member_name' => $mem->full_name,
                 'membership_no' => $mem->membership_no,
-                'label' => "{$mem->full_name} (Member: {$mem->membership_no})",
+                'label' => "{$mem->full_name} [Member: {$mem->membership_no}]",
             ]);
         }
 
-        return view('admin.events.index', compact('events', 'members', 'schemes', 'billings', 'girlsList'));
+        $girlsList = $beneficiariesList; // backwards compatibility
+
+        return view('admin.events.index', compact('events', 'members', 'schemes', 'billings', 'beneficiariesList', 'girlsList'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
             'title' => 'nullable|string|max:200',
-            'girl_name' => 'required|string|max:100',
+            'girl_name' => 'nullable|string|max:100',
+            'beneficiary_name' => 'nullable|string|max:100',
             'event_date' => 'required|date',
             'scheme_id' => 'required|exists:schemes,id',
             'target_amount' => 'nullable|numeric|min:0',
             'rate_per_event' => 'nullable|numeric|min:0',
         ]);
 
-        $title = $request->title ?: "विवाह सहायता कार्यक्रम - सुपुत्री {$request->girl_name}";
+        $beneficiaryName = trim($request->beneficiary_name ?: $request->girl_name);
+        if (empty($beneficiaryName)) {
+            return back()->with('error', 'कृपया हितग्राही / वर / वधू का नाम दर्ज करें (Beneficiary Name is required).');
+        }
+
+        $scheme = Scheme::find($request->scheme_id);
+        $schemeCode = $scheme ? strtoupper($scheme->code) : '';
+        $schemeName = $scheme ? $scheme->name_hindi : '';
+
+        // Dynamic title based on Scheme
+        if ($request->filled('title')) {
+            $title = $request->title;
+        } elseif (str_contains($schemeCode, 'PUTRA') || str_contains($schemeName, 'पुत्र')) {
+            $title = "पुत्र विवाह सहायता कार्यक्रम - श्री {$beneficiaryName}";
+        } elseif (str_contains($schemeCode, 'PUTRI') || str_contains($schemeName, 'पुत्री') || str_contains($schemeName, 'कन्या')) {
+            $title = "कन्या विवाह सहायता कार्यक्रम - सुपुत्री {$beneficiaryName}";
+        } else {
+            $title = "कल्याण सहयोग कार्यक्रम - {$beneficiaryName}";
+        }
+
         $eventCode = NumberSeriesService::getNextNumber('EVT', ['prefix' => 'EVT-' . date('Y') . '-', 'initial_value' => 1, 'padding' => 2]);
 
         $event = MarriageEvent::create([
             'event_code' => $eventCode,
             'title' => $title,
-            'event_type' => $request->event_type ?? 'Marriage Support',
-            'girl_name' => $request->girl_name,
+            'event_type' => $request->event_type ?? ($scheme ? $scheme->name_hindi : 'Welfare Event'),
+            'girl_name' => $beneficiaryName,
             'father_name' => $request->father_name,
             'member_id' => $request->member_id ?: null,
             'scheme_id' => $request->scheme_id,
@@ -128,7 +154,7 @@ class MarriageEventController extends Controller
         ]);
 
         return redirect()->route('admin.events.contributions', $event->id)
-            ->with('success', "विवाह कार्यक्रम {$eventCode} ({$event->girl_name}) सफलतापूर्वक दर्ज किया गया! योजना के {$generatedCount} सदस्यों का आयु-वर्ग अनुसार अंशदान तैयार हो गया है।");
+            ->with('success', "कार्यक्रम {$eventCode} ({$beneficiaryName}) सफलतापूर्वक दर्ज किया गया! '{$schemeName}' के {$generatedCount} सदस्यों के खाते में आयु-वर्ग अनुसार अंशदान जुड़ गया है।");
     }
 
     /**

@@ -125,7 +125,9 @@
             <form action="{{ route('admin.events.store') }}" method="POST" id="createEventForm">
                 @csrf
                 <div class="modal-header" style="background: #1B365D; color: #fff;">
-                    <h5 class="modal-title fw-bold text-white"><i class="fas fa-calendar-plus me-2"></i>Create Event (कार्यक्रम जोड़ें)</h5>
+                    <h5 class="modal-title fw-bold text-white" id="modalMainTitle">
+                        <i class="fas fa-calendar-plus me-2"></i>Create Welfare Event (कार्यक्रम जोड़ें)
+                    </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
@@ -136,39 +138,49 @@
                                 <label class="form-label fw-bold fs-6">
                                     <i class="fas fa-hand-holding-heart text-primary me-1"></i> Select Scheme (योजना चुनें) <span class="text-danger">*</span>
                                 </label>
-                                <select name="scheme_id" id="eventSchemeSelect" class="form-select form-select-lg shadow-sm" required onchange="onSchemeSelected(this.value)">
-                                    <option value="">-- Choose Society Scheme --</option>
+                                <select name="scheme_id" id="eventSchemeSelect" class="form-select form-select-lg shadow-sm border-primary" required onchange="onSchemeSelected(this.value)">
+                                    <option value="">-- Choose Society Scheme (योजना चुनें) --</option>
                                     @foreach($schemes as $sch)
-                                    <option value="{{ $sch->id }}">{{ $sch->name_hindi }} ({{ $sch->name }})</option>
-                                    @endforeach
-                                </select>
-                                <small class="text-muted">योजना चुनते ही उसके सभी पात्र सदस्यों की सूची एवं आयु-वर्ग अनुसार अंशदान राशि नीचे प्रदर्शित होगी।</small>
-                            </div>
-
-                            <!-- Girl Name Dropdown -->
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold">
-                                    <i class="fas fa-user text-primary me-1"></i> Select Beneficiary / Girl (हितग्राही / कन्या का नाम) <span class="text-danger">*</span>
-                                </label>
-                                <select id="girlDropdownSelect" class="form-select form-select-lg mb-2" onchange="onGirlSelectChange(this)">
-                                    <option value="">-- Choose Registered Member / Beneficiary --</option>
-                                    @foreach($girlsList as $g)
-                                    <option value="{{ $g['girl_name'] }}"
-                                        data-scheme-id="{{ $g['scheme_id'] ?? '' }}"
-                                        data-father="{{ $g['father_name'] }}"
-                                        data-member-id="{{ $g['member_id'] }}"
-                                        data-member-name="{{ $g['member_name'] }}">
-                                        {{ $g['label'] }}
+                                    <option value="{{ $sch->id }}"
+                                        data-code="{{ $sch->code }}"
+                                        data-type="{{ $sch->type }}"
+                                        data-hindi="{{ $sch->name_hindi }}"
+                                        data-name="{{ $sch->name }}">
+                                        {{ $sch->name_hindi }} ({{ $sch->name }})
                                     </option>
                                     @endforeach
-                                    <option value="__custom__">➕ Other / Enter Name Manually (अन्य नाम दर्ज करें)</option>
                                 </select>
-                                <input type="text" name="girl_name" id="girlNameField" class="form-control" placeholder="Beneficiary's Full Name (e.g. कुमारी पूजा शर्मा)" required>
+                                <small class="text-muted" id="schemeHelpText">
+                                    योजना चुनते ही उसके सभी पात्र सदस्यों की सूची एवं आयु-वर्ग अनुसार अंशदान राशि नीचे प्रदर्शित होगी।
+                                </small>
+                            </div>
+
+                            <!-- Dynamic Beneficiary Dropdown -->
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold" id="beneficiaryFieldLabel">
+                                    <i class="fas fa-user text-primary me-1"></i> Select Beneficiary / Name (हितग्राही / वर / वधू का नाम) <span class="text-danger">*</span>
+                                </label>
+                                <select id="beneficiaryDropdownSelect" class="form-select form-select-lg mb-2" onchange="onBeneficiarySelectChange(this)">
+                                    <option value="">-- Choose Registered Member / Nominee --</option>
+                                    @foreach($beneficiariesList as $b)
+                                    <option value="{{ $b['beneficiary_name'] }}"
+                                        data-target-type="{{ $b['target_type'] ?? 'other' }}"
+                                        data-scheme-id="{{ $b['scheme_id'] ?? '' }}"
+                                        data-father="{{ $b['father_name'] }}"
+                                        data-member-id="{{ $b['member_id'] }}"
+                                        data-member-name="{{ $b['member_name'] }}">
+                                        {{ $b['label'] }}
+                                    </option>
+                                    @endforeach
+                                    <option value="__custom__">➕ Other / Enter Name Manually (अन्य नाम खुद दर्ज करें)</option>
+                                </select>
+                                <input type="text" name="beneficiary_name" id="beneficiaryNameField" class="form-control form-control-lg fw-semibold" placeholder="Beneficiary's Full Name (e.g. श्री भंवर लाल गुर्जर / कुमारी पूजा)" required oninput="onBeneficiaryManualTyping()">
+                                <input type="hidden" name="girl_name" id="legacyGirlNameField">
                             </div>
 
                             <div class="row g-3 mb-3">
                                 <div class="col-6">
-                                    <label class="form-label fw-semibold">Father / Guardian (पिता)</label>
+                                    <label class="form-label fw-semibold" id="fatherFieldLabel">Father / Guardian (पिता)</label>
                                     <input type="text" name="father_name" id="fatherNameField" class="form-control" placeholder="e.g. श्री राधेश्याम शर्मा">
                                 </div>
                                 <div class="col-6">
@@ -189,11 +201,13 @@
 
                             <div class="row g-3 mb-3">
                                 <div class="col-6">
-                                    <label class="form-label fw-semibold">Event Date (कार्यक्रम दिनांक) <span class="text-danger">*</span></label>
+                                    <label class="form-label fw-semibold" id="eventDateFieldLabel">
+                                        Event Date (दिनांक) <span class="text-danger">*</span>
+                                    </label>
                                     <input type="date" name="event_date" id="eventDateField" class="form-control" required value="{{ date('Y-m-d') }}" onchange="triggerMemberPreview()">
                                 </div>
                                 <div class="col-6">
-                                    <label class="form-label fw-semibold">Grant Pool (सहायता राशि ₹)</label>
+                                    <label class="form-label fw-semibold" id="grantPoolFieldLabel">Grant Pool (सहायता राशि ₹)</label>
                                     <input type="number" name="target_amount" class="form-control fw-bold text-success" value="51000">
                                 </div>
                             </div>
@@ -211,7 +225,7 @@
 
                         <!-- Right Column: Live Scheme Members & Calculated Age-Slab Contribution Preview -->
                         <div class="col-lg-6 col-12">
-                            <div class="card border bg-light h-100">
+                            <div class="card border bg-light h-100 shadow-none">
                                 <div class="card-header bg-white border-bottom py-2 d-flex justify-content-between align-items-center">
                                     <h6 class="mb-0 fw-bold text-primary">
                                         <i class="fas fa-calculator me-1"></i> पात्र सदस्य एवं स्वतः अंशदान गणना
@@ -219,14 +233,14 @@
                                     <span class="badge bg-success" id="previewCountBadge">0 Members</span>
                                 </div>
                                 <div class="card-body p-0">
-                                    <div class="p-2 bg-lighter border-bottom text-muted small d-flex justify-content-between">
-                                        <span>आयु अनुसार देय राशि (0-5: ₹100, 6-9: ₹200, 10-13: ₹300, 14-17: ₹400, 17+: ₹500)</span>
+                                    <div class="p-2 bg-primary bg-opacity-10 border-bottom text-dark small d-flex justify-content-between">
+                                        <span class="fw-semibold"><i class="fas fa-layer-group me-1 text-primary"></i> आयु अनुसार देय राशि: 0-5: ₹100 | 6-9: ₹200 | 10-13: ₹300 | 14-17: ₹400 | 17+: ₹500</span>
                                     </div>
                                     <div id="previewTableContainer" style="max-height: 380px; overflow-y: auto;">
                                         <div class="text-center py-5 text-muted">
                                             <i class="fas fa-hand-pointer fs-3 text-secondary mb-2 d-block"></i>
                                             कृपया बाईं ओर <strong>योजना (Scheme)</strong> चुनें।<br>
-                                            सदस्यों की आयु अनुसार अंशदान की गणना यहाँ दिखेगी।
+                                            उस योजना के सभी सक्रिय सदस्यों की आयु अनुसार स्वतः अंशदान यहाँ दिखेगा।
                                         </div>
                                     </div>
                                 </div>
@@ -240,7 +254,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary btn-lg" style="background: #1B365D;">
+                    <button type="submit" class="btn btn-primary btn-lg px-4" style="background: #1B365D;">
                         <i class="fas fa-check-circle me-1"></i> Create Event & Generate Contributions
                     </button>
                 </div>
@@ -391,51 +405,134 @@ function updateTotalCharge() {
     document.getElementById('totalDebitPerMember').innerText = '₹' + total.toFixed(2);
 }
 
-function onGirlSelectChange(select) {
+function onBeneficiaryManualTyping() {
+    const nameField = document.getElementById('beneficiaryNameField');
+    const legacyField = document.getElementById('legacyGirlNameField');
+    const titleField = document.getElementById('eventTitleField');
+    if (legacyField) legacyField.value = nameField.value;
+
+    const schemeSelect = document.getElementById('eventSchemeSelect');
+    const selectedSchemeOpt = schemeSelect ? schemeSelect.options[schemeSelect.selectedIndex] : null;
+    const schemeCode = selectedSchemeOpt ? (selectedSchemeOpt.getAttribute('data-code') || '') : '';
+    const schemeHindi = selectedSchemeOpt ? (selectedSchemeOpt.getAttribute('data-hindi') || '') : '';
+
+    if (nameField.value.trim().length > 0) {
+        if (schemeCode.includes('PUTRA') || schemeHindi.includes('पुत्र')) {
+            titleField.value = 'पुत्र विवाह सहायता कार्यक्रम - सुपुत्र ' + nameField.value.trim();
+        } else if (schemeCode.includes('PUTRI') || schemeHindi.includes('पुत्री') || schemeHindi.includes('कन्या')) {
+            titleField.value = 'कन्या विवाह सहायता कार्यक्रम - सुपुत्री ' + nameField.value.trim();
+        } else {
+            titleField.value = 'कल्याण सहयोग कार्यक्रम - ' + nameField.value.trim();
+        }
+    }
+}
+
+function onBeneficiarySelectChange(select) {
     const selectedOption = select.options[select.selectedIndex];
-    const girlNameField = document.getElementById('girlNameField');
+    const nameField = document.getElementById('beneficiaryNameField');
+    const legacyField = document.getElementById('legacyGirlNameField');
     const fatherField = document.getElementById('fatherNameField');
     const memberSelect = document.getElementById('linkedMemberSelect');
     const titleField = document.getElementById('eventTitleField');
 
     if (select.value === '__custom__') {
-        girlNameField.value = '';
-        girlNameField.focus();
+        nameField.value = '';
+        if (legacyField) legacyField.value = '';
+        nameField.focus();
         return;
     }
 
     if (select.value) {
-        girlNameField.value = select.value;
+        nameField.value = select.value;
+        if (legacyField) legacyField.value = select.value;
         const father = selectedOption.getAttribute('data-father') || '';
         const memberId = selectedOption.getAttribute('data-member-id') || '';
 
         if (father) fatherField.value = father;
         if (memberId && memberSelect) memberSelect.value = memberId;
-        titleField.value = 'सहायता कार्यक्रम - ' + select.value;
+
+        const schemeSelect = document.getElementById('eventSchemeSelect');
+        const selectedSchemeOpt = schemeSelect ? schemeSelect.options[schemeSelect.selectedIndex] : null;
+        const schemeCode = selectedSchemeOpt ? (selectedSchemeOpt.getAttribute('data-code') || '') : '';
+        const schemeHindi = selectedSchemeOpt ? (selectedSchemeOpt.getAttribute('data-hindi') || '') : '';
+
+        if (schemeCode.includes('PUTRA') || schemeHindi.includes('पुत्र')) {
+            titleField.value = 'पुत्र विवाह सहायता कार्यक्रम - सुपुत्र ' + select.value;
+        } else if (schemeCode.includes('PUTRI') || schemeHindi.includes('पुत्री') || schemeHindi.includes('कन्या')) {
+            titleField.value = 'कन्या विवाह सहायता कार्यक्रम - सुपुत्री ' + select.value;
+        } else {
+            titleField.value = 'कल्याण सहयोग कार्यक्रम - ' + select.value;
+        }
     }
 }
 
 function onSchemeSelected(schemeId) {
-    // 1. Filter Girl Dropdown based on selected scheme
-    const girlSelect = document.getElementById('girlDropdownSelect');
-    if (girlSelect) {
-        for (let i = 0; i < girlSelect.options.length; i++) {
-            const opt = girlSelect.options[i];
+    const schemeSelect = document.getElementById('eventSchemeSelect');
+    const selectedOption = schemeSelect.options[schemeSelect.selectedIndex];
+    const schemeCode = selectedOption ? (selectedOption.getAttribute('data-code') || '') : '';
+    const schemeHindi = selectedOption ? (selectedOption.getAttribute('data-hindi') || '') : '';
+
+    const modalTitle = document.getElementById('modalMainTitle');
+    const beneficiaryLabel = document.getElementById('beneficiaryFieldLabel');
+    const beneficiaryInput = document.getElementById('beneficiaryNameField');
+    const fatherLabel = document.getElementById('fatherFieldLabel');
+    const grantLabel = document.getElementById('grantPoolFieldLabel');
+    const dateLabel = document.getElementById('eventDateFieldLabel');
+    const beneficiarySelect = document.getElementById('beneficiaryDropdownSelect');
+
+    let schemeType = 'other'; // 'daughter', 'son', 'other'
+
+    if (schemeCode.includes('PUTRA') || schemeHindi.includes('पुत्र')) {
+        schemeType = 'son';
+        if (modalTitle) modalTitle.innerHTML = '<i class="fas fa-user-friends me-2"></i>Create Son Marriage Event (पुत्र विवाह कार्यक्रम जोड़ें)';
+        if (beneficiaryLabel) beneficiaryLabel.innerHTML = '<i class="fas fa-male text-primary me-1"></i> Select Groom / Son (वर / पुत्र का नाम - जैसे भंवर लाल गुर्जर) <span class="text-danger">*</span>';
+        if (beneficiaryInput) beneficiaryInput.placeholder = 'e.g. श्री भंवर लाल गुर्जर';
+        if (fatherLabel) fatherLabel.innerText = 'Father / Guardian (पिता)';
+        if (grantLabel) grantLabel.innerText = 'Grant Pool (विवाह सहयोग राशि ₹)';
+        if (dateLabel) dateLabel.innerHTML = 'विवाह दिनांक (Marriage Date) <span class="text-danger">*</span>';
+    } else if (schemeCode.includes('PUTRI') || schemeHindi.includes('पुत्री') || schemeHindi.includes('कन्या')) {
+        schemeType = 'daughter';
+        if (modalTitle) modalTitle.innerHTML = '<i class="fas fa-heart text-danger me-2"></i>Create Daughter Marriage Event (पुत्री विवाह सहायता कार्यक्रम जोड़ें)';
+        if (beneficiaryLabel) beneficiaryLabel.innerHTML = '<i class="fas fa-female text-primary me-1"></i> Select Bride / Daughter (कन्या / वधू का नाम) <span class="text-danger">*</span>';
+        if (beneficiaryInput) beneficiaryInput.placeholder = 'e.g. कुमारी पूजा शर्मा';
+        if (fatherLabel) fatherLabel.innerText = 'Father / Guardian (पिता)';
+        if (grantLabel) grantLabel.innerText = 'Grant Pool (कन्यादान ₹)';
+        if (dateLabel) dateLabel.innerHTML = 'विवाह दिनांक (Marriage Date) <span class="text-danger">*</span>';
+    } else {
+        schemeType = 'other';
+        if (modalTitle) modalTitle.innerHTML = '<i class="fas fa-calendar-plus me-2"></i>Create Welfare Event (कल्याण कार्यक्रम जोड़ें)';
+        if (beneficiaryLabel) beneficiaryLabel.innerHTML = '<i class="fas fa-user text-primary me-1"></i> Select Beneficiary / Member (हितग्राही / सदस्य का नाम) <span class="text-danger">*</span>';
+        if (beneficiaryInput) beneficiaryInput.placeholder = 'e.g. श्री रामेश्वर लाल';
+        if (fatherLabel) fatherLabel.innerText = 'Nominee / Guardian (नॉमिनी / वारिसदार)';
+        if (grantLabel) grantLabel.innerText = 'Assistance Grant Pool (सहायता राशि ₹)';
+        if (dateLabel) dateLabel.innerHTML = 'कार्यक्रम / घटना दिनांक <span class="text-danger">*</span>';
+    }
+
+    // 1. Filter Beneficiary Dropdown based on selected scheme
+    if (beneficiarySelect) {
+        for (let i = 0; i < beneficiarySelect.options.length; i++) {
+            const opt = beneficiarySelect.options[i];
             if (!opt.value || opt.value === '__custom__') {
                 opt.style.display = '';
                 continue;
             }
+            const targetType = opt.getAttribute('data-target-type') || 'other';
             const optScheme = opt.getAttribute('data-scheme-id');
-            if (!schemeId || !optScheme || optScheme === schemeId) {
+
+            if (!schemeId) {
                 opt.style.display = '';
+            } else if (schemeType === 'daughter') {
+                opt.style.display = (targetType === 'daughter' || optScheme === schemeId) ? '' : 'none';
+            } else if (schemeType === 'son') {
+                opt.style.display = (targetType === 'son' || optScheme === schemeId) ? '' : 'none';
             } else {
-                opt.style.display = 'none';
+                opt.style.display = '';
             }
         }
-        girlSelect.value = '';
+        beneficiarySelect.value = '';
     }
 
-    // 2. Fetch and render Member Contributions Preview
+    // 2. Fetch and render Member Contributions Preview based on Age Slabs
     triggerMemberPreview();
 }
 
@@ -451,7 +548,7 @@ function triggerMemberPreview() {
             <div class="text-center py-5 text-muted">
                 <i class="fas fa-hand-pointer fs-3 text-secondary mb-2 d-block"></i>
                 कृपया बाईं ओर <strong>योजना (Scheme)</strong> चुनें।<br>
-                सदस्यों की आयु अनुसार अंशदान की गणना यहाँ दिखेगी।
+                उस योजना के सभी सक्रिय सदस्यों की आयु अनुसार स्वतः अंशदान यहाँ दिखेगा।
             </div>
         `;
         badge.innerText = '0 Members';
@@ -459,7 +556,7 @@ function triggerMemberPreview() {
         return;
     }
 
-    container.innerHTML = '<div class="text-center py-4 text-muted"><i class="fas fa-spinner fa-spin me-2"></i>Calculating member contributions based on Age Slabs...</div>';
+    container.innerHTML = '<div class="text-center py-4 text-muted"><i class="fas fa-spinner fa-spin me-2 text-primary"></i>योजना के सदस्यों की आयु अनुसार अंशदान की गणना की जा रही है...</div>';
 
     fetch('{{ route("admin.api.scheme-members-preview") }}?scheme_id=' + encodeURIComponent(schemeId) + '&event_date=' + encodeURIComponent(eventDate))
         .then(res => res.json())
@@ -490,9 +587,9 @@ function triggerMemberPreview() {
                                 <small class="text-muted d-block font-monospace">${m.membership_no}</small>
                             </td>
                             <td><span class="badge bg-light text-dark">${m.age} yr</span></td>
-                            <td><span class="badge bg-label-primary">${m.age_slab}</span></td>
+                            <td><span class="badge bg-label-primary font-monospace">${m.age_slab}</span></td>
                             <td class="text-end fw-bold text-success">₹${Number(m.amount).toLocaleString('en-IN')}</td>
-                            <td class="text-center"><span class="badge bg-warning text-dark">Pending</span></td>
+                            <td class="text-center"><span class="badge bg-warning text-dark">Auto Generated</span></td>
                         </tr>
                     `;
                 });
