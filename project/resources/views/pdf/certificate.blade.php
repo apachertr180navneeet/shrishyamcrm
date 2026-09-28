@@ -5,8 +5,32 @@
     <title>Certificate - {{ $member->membership_no }}</title>
     <style>
         @page { margin: 20px; }
+        @font-face {
+            font-family: 'Mangal';
+            font-style: normal;
+            font-weight: 400;
+            src: url('{{ $mangalPath }}') format('truetype');
+        }
+        @font-face {
+            font-family: 'Mangal';
+            font-style: normal;
+            font-weight: 700;
+            src: url('{{ $mangalbPath }}') format('truetype');
+        }
+        @font-face {
+            font-family: 'Aparajita';
+            font-style: normal;
+            font-weight: 400;
+            src: url('{{ $aparajPath }}') format('truetype');
+        }
+        @font-face {
+            font-family: 'Aparajita';
+            font-style: normal;
+            font-weight: 700;
+            src: url('{{ $aparajbPath }}') format('truetype');
+        }
         body {
-            font-family: 'DejaVu Sans', sans-serif;
+            font-family: 'Mangal', 'Aparajita', 'DejaVu Sans', sans-serif;
             color: #1a1a1a;
             margin: 0;
             padding: 0;

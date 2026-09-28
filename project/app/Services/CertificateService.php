@@ -24,7 +24,13 @@ class CertificateService
             'secretary' => SocietySetting::getVal('secretary_name', 'Shri Mahesh Garg'),
         ];
 
-        return Pdf::loadView('pdf.certificate', compact('member', 'society'))
+        MemberLedgerCardService::ensureFontsExist();
+        $mangalPath = str_replace('\\', '/', public_path('fonts/mangal.ttf'));
+        $mangalbPath = str_replace('\\', '/', public_path('fonts/mangalb.ttf'));
+        $aparajPath = str_replace('\\', '/', public_path('fonts/aparaj.ttf'));
+        $aparajbPath = str_replace('\\', '/', public_path('fonts/aparajb.ttf'));
+
+        return Pdf::loadView('pdf.certificate', compact('member', 'society', 'mangalPath', 'mangalbPath', 'aparajPath', 'aparajbPath'))
             ->setPaper('a4', 'landscape');
     }
 }

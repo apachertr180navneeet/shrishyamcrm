@@ -5,10 +5,35 @@
     <title>Member Ledger Card - {{ $member->membership_no }}</title>
     <style>
         @page {
-            margin: 18px 20px;
+            margin: 15px 18px;
         }
+        @font-face {
+            font-family: 'Mangal';
+            font-style: normal;
+            font-weight: 400;
+            src: url('{{ $mangalPath }}') format('truetype');
+        }
+        @font-face {
+            font-family: 'Mangal';
+            font-style: normal;
+            font-weight: 700;
+            src: url('{{ $mangalbPath }}') format('truetype');
+        }
+        @font-face {
+            font-family: 'Aparajita';
+            font-style: normal;
+            font-weight: 400;
+            src: url('{{ $aparajPath }}') format('truetype');
+        }
+        @font-face {
+            font-family: 'Aparajita';
+            font-style: normal;
+            font-weight: 700;
+            src: url('{{ $aparajbPath }}') format('truetype');
+        }
+
         body {
-            font-family: 'DejaVu Sans', sans-serif;
+            font-family: 'Mangal', 'Aparajita', 'DejaVu Sans', sans-serif;
             color: #111;
             font-size: 11px;
             line-height: 1.35;
@@ -25,7 +50,7 @@
         .top-meta-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 9px;
+            font-size: 9.5px;
             margin-bottom: 2px;
         }
         .header {
@@ -42,13 +67,13 @@
             letter-spacing: 0.5px;
         }
         .society-subtitle {
-            font-size: 10.5px;
+            font-size: 11px;
             font-weight: bold;
             color: #222;
             margin: 2px 0;
         }
         .society-phones {
-            font-size: 10px;
+            font-size: 10.5px;
             font-weight: bold;
             color: #333;
             margin: 1px 0;
@@ -61,9 +86,9 @@
         .scheme-pill {
             display: inline-block;
             border: 1.5px solid #222;
-            padding: 2px 16px;
+            padding: 2px 18px;
             border-radius: 14px;
-            font-size: 11px;
+            font-size: 11.5px;
             font-weight: bold;
             text-align: center;
             background: #f8f8f8;
@@ -72,7 +97,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 8px;
-            font-size: 10.5px;
+            font-size: 11px;
         }
         .member-info-table td {
             padding: 3px 2px;
@@ -80,7 +105,7 @@
         }
         .dotted-val {
             border-bottom: 1px dotted #333;
-            padding: 0 4px;
+            padding: 0 5px;
             font-weight: bold;
             color: #000;
         }
@@ -93,15 +118,15 @@
         .ledger-table th {
             border: 1px solid #000;
             background: #f0f0f0;
-            font-size: 10px;
+            font-size: 10.5px;
             font-weight: bold;
             padding: 4px 3px;
             text-align: center;
         }
         .ledger-table td {
             border: 1px solid #000;
-            font-size: 9.5px;
-            padding: 3.5px 4px;
+            font-size: 10px;
+            padding: 4px 4px;
             vertical-align: middle;
         }
         .text-center { text-align: center; }
@@ -118,13 +143,13 @@
         .footer-summary-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 6px;
+            margin-top: 8px;
         }
         .total-box {
             border: 1.5px solid #000;
             border-radius: 6px;
-            padding: 4px 10px;
-            font-size: 13px;
+            padding: 5px 14px;
+            font-size: 15px;
             font-weight: bold;
             display: inline-block;
             background: #fafafa;
@@ -132,7 +157,7 @@
         .rupee-icon {
             font-size: 16px;
             font-weight: bold;
-            margin-right: 4px;
+            margin-right: 3px;
         }
         .signature-cell {
             text-align: right;
@@ -145,7 +170,7 @@
             margin-top: 8px;
             padding-top: 6px;
             border-top: 1px dashed #666;
-            font-size: 9.5px;
+            font-size: 10px;
             color: #333;
             text-align: center;
         }
@@ -175,7 +200,7 @@
         <!-- Scheme Row & Date -->
         <table class="scheme-row-table">
             <tr>
-                <td style="width: 25%; font-size: 10px;">
+                <td style="width: 25%; font-size: 10.5px;">
                     <strong>क्र.सं.</strong> <span class="dotted-val">{{ $member->membership_no }}</span>
                 </td>
                 <td class="text-center" style="width: 50%;">
@@ -183,7 +208,7 @@
                         {{ $member->scheme ? $member->scheme->name_hindi : 'बुजुर्ग सम्मान योजना' }}
                     </div>
                 </td>
-                <td class="text-end" style="width: 25%; font-size: 10px;">
+                <td class="text-end" style="width: 25%; font-size: 10.5px;">
                     <strong>दिनांक :-</strong> <span class="dotted-val">{{ date('d.m.Y') }}</span>
                 </td>
             </tr>
@@ -278,16 +303,15 @@
             </tbody>
         </table>
 
-        <!-- Footer Summary Section -->
+        <!-- Footer Summary Section: Single Total Amount -->
         <table class="footer-summary-table">
             <tr>
                 <td style="width: 60%; vertical-align: middle;">
                     <div class="total-box">
-                        <span class="rupee-icon">₹</span>
-                        {{ number_format($totalPaid, 0) }} + {{ number_format($totalPending, 0) }} = {{ number_format($totalExpected, 0) }}
+                        <span class="rupee-icon">₹</span> {{ number_format($totalExpected, 0) }}
                     </div>
-                    <div style="font-size: 8.5px; color: #555; margin-top: 3px;">
-                        (जमा राशि: ₹{{ number_format($totalPaid, 0) }} | बकाया राशि: ₹{{ number_format($totalPending, 0) }} | कुल देय: ₹{{ number_format($totalExpected, 0) }})
+                    <div style="font-size: 9px; color: #555; margin-top: 3px;">
+                        (कुल देय राशि: ₹{{ number_format($totalExpected, 0) }})
                     </div>
                 </td>
                 <td class="signature-cell" style="width: 40%;">

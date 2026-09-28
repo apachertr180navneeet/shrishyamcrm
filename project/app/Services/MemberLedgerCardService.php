@@ -9,10 +9,42 @@ use Barryvdh\DomPDF\Facade\Pdf;
 class MemberLedgerCardService
 {
     /**
+     * Ensure Hindi/Devanagari TrueType font files and font storage directory exist.
+     */
+    public static function ensureFontsExist(): void
+    {
+        $storageFontsDir = storage_path('fonts');
+        if (!is_dir($storageFontsDir)) {
+            @mkdir($storageFontsDir, 0777, true);
+        }
+
+        $publicFontsDir = public_path('fonts');
+        if (!is_dir($publicFontsDir)) {
+            @mkdir($publicFontsDir, 0777, true);
+        }
+
+        $fontFiles = [
+            'mangal.ttf' => 'C:/Windows/Fonts/mangal.ttf',
+            'mangalb.ttf' => 'C:/Windows/Fonts/mangalb.ttf',
+            'aparaj.ttf' => 'C:/Windows/Fonts/aparaj.ttf',
+            'aparajb.ttf' => 'C:/Windows/Fonts/aparajb.ttf',
+        ];
+
+        foreach ($fontFiles as $filename => $sourcePath) {
+            $destPath = $publicFontsDir . DIRECTORY_SEPARATOR . $filename;
+            if (!file_exists($destPath) && file_exists($sourcePath)) {
+                @copy($sourcePath, $destPath);
+            }
+        }
+    }
+
+    /**
      * Generate printable / downloadable Member Ledger & Event Receipt Card PDF
      */
     public static function generatePdf(int $memberId): \Barryvdh\DomPDF\PDF
     {
+        static::ensureFontsExist();
+
         $member = Member::with([
             'scheme',
             'agent',
@@ -83,7 +115,7 @@ class MemberLedgerCardService
             if ($isPaid) {
                 $payDateStr = $ec->payment_date
                     ? $ec->payment_date->format('d.m.y')
-                    : ($ec->payment && $ec->payment->payment_date ? $ec->payment->payment_date->format('d.m.y') : 'जमा (Paid)');
+                    : ($ec->payment && $ec->payment->payment_date ? $ec->payment->payment_date->format('d.m.y') : 'जमा');
             } else {
                 $payDateStr = 'बकाया (Pending)';
             }
@@ -142,6 +174,11 @@ class MemberLedgerCardService
 
         $sanCode = $member->san_code ?: $society['san_prefix'];
 
+        $mangalPath = str_replace('\\', '/', public_path('fonts/mangal.ttf'));
+        $mangalbPath = str_replace('\\', '/', public_path('fonts/mangalb.ttf'));
+        $aparajPath = str_replace('\\', '/', public_path('fonts/aparaj.ttf'));
+        $aparajbPath = str_replace('\\', '/', public_path('fonts/aparajb.ttf'));
+
         return Pdf::loadView('pdf.member_ledger', compact(
             'member',
             'society',
@@ -152,7 +189,11 @@ class MemberLedgerCardService
             'totalExpected',
             'nomineeName',
             'kishtRate',
-            'sanCode'
+            'sanCode',
+            'mangalPath',
+            'mangalbPath',
+            'aparajPath',
+            'aparajbPath'
         ))->setPaper('a4', 'portrait');
     }
 }

@@ -1,0 +1,10 @@
+{
+    "mangal": {
+        "normal": "C:\\laragon\\www\\laravel_project\\shrishyamcrm\\project\\storage\\fonts\/mangal_normal_d48bd3f5c565764f1fd8ab00720b11f5",
+        "bold": "mangal_bold_5135aae3c6374f3391a5e60f69f93a8e"
+    },
+    "aparajita": {
+        "normal": "C:\\laragon\\www\\laravel_project\\shrishyamcrm\\project\\storage\\fonts\/aparajita_normal_28b110c1cdaa059a0941484464dc4d82",
+        "bold": "aparajita_bold_5c036300f200144cd5cef2ab93cfac4f"
+    }
+}

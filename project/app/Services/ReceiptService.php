@@ -28,7 +28,13 @@ class ReceiptService
             'secretary' => SocietySetting::getVal('secretary_name', 'Shri Mahesh Garg'),
         ];
 
-        return Pdf::loadView('pdf.receipt', compact('payment', 'society'))
+        MemberLedgerCardService::ensureFontsExist();
+        $mangalPath = str_replace('\\', '/', public_path('fonts/mangal.ttf'));
+        $mangalbPath = str_replace('\\', '/', public_path('fonts/mangalb.ttf'));
+        $aparajPath = str_replace('\\', '/', public_path('fonts/aparaj.ttf'));
+        $aparajbPath = str_replace('\\', '/', public_path('fonts/aparajb.ttf'));
+
+        return Pdf::loadView('pdf.receipt', compact('payment', 'society', 'mangalPath', 'mangalbPath', 'aparajPath', 'aparajbPath'))
             ->setPaper('a5', 'landscape');
     }
 }
