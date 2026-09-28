@@ -178,6 +178,8 @@ class MemberLedgerCardService
         $mangalbPath = str_replace('\\', '/', public_path('fonts/mangalb.ttf'));
         $aparajPath = str_replace('\\', '/', public_path('fonts/aparaj.ttf'));
         $aparajbPath = str_replace('\\', '/', public_path('fonts/aparajb.ttf'));
+        $logoPath = str_replace('\\', '/', public_path('assets/society_logo.jpg'));
+        $rupeeIconPath = str_replace('\\', '/', public_path('assets/rupee_icon.png'));
 
         return Pdf::loadView('pdf.member_ledger', compact(
             'member',
@@ -193,7 +195,9 @@ class MemberLedgerCardService
             'mangalPath',
             'mangalbPath',
             'aparajPath',
-            'aparajbPath'
+            'aparajbPath',
+            'logoPath',
+            'rupeeIconPath'
         ))->setPaper('a4', 'portrait');
     }
 }

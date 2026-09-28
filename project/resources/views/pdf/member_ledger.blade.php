@@ -183,18 +183,6 @@
             background: #f8fafc;
             display: inline-table;
         }
-        .rupee-circle {
-            width: 22px;
-            height: 22px;
-            border-radius: 11px;
-            background: #1e3a8a;
-            color: #ffffff;
-            text-align: center;
-            line-height: 22px;
-            font-size: 14px;
-            font-weight: bold;
-            display: inline-block;
-        }
     </style>
 </head>
 <body>
@@ -218,15 +206,15 @@
             <!-- Center Header with Left Logo Emblem -->
             <table class="header-table">
                 <tr>
-                    <td style="width: 55px; vertical-align: middle; text-align: left; padding-bottom: 4px;">
+                    <td style="width: 60px; vertical-align: middle; text-align: left; padding-bottom: 4px;">
                         @php
-                            $logoPath = public_path('assets/logo.svg');
-                            if (!file_exists($logoPath)) {
-                                $logoPath = public_path('assets/admin/img/logo.svg');
+                            $logoImg = $logoPath ?? public_path('assets/society_logo.jpg');
+                            if (!file_exists($logoImg)) {
+                                $logoImg = public_path('assets/society_logo.png');
                             }
                         @endphp
-                        @if(file_exists($logoPath))
-                            <img src="{{ str_replace('\\', '/', $logoPath) }}" width="50" height="50" alt="Logo" style="display: block;"/>
+                        @if(file_exists($logoImg))
+                            <img src="{{ str_replace('\\', '/', $logoImg) }}" width="55" height="55" alt="Logo" style="display: block; border-radius: 28px;"/>
                         @endif
                     </td>
                     <td style="vertical-align: middle; text-align: center; padding-bottom: 4px;">
@@ -234,7 +222,7 @@
                         <div class="society-subtitle">{{ $society['address'] }}</div>
                         <div class="society-phones">मो. {{ $society['phone'] }}</div>
                     </td>
-                    <td style="width: 55px; padding-bottom: 4px;">&nbsp;</td>
+                    <td style="width: 60px; padding-bottom: 4px;">&nbsp;</td>
                 </tr>
             </table>
 
@@ -404,10 +392,15 @@
                     <td style="width: 50%; vertical-align: middle;">
                         <table class="total-box-table">
                             <tr>
-                                <td style="padding: 3px 6px 3px 4px; vertical-align: middle;">
-                                    <div class="rupee-circle">₹</div>
+                                <td style="padding: 3px 6px 3px 5px; vertical-align: middle;">
+                                    @php
+                                        $rupeeImg = $rupeeIconPath ?? public_path('assets/rupee_icon.png');
+                                    @endphp
+                                    @if(file_exists($rupeeImg))
+                                        <img src="{{ str_replace('\\', '/', $rupeeImg) }}" width="22" height="22" alt="₹" style="display: block; vertical-align: middle;"/>
+                                    @endif
                                 </td>
-                                <td style="padding: 3px 14px 3px 0; vertical-align: middle; font-size: 16px; font-weight: bold; color: #1e3a8a;">
+                                <td style="padding: 3px 14px 3px 0; vertical-align: middle; font-size: 16px; font-weight: bold; color: #1e3a8a; line-height: 1;">
                                     {{ number_format($totalPaid ?: $totalExpected, 0) }}
                                 </td>
                             </tr>
