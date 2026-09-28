@@ -247,8 +247,8 @@ class MarriageEventCreationTest extends TestCase
         $this->assertNotNull($event);
         $this->assertNull($event->scheme_id);
 
-        // Verify contributions generated for all active members
-        $this->assertTrue($event->contributions()->where('member_id', $m1->id)->exists());
+        // Verify contributions generated for other active members, excluding beneficiary member
+        $this->assertFalse($event->contributions()->where('member_id', $m1->id)->exists());
         $this->assertTrue($event->contributions()->where('member_id', $m2->id)->exists());
     }
 }

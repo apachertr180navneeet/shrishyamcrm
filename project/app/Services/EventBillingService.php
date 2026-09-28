@@ -43,19 +43,24 @@ class EventBillingService
                 throw new Exception("Consolidated billing has already been generated for month {$monthName} and selected event/scheme.");
             }
 
+            $event = $eventId ? MarriageEvent::find($eventId) : null;
+            $scheme = $schemeId ? Scheme::find($schemeId) : null;
+
             // 2. Resolve Target Active Members
             $membersQuery = Member::where('status', 'Active');
             if ($schemeId) {
                 $membersQuery->where('scheme_id', $schemeId);
+            }
+            if ($event && $event->member_id) {
+                $membersQuery->where('id', '!=', $event->member_id);
+            } elseif ($event && !empty($event->girl_name)) {
+                $membersQuery->where('full_name', '!=', trim($event->girl_name));
             }
             $members = $membersQuery->get();
 
             if ($members->isEmpty()) {
                 throw new Exception("No active members found for the selected billing criteria.");
             }
-
-            $event = $eventId ? MarriageEvent::find($eventId) : null;
-            $scheme = $schemeId ? Scheme::find($schemeId) : null;
 
             $description = "Consolidated Event Billing ({$monthName}): {$eventsCount} Event(s) @ ₹{$ratePerEvent}" . ($event ? " [{$event->title}]" : '');
 

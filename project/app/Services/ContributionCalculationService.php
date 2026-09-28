@@ -78,11 +78,16 @@ class ContributionCalculationService
     /**
      * Preview members for a given Scheme (or all active members) and Event Date.
      */
-    public static function getPreviewForScheme($schemeId = null, $eventDate = null): array
+    public static function getPreviewForScheme($schemeId = null, $eventDate = null, $excludeMemberId = null, $excludeMemberName = null): array
     {
         $query = Member::where('status', 'Active');
         if ($schemeId) {
             $query->where('scheme_id', $schemeId);
+        }
+        if ($excludeMemberId) {
+            $query->where('id', '!=', $excludeMemberId);
+        } elseif ($excludeMemberName) {
+            $query->where('full_name', '!=', trim($excludeMemberName));
         }
         $members = $query->orderBy('full_name')->get();
 
@@ -114,6 +119,7 @@ class ContributionCalculationService
 
     /**
      * Generate individual EventContribution records for all active members belonging to the Event's Scheme.
+     * The member whose event it is does NOT pay contribution for their own event.
      * Prevents accidental duplicate records for the same member + same event.
      */
     public static function generateEventContributions(MarriageEvent $event): int
@@ -124,6 +130,24 @@ class ContributionCalculationService
         $query = Member::where('status', 'Active');
         if ($schemeId) {
             $query->where('scheme_id', $schemeId);
+        }
+
+        // Exclude the member whose event it is (the beneficiary member does not pay for their own event)
+        if ($event->member_id) {
+            $query->where('id', '!=', $event->member_id);
+        } elseif (!empty($event->girl_name)) {
+            $query->where('full_name', '!=', trim($event->girl_name));
+        }
+
+        // Remove any existing contribution record for the beneficiary member if present
+        if ($event->member_id) {
+            EventContribution::where('event_id', $event->id)
+                ->where('member_id', $event->member_id)
+                ->delete();
+        } elseif (!empty($event->girl_name)) {
+            EventContribution::where('event_id', $event->id)
+                ->where('member_name', trim($event->girl_name))
+                ->delete();
         }
 
         $members = $query->get();

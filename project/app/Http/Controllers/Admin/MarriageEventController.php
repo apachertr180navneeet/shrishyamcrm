@@ -179,6 +179,25 @@ class MarriageEventController extends Controller
             'description' => $request->description,
         ]);
 
+        // Exclude the beneficiary member from contributions
+        if ($event->member_id) {
+            \App\Models\EventContribution::where('event_id', $event->id)
+                ->where('member_id', $event->member_id)
+                ->delete();
+        } elseif (!empty($event->girl_name)) {
+            \App\Models\EventContribution::where('event_id', $event->id)
+                ->where('member_name', trim($event->girl_name))
+                ->delete();
+        }
+
+        $totalContributionSum = (float)$event->contributions()->sum('contribution_amount');
+        if ((!$request->filled('target_amount') || (float)$request->target_amount <= 0) && $totalContributionSum > 0) {
+            $event->update([
+                'target_amount' => $totalContributionSum,
+                'beneficiary_payout_amount' => $totalContributionSum,
+            ]);
+        }
+
         AuditService::log('update', 'events', (string)$event->id, null, [
             'code' => $event->event_code,
             'title' => $event->title,
