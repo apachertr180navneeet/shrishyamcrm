@@ -158,8 +158,8 @@ class MemberLedgerCardService
             ];
         }
 
-        // 3. Ensure minimum 12 rows for the grid to look authentic like the printed ledger card
-        $minimumRows = 12;
+        // 3. Ensure minimum 20 rows for the grid to look authentic like the printed ledger card
+        $minimumRows = 20;
         $blankRowsCount = max(0, $minimumRows - count($tableRows));
 
         // Nominee details

@@ -2,7 +2,7 @@
 <html lang="hi">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>Member Ledger Card - {{ $member->membership_no }}</title>
+    <title>Member Ledger Card - 500219/01</title>
     <style>
         @page {
             margin: 10px 12px;
@@ -11,25 +11,25 @@
             font-family: 'Mangal';
             font-style: normal;
             font-weight: 400;
-            src: url('{{ $mangalPath }}') format('truetype');
+            src: url('C:/laragon/www/laravel_project/shrishyamcrm/project/public/fonts/mangal.ttf') format('truetype');
         }
         @font-face {
             font-family: 'Mangal';
             font-style: normal;
             font-weight: 700;
-            src: url('{{ $mangalbPath }}') format('truetype');
+            src: url('C:/laragon/www/laravel_project/shrishyamcrm/project/public/fonts/mangalb.ttf') format('truetype');
         }
         @font-face {
             font-family: 'Aparajita';
             font-style: normal;
             font-weight: 400;
-            src: url('{{ $aparajPath }}') format('truetype');
+            src: url('C:/laragon/www/laravel_project/shrishyamcrm/project/public/fonts/aparaj.ttf') format('truetype');
         }
         @font-face {
             font-family: 'Aparajita';
             font-style: normal;
             font-weight: 700;
-            src: url('{{ $aparajbPath }}') format('truetype');
+            src: url('C:/laragon/www/laravel_project/shrishyamcrm/project/public/fonts/aparajb.ttf') format('truetype');
         }
 
         * {
@@ -204,13 +204,13 @@
             <table class="top-meta-table">
                 <tr>
                     <td class="text-start" style="width: 38%; color: #1e3a8a;">
-                        <strong>Reg. No. {{ $society['reg_no'] }}</strong>
+                        <strong>Reg. No. COOP/2025/BALOTARA/500219</strong>
                     </td>
                     <td class="text-center ganesh-mantra" style="width: 24%;">
                         ॥ श्री गणेशाय नमः ॥
                     </td>
                     <td class="text-end" style="width: 38%; color: #1e3a8a;">
-                        <strong>SAN : {{ $sanCode }}</strong>
+                        <strong>SAN : 0878920000000014</strong>
                     </td>
                 </tr>
             </table>
@@ -219,20 +219,12 @@
             <table class="header-table">
                 <tr>
                     <td style="width: 55px; vertical-align: middle; text-align: left; padding-bottom: 4px;">
-                        @php
-                            $logoPath = public_path('assets/logo.svg');
-                            if (!file_exists($logoPath)) {
-                                $logoPath = public_path('assets/admin/img/logo.svg');
-                            }
-                        @endphp
-                        @if(file_exists($logoPath))
-                            <img src="{{ str_replace('\\', '/', $logoPath) }}" width="50" height="50" alt="Logo" style="display: block;"/>
-                        @endif
-                    </td>
+                                                                            <img src="C:/laragon/www/laravel_project/shrishyamcrm/project/public/assets/logo.svg" width="50" height="50" alt="Logo" style="display: block;"/>
+                                            </td>
                     <td style="vertical-align: middle; text-align: center; padding-bottom: 4px;">
-                        <div class="society-title">{{ $society['name_hindi'] }}</div>
-                        <div class="society-subtitle">{{ $society['address'] }}</div>
-                        <div class="society-phones">मो. {{ $society['phone'] }}</div>
+                        <div class="society-title">श्री श्याम वेलफेयर सोसायटी लोहिड़ी</div>
+                        <div class="society-subtitle">ग्रा.पं. लोहिड़ी, पं.स. सिणधरी, जिला बालोतरा (राज.)</div>
+                        <div class="society-phones">मो. 9664090906, 9549635631, 9783049650</div>
                     </td>
                     <td style="width: 55px; padding-bottom: 4px;">&nbsp;</td>
                 </tr>
@@ -242,15 +234,15 @@
             <table class="scheme-row-table">
                 <tr>
                     <td style="width: 26%; font-size: 10px; vertical-align: middle;">
-                        <strong style="color: #334155;">क्र.सं.</strong> <span style="font-weight: bold; color: #0f172a; border-bottom: 1px dotted #475569; padding: 0 4px;">{{ $member->membership_no }}</span>
+                        <strong style="color: #334155;">क्र.सं.</strong> <span style="font-weight: bold; color: #0f172a; border-bottom: 1px dotted #475569; padding: 0 4px;">500219/01</span>
                     </td>
                     <td class="text-center" style="width: 48%; vertical-align: middle;">
                         <div class="scheme-pill">
-                            {{ $member->scheme ? $member->scheme->name_hindi : 'कन्यादान योजना' }}
+                            कन्यादान योजना
                         </div>
                     </td>
                     <td class="text-end" style="width: 26%; font-size: 10px; vertical-align: middle;">
-                        <strong style="color: #334155;">दिनांक :-</strong> <span style="font-weight: bold; color: #0f172a; border-bottom: 1px dotted #475569; padding: 0 4px;">{{ date('d.m.Y') }}</span>
+                        <strong style="color: #334155;">दिनांक :-</strong> <span style="font-weight: bold; color: #0f172a; border-bottom: 1px dotted #475569; padding: 0 4px;">28.09.2026</span>
                     </td>
                 </tr>
             </table>
@@ -264,7 +256,7 @@
                             <tr>
                                 <td class="field-label">श्री</td>
                                 <td class="field-value">
-                                    {{ $member->full_name }}
+                                    पूजा
                                 </td>
                             </tr>
                         </table>
@@ -274,7 +266,7 @@
                             <tr>
                                 <td class="field-label">पिता/पत्नी/पुत्री</td>
                                 <td class="field-value">
-                                    {{ $member->father_spouse_name ?: '-' }}
+                                    भंवराराम
                                 </td>
                             </tr>
                         </table>
@@ -288,7 +280,7 @@
                             <tr>
                                 <td class="field-label">निवासी</td>
                                 <td class="field-value">
-                                    {{ $member->address ?: ($member->village ? $member->village . ', ' . $member->district : $member->district) }}
+                                    मनणावास
                                 </td>
                             </tr>
                         </table>
@@ -298,7 +290,7 @@
                             <tr>
                                 <td class="field-label">गौत्र</td>
                                 <td class="field-value">
-                                    {{ $member->gotra ?? ($member->caste ?? '-') }}
+                                    रोपिया
                                 </td>
                             </tr>
                         </table>
@@ -312,7 +304,7 @@
                             <tr>
                                 <td class="field-label">मोबाईल नम्बर</td>
                                 <td class="field-value">
-                                    {{ $member->mobile }}
+                                    7568564565
                                 </td>
                             </tr>
                         </table>
@@ -322,7 +314,7 @@
                             <tr>
                                 <td class="field-label">किस्त</td>
                                 <td class="field-value">
-                                    {{ number_format($kishtRate, 0) }}
+                                    500
                                 </td>
                             </tr>
                         </table>
@@ -336,7 +328,7 @@
                             <tr>
                                 <td class="field-label">कार्यकर्ता का नाम</td>
                                 <td class="field-value">
-                                    {{ $member->agent ? $member->agent->name : ($member->agent_name ?? '-') }}
+                                    वृंशाराम
                                 </td>
                             </tr>
                         </table>
@@ -346,7 +338,7 @@
                             <tr>
                                 <td class="field-label">मो.</td>
                                 <td class="field-value">
-                                    {{ $member->agent ? $member->agent->mobile : ($society['phone'] ? explode(',', $society['phone'])[0] : '') }}
+                                    9662464733
                                 </td>
                             </tr>
                         </table>
@@ -366,36 +358,157 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @php $sr = 1; @endphp
-                    @foreach($tableRows as $row)
-                    <tr style="height: 18px; background: #ffffff;">
-                        <td class="text-center font-weight-bold" style="color: #1e3a8a;">{{ $sr++ }}</td>
+                                                            <tr style="height: 18px; background: #ffffff;">
+                        <td class="text-center font-weight-bold" style="color: #1e3a8a;">1</td>
                         <td>
-                            <strong style="color: #0f172a;">{{ $row['description'] }}</strong>
+                            <strong style="color: #0f172a;">गंगा / डालुजी बामणी</strong>
                         </td>
-                        <td class="text-center" style="color: #334155;">{{ $row['event_date'] }}</td>
+                        <td class="text-center" style="color: #334155;">23.12.25</td>
                         <td class="text-center">
-                            @if($row['is_paid'])
-                                <span class="paid-text">{{ $row['payment_date'] }}</span>
-                            @else
-                                <span class="pending-text">{{ $row['payment_date'] }}</span>
-                            @endif
-                        </td>
-                        <td class="text-center" style="color: #334155;">{{ $row['agent_name'] }}</td>
+                                                            <span class="paid-text">07.07.26</span>
+                                                    </td>
+                        <td class="text-center" style="color: #334155;">रामाराम</td>
                     </tr>
-                    @endforeach
-
+                                        <tr style="height: 18px; background: #ffffff;">
+                        <td class="text-center font-weight-bold" style="color: #1e3a8a;">2</td>
+                        <td>
+                            <strong style="color: #0f172a;">मुली / राऊजी धोलानाडा</strong>
+                        </td>
+                        <td class="text-center" style="color: #334155;">01.01.26</td>
+                        <td class="text-center">
+                                                            <span class="paid-text">22.07.26</span>
+                                                    </td>
+                        <td class="text-center" style="color: #334155;">रामाराम</td>
+                    </tr>
+                    
                     <!-- Blank Fill Rows to form 20-row authentic printed ledger grid -->
-                    @for($i = 0; $i < $blankRowsCount; $i++)
-                    <tr style="height: 18px; background: #ffffff;">
+                                        <tr style="height: 18px; background: #ffffff;">
                         <td class="text-center">&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                     </tr>
-                    @endfor
-                </tbody>
+                                        <tr style="height: 18px; background: #ffffff;">
+                        <td class="text-center">&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                    </tr>
+                                        <tr style="height: 18px; background: #ffffff;">
+                        <td class="text-center">&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                    </tr>
+                                        <tr style="height: 18px; background: #ffffff;">
+                        <td class="text-center">&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                    </tr>
+                                        <tr style="height: 18px; background: #ffffff;">
+                        <td class="text-center">&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                    </tr>
+                                        <tr style="height: 18px; background: #ffffff;">
+                        <td class="text-center">&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                    </tr>
+                                        <tr style="height: 18px; background: #ffffff;">
+                        <td class="text-center">&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                    </tr>
+                                        <tr style="height: 18px; background: #ffffff;">
+                        <td class="text-center">&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                    </tr>
+                                        <tr style="height: 18px; background: #ffffff;">
+                        <td class="text-center">&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                    </tr>
+                                        <tr style="height: 18px; background: #ffffff;">
+                        <td class="text-center">&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                    </tr>
+                                        <tr style="height: 18px; background: #ffffff;">
+                        <td class="text-center">&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                    </tr>
+                                        <tr style="height: 18px; background: #ffffff;">
+                        <td class="text-center">&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                    </tr>
+                                        <tr style="height: 18px; background: #ffffff;">
+                        <td class="text-center">&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                    </tr>
+                                        <tr style="height: 18px; background: #ffffff;">
+                        <td class="text-center">&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                    </tr>
+                                        <tr style="height: 18px; background: #ffffff;">
+                        <td class="text-center">&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                    </tr>
+                                        <tr style="height: 18px; background: #ffffff;">
+                        <td class="text-center">&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                    </tr>
+                                        <tr style="height: 18px; background: #ffffff;">
+                        <td class="text-center">&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                    </tr>
+                                        <tr style="height: 18px; background: #ffffff;">
+                        <td class="text-center">&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                    </tr>
+                                    </tbody>
             </table>
 
             <!-- Footer Summary Section: Single Total Box & Signature Line -->
@@ -408,7 +521,7 @@
                                     <div class="rupee-circle">₹</div>
                                 </td>
                                 <td style="padding: 3px 14px 3px 0; vertical-align: middle; font-size: 16px; font-weight: bold; color: #1e3a8a;">
-                                    {{ number_format($totalPaid ?: $totalExpected, 0) }}
+                                    1,000
                                 </td>
                             </tr>
                         </table>
