@@ -206,7 +206,7 @@ return new class extends Migration
                 $table->foreignId('scheme_id')->nullable()->after('member_id')->constrained('schemes')->onDelete('set null');
             }
             if (!Schema::hasColumn('payouts', 'payout_type')) {
-                $table->enum('payout_type', ['Marriage Assistance', 'Elderly Death Claim', 'Welfare Assistance', 'Other Approved Assistance'])->default('Marriage Assistance')->after('scheme_id');
+                $table->string('payout_type', 191)->default('Marriage Assistance')->nullable()->after('scheme_id');
             }
             if (!Schema::hasColumn('payouts', 'disbursed_by')) {
                 $table->string('disbursed_by')->nullable()->after('approved_by');
@@ -216,7 +216,7 @@ return new class extends Migration
         // 16. Enhance Marriage Events Table
         Schema::table('marriage_events', function (Blueprint $table) {
             if (!Schema::hasColumn('marriage_events', 'event_type')) {
-                $table->enum('event_type', ['Marriage Support', 'Welfare Distribution', 'Health Camp', 'Other Society Events'])->default('Marriage Support')->after('title');
+                $table->string('event_type', 191)->default('Marriage Support')->nullable()->after('title');
             }
             if (!Schema::hasColumn('marriage_events', 'scheme_id')) {
                 $table->foreignId('scheme_id')->nullable()->after('member_id')->constrained('schemes')->onDelete('set null');

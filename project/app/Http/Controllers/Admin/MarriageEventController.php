@@ -97,6 +97,7 @@ class MarriageEventController extends Controller
             'title' => 'nullable|string|max:200',
             'girl_name' => 'nullable|string|max:100',
             'beneficiary_name' => 'nullable|string|max:100',
+            'event_type' => 'nullable|string|max:191',
             'event_date' => 'required|date',
             'scheme_id' => 'required|exists:schemes,id',
             'target_amount' => 'nullable|numeric|min:0',
@@ -123,6 +124,10 @@ class MarriageEventController extends Controller
             $title = "कल्याण सहयोग कार्यक्रम - {$beneficiaryName}";
         }
 
+        $eventType = $request->filled('event_type')
+            ? $request->event_type
+            : ($scheme ? ($scheme->name_hindi ?: $scheme->name) : 'Marriage Support');
+
         $eventCode = NumberSeriesService::getNextNumber('EVT', ['prefix' => 'EVT-' . date('Y') . '-', 'initial_value' => 1, 'padding' => 2]);
 
         $targetAmount = $request->filled('target_amount') ? (float)$request->target_amount : null;
@@ -130,7 +135,7 @@ class MarriageEventController extends Controller
         $event = MarriageEvent::create([
             'event_code' => $eventCode,
             'title' => $title,
-            'event_type' => $request->event_type ?? ($scheme ? $scheme->name_hindi : 'Welfare Event'),
+            'event_type' => $eventType,
             'girl_name' => $beneficiaryName,
             'father_name' => $request->father_name,
             'member_id' => $request->member_id ?: null,

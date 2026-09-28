@@ -124,6 +124,7 @@
         <div class="modal-content">
             <form action="{{ route('admin.events.store') }}" method="POST" id="createEventForm">
                 @csrf
+                <input type="hidden" name="event_type" id="eventTypeField">
                 <div class="modal-header" style="background: #1B365D; color: #fff;">
                     <h5 class="modal-title fw-bold text-white" id="modalMainTitle">
                         <i class="fas fa-calendar-plus me-2"></i>Create Welfare Event (कार्यक्रम जोड़ें)
@@ -471,6 +472,12 @@ function onSchemeSelected(schemeId) {
     const selectedOption = schemeSelect.options[schemeSelect.selectedIndex];
     const schemeCode = selectedOption ? (selectedOption.getAttribute('data-code') || '') : '';
     const schemeHindi = selectedOption ? (selectedOption.getAttribute('data-hindi') || '') : '';
+    const schemeName = selectedOption ? (selectedOption.getAttribute('data-name') || '') : '';
+
+    const eventTypeField = document.getElementById('eventTypeField');
+    if (eventTypeField) {
+        eventTypeField.value = schemeHindi || schemeName || 'Marriage Support';
+    }
 
     const modalTitle = document.getElementById('modalMainTitle');
     const beneficiaryLabel = document.getElementById('beneficiaryFieldLabel');
