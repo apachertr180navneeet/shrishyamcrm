@@ -76,14 +76,15 @@ class ContributionCalculationService
     }
 
     /**
-     * Preview members for a given Scheme and Event Date.
+     * Preview members for a given Scheme (or all active members) and Event Date.
      */
-    public static function getPreviewForScheme(int $schemeId, $eventDate = null): array
+    public static function getPreviewForScheme($schemeId = null, $eventDate = null): array
     {
-        $members = Member::where('scheme_id', $schemeId)
-            ->where('status', 'Active')
-            ->orderBy('full_name')
-            ->get();
+        $query = Member::where('status', 'Active');
+        if ($schemeId) {
+            $query->where('scheme_id', $schemeId);
+        }
+        $members = $query->orderBy('full_name')->get();
 
         $rows = [];
         $totalAmount = 0.0;

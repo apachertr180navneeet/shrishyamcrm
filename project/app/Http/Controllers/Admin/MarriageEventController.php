@@ -72,29 +72,23 @@ class MarriageEventController extends Controller
             'beneficiary_name' => 'nullable|string|max:100',
             'event_type' => 'nullable|string|max:191',
             'event_date' => 'required|date',
-            'scheme_id' => 'required|exists:schemes,id',
+            'scheme_id' => 'nullable|exists:schemes,id',
             'target_amount' => 'nullable|numeric|min:0',
             'rate_per_event' => 'nullable|numeric|min:0',
         ]);
 
         $beneficiaryName = trim($request->beneficiary_name ?: $request->girl_name);
         if (empty($beneficiaryName)) {
-            return back()->with('error', 'कृपया सदस्य का नाम दर्ज करें (Member/Beneficiary Name is required).');
+            return back()->with('error', 'कृपया सदस्य का नाम दर्ज करें (Member Name is required).');
         }
 
-        $scheme = Scheme::find($request->scheme_id);
-        $schemeCode = $scheme ? strtoupper($scheme->code) : '';
-        $schemeName = $scheme ? $scheme->name_hindi : '';
+        $scheme = $request->scheme_id ? Scheme::find($request->scheme_id) : null;
 
-        // Dynamic title based on Scheme
+        // Dynamic title
         if ($request->filled('title')) {
             $title = $request->title;
-        } elseif (str_contains($schemeCode, 'PUTRA') || str_contains($schemeName, 'पुत्र')) {
-            $title = "पुत्र विवाह सहायता कार्यक्रम - श्री {$beneficiaryName}";
-        } elseif (str_contains($schemeCode, 'PUTRI') || str_contains($schemeName, 'पुत्री') || str_contains($schemeName, 'कन्या')) {
-            $title = "कन्या विवाह सहायता कार्यक्रम - सुपुत्री {$beneficiaryName}";
         } else {
-            $title = "कल्याण सहयोग कार्यक्रम - {$beneficiaryName}";
+            $title = "कल्याण सहायता कार्यक्रम - {$beneficiaryName}";
         }
 
         $eventType = $request->filled('event_type')
@@ -112,7 +106,7 @@ class MarriageEventController extends Controller
             'girl_name' => $beneficiaryName,
             'father_name' => $request->father_name,
             'member_id' => $request->member_id ?: null,
-            'scheme_id' => $request->scheme_id,
+            'scheme_id' => $request->scheme_id ?: null,
             'event_date' => $request->event_date,
             'venue' => $request->venue ?: 'श्री श्याम धर्मशाला, लोहीकी',
             'target_amount' => $targetAmount ?: 0,
@@ -123,7 +117,7 @@ class MarriageEventController extends Controller
             'description' => $request->description,
         ]);
 
-        // Automatically identify Scheme members, calculate age-slabs, and generate EventContribution records
+        // Automatically identify members, calculate age-slabs, and generate EventContribution records
         $generatedCount = \App\Services\ContributionCalculationService::generateEventContributions($event);
 
         $totalContributionSum = (float)$event->contributions()->sum('contribution_amount');
@@ -142,7 +136,7 @@ class MarriageEventController extends Controller
         ]);
 
         return redirect()->route('admin.events.contributions', $event->id)
-            ->with('success', "कार्यक्रम {$eventCode} ({$beneficiaryName}) सफलतापूर्वक दर्ज किया गया! '{$schemeName}' के {$generatedCount} सदस्यों के खाते में आयु-वर्ग अनुसार अंशदान जुड़ गया है।");
+            ->with('success', "कार्यक्रम {$eventCode} ({$beneficiaryName}) सफलतापूर्वक दर्ज किया गया! सभी {$generatedCount} सक्रिय सदस्यों के खाते में आयु-वर्ग अनुसार अंशदान जुड़ गया है।");
     }
 
     public function update(Request $request, $id)
@@ -155,7 +149,7 @@ class MarriageEventController extends Controller
             'beneficiary_name' => 'nullable|string|max:100',
             'event_type' => 'nullable|string|max:191',
             'event_date' => 'required|date',
-            'scheme_id' => 'required|exists:schemes,id',
+            'scheme_id' => 'nullable|exists:schemes,id',
             'target_amount' => 'nullable|numeric|min:0',
             'rate_per_event' => 'nullable|numeric|min:0',
             'venue' => 'nullable|string|max:255',
@@ -166,7 +160,7 @@ class MarriageEventController extends Controller
         ]);
 
         $beneficiaryName = trim($request->beneficiary_name ?: $request->girl_name ?: $event->girl_name);
-        $scheme = Scheme::find($request->scheme_id);
+        $scheme = $request->scheme_id ? Scheme::find($request->scheme_id) : null;
         $targetAmount = $request->filled('target_amount') ? (float)$request->target_amount : $event->target_amount;
 
         $event->update([
@@ -175,7 +169,7 @@ class MarriageEventController extends Controller
             'girl_name' => $beneficiaryName,
             'father_name' => $request->father_name,
             'member_id' => $request->member_id ?: null,
-            'scheme_id' => $request->scheme_id,
+            'scheme_id' => $request->scheme_id ?: null,
             'event_date' => $request->event_date,
             'venue' => $request->venue ?: $event->venue,
             'target_amount' => $targetAmount,
@@ -196,17 +190,19 @@ class MarriageEventController extends Controller
     }
 
     /**
-     * Live Preview of Scheme Members, Age Slabs, and Contribution amounts.
+     * Live Preview of Active Members, Age Slabs, and Contribution amounts.
      */
     public function previewSchemeMembers(Request $request)
     {
         $request->validate([
-            'scheme_id' => 'required|exists:schemes,id',
+            'scheme_id' => 'nullable',
             'event_date' => 'nullable|date',
         ]);
 
+        $schemeId = $request->filled('scheme_id') ? (int)$request->scheme_id : null;
+
         $preview = \App\Services\ContributionCalculationService::getPreviewForScheme(
-            (int)$request->scheme_id,
+            $schemeId,
             $request->event_date
         );
 

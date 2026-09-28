@@ -125,11 +125,11 @@
 
 <!-- Add Event Modal -->
 <div class="modal fade" id="addEventModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <form action="{{ route('admin.events.store') }}" method="POST" id="createEventForm">
                 @csrf
-                <input type="hidden" name="event_type" id="eventTypeField">
+                <input type="hidden" name="event_type" id="eventTypeField" value="Marriage Support">
                 <div class="modal-header" style="background: #1B365D; color: #fff;">
                     <h5 class="modal-title fw-bold text-white" id="modalMainTitle">
                         <i class="fas fa-calendar-plus me-2"></i>Create Welfare Event (कार्यक्रम जोड़ें)
@@ -138,123 +138,67 @@
                 </div>
                 <div class="modal-body p-4">
                     <div class="row g-3">
-                        <div class="col-lg-6 col-12">
-                            <!-- Scheme Selection (Required) -->
-                            <div class="mb-3">
-                                <label class="form-label fw-bold fs-6">
-                                    <i class="fas fa-hand-holding-heart text-primary me-1"></i> Select Scheme (योजना चुनें) <span class="text-danger">*</span>
-                                </label>
-                                <select name="scheme_id" id="eventSchemeSelect" class="form-select form-select-lg shadow-sm border-primary" required onchange="onSchemeSelected(this.value)">
-                                    <option value="">-- Choose Society Scheme (योजना चुनें) --</option>
-                                    @foreach($schemes as $sch)
-                                    <option value="{{ $sch->id }}"
-                                        data-code="{{ $sch->code }}"
-                                        data-type="{{ $sch->type }}"
-                                        data-hindi="{{ $sch->name_hindi }}"
-                                        data-name="{{ $sch->name }}">
-                                        {{ $sch->name_hindi }} ({{ $sch->name }})
-                                    </option>
-                                    @endforeach
-                                </select>
-                                <small class="text-muted" id="schemeHelpText">
-                                    योजना चुनते ही उसके सभी पात्र सदस्यों की सूची एवं आयु-वर्ग अनुसार अंशदान राशि नीचे प्रदर्शित होगी।
-                                </small>
-                            </div>
-
-                            <!-- Member Dropdown (Only Members, No Nominees) -->
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold" id="beneficiaryFieldLabel">
-                                    <i class="fas fa-user text-primary me-1"></i> Select Member (सदस्य का नाम) <span class="text-danger">*</span>
-                                </label>
-                                <select id="beneficiaryDropdownSelect" class="form-select form-select-lg mb-2" onchange="onBeneficiarySelectChange(this)">
-                                    <option value="">-- Choose Registered Member (पंजीकृत सदस्य चुनें) --</option>
-                                    @foreach($beneficiariesList as $b)
-                                    <option value="{{ $b['beneficiary_name'] }}"
-                                        data-target-type="{{ $b['target_type'] ?? 'other' }}"
-                                        data-scheme-id="{{ $b['scheme_id'] ?? '' }}"
-                                        data-father="{{ $b['father_name'] }}"
-                                        data-member-id="{{ $b['member_id'] }}"
-                                        data-member-name="{{ $b['member_name'] }}">
-                                        {{ $b['label'] }}
-                                    </option>
-                                    @endforeach
-                                    <option value="__custom__">➕ Other / Enter Name Manually (अन्य नाम खुद दर्ज करें)</option>
-                                </select>
-                                <input type="text" name="beneficiary_name" id="beneficiaryNameField" class="form-control form-control-lg fw-semibold" placeholder="Member's Full Name (सदस्य का पूरा नाम)" required oninput="onBeneficiaryManualTyping()">
-                                <input type="hidden" name="girl_name" id="legacyGirlNameField">
-                            </div>
-
-                            <div class="row g-3 mb-3">
-                                <div class="col-6">
-                                    <label class="form-label fw-semibold" id="fatherFieldLabel">Father / Spouse / Guardian (पिता / अभिभावक)</label>
-                                    <input type="text" name="father_name" id="fatherNameField" class="form-control" placeholder="e.g. श्री राधेश्याम शर्मा">
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label fw-semibold">Linked Member ID</label>
-                                    <select name="member_id" id="linkedMemberSelect" class="form-select">
-                                        <option value="">-- Direct Welfare --</option>
-                                        @foreach($members as $mem)
-                                        <option value="{{ $mem->id }}">{{ $mem->membership_no }} - {{ $mem->full_name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold">Event Title (कार्यक्रम शीर्षक)</label>
-                                <input type="text" name="title" id="eventTitleField" class="form-control" placeholder="e.g. कल्याण सहायता कार्यक्रम शीर्षक">
-                            </div>
-
-                            <div class="row g-3 mb-3">
-                                <div class="col-6">
-                                    <label class="form-label fw-semibold" id="eventDateFieldLabel">
-                                        Event Date (दिनांक) <span class="text-danger">*</span>
-                                    </label>
-                                    <input type="date" name="event_date" id="eventDateField" class="form-control" required value="{{ date('Y-m-d') }}" onchange="triggerMemberPreview()">
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label fw-semibold" id="grantPoolFieldLabel">Grant Pool (सहायता राशि ₹)</label>
-                                    <input type="number" name="target_amount" id="eventTargetAmount" class="form-control fw-bold text-success" value="0" placeholder="0" step="0.01">
-                                </div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold">Venue (स्थल)</label>
-                                <input type="text" name="venue" class="form-control" value="श्री श्याम धर्मशाला, लोहीकी">
-                            </div>
-
-                            <div class="mb-0">
-                                <label class="form-label fw-semibold">Description / Notes</label>
-                                <textarea name="description" class="form-control" rows="2" placeholder="Event notes..."></textarea>
-                            </div>
+                        <!-- Member Dropdown (Only Members, No Nominees) -->
+                        <div class="col-12">
+                            <label class="form-label fw-bold" id="beneficiaryFieldLabel">
+                                <i class="fas fa-user text-primary me-1"></i> Select Member (सदस्य का नाम) <span class="text-danger">*</span>
+                            </label>
+                            <select id="beneficiaryDropdownSelect" class="form-select form-select-lg mb-2" onchange="onBeneficiarySelectChange(this)">
+                                <option value="">-- Choose Registered Member (पंजीकृत सदस्य चुनें) --</option>
+                                @foreach($beneficiariesList as $b)
+                                <option value="{{ $b['beneficiary_name'] }}"
+                                    data-father="{{ $b['father_name'] }}"
+                                    data-member-id="{{ $b['member_id'] }}"
+                                    data-member-name="{{ $b['member_name'] }}">
+                                    {{ $b['label'] }}
+                                </option>
+                                @endforeach
+                                <option value="__custom__">➕ Other / Enter Name Manually (अन्य नाम खुद दर्ज करें)</option>
+                            </select>
+                            <input type="text" name="beneficiary_name" id="beneficiaryNameField" class="form-control form-control-lg fw-semibold" placeholder="Member's Full Name (सदस्य का पूरा नाम)" required oninput="onBeneficiaryManualTyping()">
+                            <input type="hidden" name="girl_name" id="legacyGirlNameField">
                         </div>
 
-                        <!-- Right Column: Live Scheme Members & Calculated Age-Slab Contribution Preview -->
-                        <div class="col-lg-6 col-12">
-                            <div class="card border bg-light h-100 shadow-none">
-                                <div class="card-header bg-white border-bottom py-2 d-flex justify-content-between align-items-center">
-                                    <h6 class="mb-0 fw-bold text-primary">
-                                        <i class="fas fa-calculator me-1"></i> पात्र सदस्य एवं स्वतः अंशदान गणना
-                                    </h6>
-                                    <span class="badge bg-success" id="previewCountBadge">0 Members</span>
-                                </div>
-                                <div class="card-body p-0">
-                                    <div class="p-2 bg-primary bg-opacity-10 border-bottom text-dark small d-flex justify-content-between">
-                                        <span class="fw-semibold"><i class="fas fa-layer-group me-1 text-primary"></i> आयु अनुसार देय राशि: 0-5: ₹100 | 6-9: ₹200 | 10-13: ₹300 | 14-17: ₹400 | 17+: ₹500</span>
-                                    </div>
-                                    <div id="previewTableContainer" style="max-height: 380px; overflow-y: auto;">
-                                        <div class="text-center py-5 text-muted">
-                                            <i class="fas fa-hand-pointer fs-3 text-secondary mb-2 d-block"></i>
-                                            कृपया बाईं ओर <strong>योजना (Scheme)</strong> चुनें।<br>
-                                            उस योजना के सभी सक्रिय सदस्यों की आयु अनुसार स्वतः अंशदान यहाँ दिखेगा।
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="card-footer bg-white border-top py-3 d-flex justify-content-between align-items-center">
-                                    <span class="fw-semibold">कुल अपेक्षित अंशदान (Total):</span>
-                                    <strong class="fs-5 text-success" id="previewTotalAmount">₹0.00</strong>
-                                </div>
-                            </div>
+                        <div class="col-md-6 col-12">
+                            <label class="form-label fw-semibold" id="fatherFieldLabel">Father / Spouse / Guardian (पिता / अभिभावक)</label>
+                            <input type="text" name="father_name" id="fatherNameField" class="form-control" placeholder="e.g. श्री राधेश्याम शर्मा">
+                        </div>
+
+                        <div class="col-md-6 col-12">
+                            <label class="form-label fw-semibold">Linked Member ID</label>
+                            <select name="member_id" id="linkedMemberSelect" class="form-select">
+                                <option value="">-- Direct Welfare --</option>
+                                @foreach($members as $mem)
+                                <option value="{{ $mem->id }}">{{ $mem->membership_no }} - {{ $mem->full_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Event Title (कार्यक्रम शीर्षक)</label>
+                            <input type="text" name="title" id="eventTitleField" class="form-control" placeholder="e.g. कल्याण सहायता कार्यक्रम">
+                        </div>
+
+                        <div class="col-md-6 col-12">
+                            <label class="form-label fw-semibold" id="eventDateFieldLabel">
+                                Event Date (दिनांक) <span class="text-danger">*</span>
+                            </label>
+                            <input type="date" name="event_date" id="eventDateField" class="form-control" required value="{{ date('Y-m-d') }}">
+                        </div>
+
+                        <div class="col-md-6 col-12">
+                            <label class="form-label fw-semibold">Rate per Event (₹)</label>
+                            <input type="number" name="rate_per_event" class="form-control" value="200" step="0.01">
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Venue (स्थल)</label>
+                            <input type="text" name="venue" class="form-control" value="श्री श्याम धर्मशाला, लोहीकी">
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Description / Notes</label>
+                            <textarea name="description" class="form-control" rows="2" placeholder="Event notes..."></textarea>
                         </div>
                     </div>
                 </div>
@@ -287,23 +231,6 @@
                     <div class="row g-3">
                         <div class="col-md-6 col-12">
                             <label class="form-label fw-bold">
-                                <i class="fas fa-hand-holding-heart text-primary me-1"></i> Scheme (योजना) <span class="text-danger">*</span>
-                            </label>
-                            <select name="scheme_id" id="editEventSchemeSelect" class="form-select" required>
-                                <option value="">-- Choose Society Scheme --</option>
-                                @foreach($schemes as $sch)
-                                <option value="{{ $sch->id }}"
-                                    data-code="{{ $sch->code }}"
-                                    data-name="{{ $sch->name }}"
-                                    data-hindi="{{ $sch->name_hindi }}">
-                                    {{ $sch->name_hindi }} ({{ $sch->name }})
-                                </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div class="col-md-6 col-12">
-                            <label class="form-label fw-bold">
                                 <i class="fas fa-info-circle text-primary me-1"></i> Status (स्थिति) <span class="text-danger">*</span>
                             </label>
                             <select name="status" id="editEventStatusSelect" class="form-select" required>
@@ -311,6 +238,16 @@
                                 <option value="Active">Active</option>
                                 <option value="Completed">Completed</option>
                                 <option value="Cancelled">Cancelled</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 col-12">
+                            <label class="form-label fw-semibold">Linked Member ID</label>
+                            <select name="member_id" id="editLinkedMemberSelect" class="form-select">
+                                <option value="">-- Direct Welfare --</option>
+                                @foreach($members as $mem)
+                                <option value="{{ $mem->id }}">{{ $mem->membership_no }} - {{ $mem->full_name }}</option>
+                                @endforeach
                             </select>
                         </div>
 
@@ -324,7 +261,6 @@
                                 <option value="{{ $b['beneficiary_name'] }}"
                                     data-father="{{ $b['father_name'] }}"
                                     data-member-id="{{ $b['member_id'] }}"
-                                    data-scheme-id="{{ $b['scheme_id'] ?? '' }}"
                                     data-member-name="{{ $b['member_name'] }}">
                                     {{ $b['label'] }}
                                 </option>
@@ -341,31 +277,16 @@
                         </div>
 
                         <div class="col-md-6 col-12">
-                            <label class="form-label fw-semibold">Linked Member ID</label>
-                            <select name="member_id" id="editLinkedMemberSelect" class="form-select">
-                                <option value="">-- Direct Welfare --</option>
-                                @foreach($members as $mem)
-                                <option value="{{ $mem->id }}">{{ $mem->membership_no }} - {{ $mem->full_name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div class="col-12">
                             <label class="form-label fw-semibold">Event Title (कार्यक्रम शीर्षक)</label>
                             <input type="text" name="title" id="editEventTitleField" class="form-control" placeholder="Event Title">
                         </div>
 
-                        <div class="col-md-4 col-12">
+                        <div class="col-md-6 col-12">
                             <label class="form-label fw-semibold">Event Date (दिनांक) <span class="text-danger">*</span></label>
                             <input type="date" name="event_date" id="editEventDateField" class="form-control" required>
                         </div>
 
-                        <div class="col-md-4 col-12">
-                            <label class="form-label fw-semibold">Grant Pool (सहायता राशि ₹)</label>
-                            <input type="number" name="target_amount" id="editEventTargetAmount" class="form-control fw-bold text-success" step="0.01">
-                        </div>
-
-                        <div class="col-md-4 col-12">
+                        <div class="col-md-6 col-12">
                             <label class="form-label fw-semibold">Rate per Event (₹)</label>
                             <input type="number" name="rate_per_event" id="editEventRatePerEvent" class="form-control" step="0.01">
                         </div>
@@ -540,19 +461,8 @@ function onBeneficiaryManualTyping() {
     const titleField = document.getElementById('eventTitleField');
     if (legacyField) legacyField.value = nameField.value;
 
-    const schemeSelect = document.getElementById('eventSchemeSelect');
-    const selectedSchemeOpt = schemeSelect ? schemeSelect.options[schemeSelect.selectedIndex] : null;
-    const schemeCode = selectedSchemeOpt ? (selectedSchemeOpt.getAttribute('data-code') || '') : '';
-    const schemeHindi = selectedSchemeOpt ? (selectedSchemeOpt.getAttribute('data-hindi') || '') : '';
-
     if (nameField.value.trim().length > 0) {
-        if (schemeCode.includes('PUTRA') || schemeHindi.includes('पुत्र')) {
-            titleField.value = 'पुत्र विवाह सहायता कार्यक्रम - सुपुत्र ' + nameField.value.trim();
-        } else if (schemeCode.includes('PUTRI') || schemeHindi.includes('पुत्री') || schemeHindi.includes('कन्या')) {
-            titleField.value = 'कन्या विवाह सहायता कार्यक्रम - सुपुत्री ' + nameField.value.trim();
-        } else {
-            titleField.value = 'कल्याण सहयोग कार्यक्रम - ' + nameField.value.trim();
-        }
+        titleField.value = 'कल्याण सहायता कार्यक्रम - ' + nameField.value.trim();
     }
 }
 
@@ -580,81 +490,22 @@ function onBeneficiarySelectChange(select) {
         if (father) fatherField.value = father;
         if (memberId && memberSelect) memberSelect.value = memberId;
 
-        const schemeSelect = document.getElementById('eventSchemeSelect');
-        const selectedSchemeOpt = schemeSelect ? schemeSelect.options[schemeSelect.selectedIndex] : null;
-        const schemeCode = selectedSchemeOpt ? (selectedSchemeOpt.getAttribute('data-code') || '') : '';
-        const schemeHindi = selectedSchemeOpt ? (selectedSchemeOpt.getAttribute('data-hindi') || '') : '';
-
-        if (schemeCode.includes('PUTRA') || schemeHindi.includes('पुत्र')) {
-            titleField.value = 'पुत्र विवाह सहायता कार्यक्रम - सुपुत्र ' + select.value;
-        } else if (schemeCode.includes('PUTRI') || schemeHindi.includes('पुत्री') || schemeHindi.includes('कन्या')) {
-            titleField.value = 'कन्या विवाह सहायता कार्यक्रम - सुपुत्री ' + select.value;
-        } else {
-            titleField.value = 'कल्याण सहयोग कार्यक्रम - ' + select.value;
-        }
+        titleField.value = 'कल्याण सहायता कार्यक्रम - ' + select.value;
     }
-}
-
-function onSchemeSelected(schemeId) {
-    const schemeSelect = document.getElementById('eventSchemeSelect');
-    const selectedOption = schemeSelect.options[schemeSelect.selectedIndex];
-    const schemeCode = selectedOption ? (selectedOption.getAttribute('data-code') || '') : '';
-    const schemeHindi = selectedOption ? (selectedOption.getAttribute('data-hindi') || '') : '';
-    const schemeName = selectedOption ? (selectedOption.getAttribute('data-name') || '') : '';
-
-    const eventTypeField = document.getElementById('eventTypeField');
-    if (eventTypeField) {
-        eventTypeField.value = schemeHindi || schemeName || 'Marriage Support';
-    }
-
-    const modalTitle = document.getElementById('modalMainTitle');
-    const beneficiaryLabel = document.getElementById('beneficiaryFieldLabel');
-    const beneficiaryInput = document.getElementById('beneficiaryNameField');
-    const fatherLabel = document.getElementById('fatherFieldLabel');
-    const grantLabel = document.getElementById('grantPoolFieldLabel');
-    const dateLabel = document.getElementById('eventDateFieldLabel');
-
-    if (schemeCode.includes('PUTRA') || schemeHindi.includes('पुत्र')) {
-        if (modalTitle) modalTitle.innerHTML = '<i class="fas fa-user-friends me-2"></i>Create Son Marriage Event (पुत्र विवाह कार्यक्रम जोड़ें)';
-        if (beneficiaryLabel) beneficiaryLabel.innerHTML = '<i class="fas fa-user text-primary me-1"></i> Select Member (सदस्य का नाम) <span class="text-danger">*</span>';
-        if (beneficiaryInput) beneficiaryInput.placeholder = 'e.g. श्री भंवर लाल गुर्जर';
-        if (fatherLabel) fatherLabel.innerText = 'Father / Spouse / Guardian (पिता / अभिभावक)';
-        if (grantLabel) grantLabel.innerText = 'Grant Pool (विवाह सहयोग राशि ₹)';
-        if (dateLabel) dateLabel.innerHTML = 'विवाह दिनांक (Marriage Date) <span class="text-danger">*</span>';
-    } else if (schemeCode.includes('PUTRI') || schemeHindi.includes('पुत्री') || schemeHindi.includes('कन्या')) {
-        if (modalTitle) modalTitle.innerHTML = '<i class="fas fa-heart text-danger me-2"></i>Create Daughter Marriage Event (पुत्री विवाह सहायता कार्यक्रम जोड़ें)';
-        if (beneficiaryLabel) beneficiaryLabel.innerHTML = '<i class="fas fa-user text-primary me-1"></i> Select Member (सदस्य का नाम) <span class="text-danger">*</span>';
-        if (beneficiaryInput) beneficiaryInput.placeholder = 'e.g. कुमारी पूजा शर्मा';
-        if (fatherLabel) fatherLabel.innerText = 'Father / Spouse / Guardian (पिता / अभिभावक)';
-        if (grantLabel) grantLabel.innerText = 'Grant Pool (कन्यादान ₹)';
-        if (dateLabel) dateLabel.innerHTML = 'विवाह दिनांक (Marriage Date) <span class="text-danger">*</span>';
-    } else {
-        if (modalTitle) modalTitle.innerHTML = '<i class="fas fa-calendar-plus me-2"></i>Create Welfare Event (कल्याण कार्यक्रम जोड़ें)';
-        if (beneficiaryLabel) beneficiaryLabel.innerHTML = '<i class="fas fa-user text-primary me-1"></i> Select Member (सदस्य का नाम) <span class="text-danger">*</span>';
-        if (beneficiaryInput) beneficiaryInput.placeholder = 'e.g. श्री रामेश्वर लाल';
-        if (fatherLabel) fatherLabel.innerText = 'Father / Spouse / Guardian (पिता / अभिभावक)';
-        if (grantLabel) grantLabel.innerText = 'Assistance Grant Pool (सहायता राशि ₹)';
-        if (dateLabel) dateLabel.innerHTML = 'कार्यक्रम / घटना दिनांक <span class="text-danger">*</span>';
-    }
-
-    // 2. Fetch and render Member Contributions Preview based on Age Slabs
-    triggerMemberPreview();
 }
 
 function openEditEventModal(event) {
     const form = document.getElementById('editEventForm');
     form.action = '{{ url("admin/events") }}/' + event.id;
 
-    document.getElementById('editEventSchemeSelect').value = event.scheme_id || '';
     document.getElementById('editEventStatusSelect').value = event.status || 'Upcoming';
-    document.getElementById('editEventTypeField').value = event.event_type || '';
+    document.getElementById('editEventTypeField').value = event.event_type || 'Marriage Support';
     document.getElementById('editBeneficiaryNameField').value = event.girl_name || event.beneficiary_name || '';
     document.getElementById('editLegacyGirlNameField').value = event.girl_name || event.beneficiary_name || '';
     document.getElementById('editFatherNameField').value = event.father_name || '';
     document.getElementById('editLinkedMemberSelect').value = event.member_id || '';
     document.getElementById('editEventTitleField').value = event.title || '';
     document.getElementById('editEventDateField').value = event.event_date ? event.event_date.split('T')[0] : '';
-    document.getElementById('editEventTargetAmount').value = event.target_amount || '0';
     document.getElementById('editEventRatePerEvent').value = event.rate_per_event || '200';
     document.getElementById('editEventVenueField').value = event.venue || '';
     document.getElementById('editEventDescriptionField').value = event.description || '';
@@ -701,105 +552,8 @@ function onEditBeneficiarySelectChange(select) {
         if (father) fatherField.value = father;
         if (memberId && memberSelect) memberSelect.value = memberId;
 
-        const schemeSelect = document.getElementById('editEventSchemeSelect');
-        const selectedSchemeOpt = schemeSelect ? schemeSelect.options[schemeSelect.selectedIndex] : null;
-        const schemeCode = selectedSchemeOpt ? (selectedSchemeOpt.getAttribute('data-code') || '') : '';
-        const schemeHindi = selectedSchemeOpt ? (selectedSchemeOpt.getAttribute('data-hindi') || '') : '';
-
-        if (schemeCode.includes('PUTRA') || schemeHindi.includes('पुत्र')) {
-            titleField.value = 'पुत्र विवाह सहायता कार्यक्रम - श्री ' + select.value;
-        } else if (schemeCode.includes('PUTRI') || schemeHindi.includes('पुत्री') || schemeHindi.includes('कन्या')) {
-            titleField.value = 'कन्या विवाह सहायता कार्यक्रम - सुपुत्री ' + select.value;
-        } else {
-            titleField.value = 'कल्याण सहयोग कार्यक्रम - ' + select.value;
-        }
+        titleField.value = 'कल्याण सहायता कार्यक्रम - ' + select.value;
     }
-}
-
-function triggerMemberPreview() {
-    const schemeId = document.getElementById('eventSchemeSelect').value;
-    const eventDate = document.getElementById('eventDateField').value;
-    const container = document.getElementById('previewTableContainer');
-    const badge = document.getElementById('previewCountBadge');
-    const totalEl = document.getElementById('previewTotalAmount');
-    const targetAmountInput = document.getElementById('eventTargetAmount');
-
-    if (!schemeId) {
-        container.innerHTML = `
-            <div class="text-center py-5 text-muted">
-                <i class="fas fa-hand-pointer fs-3 text-secondary mb-2 d-block"></i>
-                कृपया बाईं ओर <strong>योजना (Scheme)</strong> चुनें।<br>
-                उस योजना के सभी सक्रिय सदस्यों की आयु अनुसार स्वतः अंशदान यहाँ दिखेगा।
-            </div>
-        `;
-        badge.innerText = '0 Members';
-        totalEl.innerText = '₹0.00';
-        if (targetAmountInput) {
-            targetAmountInput.value = '0';
-        }
-        return;
-    }
-
-    container.innerHTML = '<div class="text-center py-4 text-muted"><i class="fas fa-spinner fa-spin me-2 text-primary"></i>योजना के सदस्यों की आयु अनुसार अंशदान की गणना की जा रही है...</div>';
-
-    fetch('{{ route("admin.api.scheme-members-preview") }}?scheme_id=' + encodeURIComponent(schemeId) + '&event_date=' + encodeURIComponent(eventDate))
-        .then(res => res.json())
-        .then(data => {
-            const total = Number(data.total_contribution || 0);
-            badge.innerText = (data.members_count || 0) + ' Members';
-            totalEl.innerText = '₹' + total.toLocaleString('en-IN', {minimumFractionDigits: 2});
-
-            if (targetAmountInput) {
-                targetAmountInput.value = total;
-            }
-
-            if (data.members && data.members.length > 0) {
-                let html = `
-                    <div class="table-responsive">
-                        <table class="table table-sm table-striped align-middle mb-0" style="font-size: 13px;">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Member (सदस्य)</th>
-                                    <th>Age</th>
-                                    <th>Slab</th>
-                                    <th class="text-end">Amount</th>
-                                    <th class="text-center">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                `;
-                data.members.forEach(m => {
-                    html += `
-                        <tr>
-                            <td>
-                                <strong>${m.full_name}</strong>
-                                <small class="text-muted d-block font-monospace">${m.membership_no}</small>
-                            </td>
-                            <td><span class="badge bg-light text-dark">${m.age} yr</span></td>
-                            <td><span class="badge bg-label-primary font-monospace">${m.age_slab}</span></td>
-                            <td class="text-end fw-bold text-success">₹${Number(m.amount).toLocaleString('en-IN')}</td>
-                            <td class="text-center"><span class="badge bg-warning text-dark">Auto Generated</span></td>
-                        </tr>
-                    `;
-                });
-                html += `
-                            </tbody>
-                        </table>
-                    </div>
-                `;
-                container.innerHTML = html;
-            } else {
-                container.innerHTML = `
-                    <div class="text-center py-4 text-muted">
-                        <i class="fas fa-exclamation-circle text-warning me-1"></i>
-                        इस योजना में वर्तमान में कोई सक्रिय सदस्य पंजीकृत नहीं हैं।
-                    </div>
-                `;
-            }
-        })
-        .catch(err => {
-            container.innerHTML = `<div class="text-center py-3 text-danger">Error: ${err.message}</div>`;
-        });
 }
 
 function fetchMonthEventsData(monthStr) {

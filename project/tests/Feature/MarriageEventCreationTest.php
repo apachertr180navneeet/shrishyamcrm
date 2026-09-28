@@ -198,4 +198,57 @@ class MarriageEventCreationTest extends TestCase
             'status' => 'Active',
         ]);
     }
+
+    public function test_can_create_event_without_scheme_and_generates_contributions_for_all_active_members()
+    {
+        $admin = User::where('role', 'admin')->first() ?? User::create([
+            'first_name' => 'Admin',
+            'last_name' => 'User',
+            'email' => 'admin_test4@shrishyamcrm.test',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+            'status' => 'active'
+        ]);
+
+        $m1 = Member::create([
+            'membership_no' => 'SHYAM-TEST-004',
+            'full_name' => 'राकेश',
+            'father_spouse_name' => 'मोहन लाल',
+            'gender' => 'Male',
+            'dob' => '1998-05-15',
+            'age' => 28,
+            'mobile' => '9876543214',
+            'status' => 'Active',
+            'joining_date' => now()->subMonths(6),
+        ]);
+
+        $m2 = Member::create([
+            'membership_no' => 'SHYAM-TEST-005',
+            'full_name' => 'सपना',
+            'father_spouse_name' => 'सुरेश',
+            'gender' => 'Female',
+            'dob' => '2000-05-15',
+            'age' => 26,
+            'mobile' => '9876543215',
+            'status' => 'Active',
+            'joining_date' => now()->subMonths(6),
+        ]);
+
+        $response = $this->actingAs($admin)->post(route('admin.events.store'), [
+            'beneficiary_name' => 'राकेश',
+            'father_name' => 'मोहन लाल',
+            'member_id' => $m1->id,
+            'event_date' => '2026-10-30',
+            'venue' => 'श्री श्याम धर्मशाला',
+        ]);
+
+        $response->assertSessionHasNoErrors();
+        $event = MarriageEvent::where('girl_name', 'राकेश')->first();
+        $this->assertNotNull($event);
+        $this->assertNull($event->scheme_id);
+
+        // Verify contributions generated for all active members
+        $this->assertTrue($event->contributions()->where('member_id', $m1->id)->exists());
+        $this->assertTrue($event->contributions()->where('member_id', $m2->id)->exists());
+    }
 }
