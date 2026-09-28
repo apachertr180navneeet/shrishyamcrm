@@ -91,4 +91,39 @@ class PaymentAndLedgerTest extends TestCase
         $member->refresh();
         $this->assertEquals(0.0, (float)$member->pending_amount);
     }
+
+    public function test_can_view_member_ledger_page_with_member_id_parameter()
+    {
+        $admin = \App\Models\User::where('role', 'admin')->first() ?? \App\Models\User::create([
+            'first_name' => 'Admin',
+            'last_name' => 'User',
+            'email' => 'admin_ledger_test@shrishyamcrm.test',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+            'status' => 'active'
+        ]);
+
+        $scheme = Scheme::create([
+            'code' => 'SCH-01',
+            'name' => 'Scheme 1',
+            'name_hindi' => 'योजना 1',
+            'status' => 'Active'
+        ]);
+
+        $member = Member::create([
+            'membership_no' => 'MEM-LEDGER-03',
+            'full_name' => 'टेस्ट सदस्य',
+            'mobile' => '9876543210',
+            'scheme_id' => $scheme->id,
+            'status' => 'Active',
+            'pending_amount' => 500,
+            'total_paid' => 1000,
+        ]);
+
+        $response = $this->actingAs($admin)->get(route('admin.ledger.index', ['member_id' => $member->id]));
+        $response->assertOk();
+        $response->assertSee('MEM-LEDGER-03');
+        $response->assertSee('टेस्ट सदस्य');
+        $response->assertSee('लेजर रसीद कार्ड (Download PDF)');
+    }
 }

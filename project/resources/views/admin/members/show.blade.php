@@ -27,6 +27,9 @@
                     <a href="{{ $whatsappData['url'] ?? '#' }}" target="_blank" class="btn btn-success">
                         <i class="fab fa-whatsapp me-1"></i> WhatsApp Due Alert
                     </a>
+                    <a href="{{ route('admin.members.ledger.pdf', $member->id) }}" class="btn btn-dark" target="_blank">
+                        <i class="fas fa-file-invoice me-1"></i> Ledger Card PDF
+                    </a>
                     <a href="{{ route('admin.certificates.show', $member->id) }}" class="btn btn-warning text-dark" target="_blank">
                         <i class="fas fa-certificate me-1"></i> View Certificate
                     </a>

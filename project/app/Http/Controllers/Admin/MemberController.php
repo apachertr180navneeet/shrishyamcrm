@@ -154,4 +154,17 @@ class MemberController extends Controller
         $pdf = CertificateService::generatePdf($id);
         return $pdf->download("SSWS_Certificate_{$id}.pdf");
     }
+
+    public function ledgerPdf($id)
+    {
+        $user = auth()->user();
+        $query = Member::query();
+        if ($user && $user->isAgent() && $user->agent_id) {
+            $query->where('agent_id', $user->agent_id);
+        }
+        $member = $query->findOrFail($id);
+        $pdf = \App\Services\MemberLedgerCardService::generatePdf($member->id);
+        $cleanName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $member->membership_no . '_' . $member->full_name);
+        return $pdf->download("Ledger_Card_{$cleanName}.pdf");
+    }
 }

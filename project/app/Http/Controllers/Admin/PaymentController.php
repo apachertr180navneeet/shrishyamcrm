@@ -172,27 +172,95 @@ class PaymentController extends Controller
     public function ledger(Request $request)
     {
         $user = auth()->user();
-        $membersQuery = Member::where('status', 'Active');
+        $membersQuery = Member::with(['scheme', 'agent'])->where('status', 'Active');
         if ($user && $user->isAgent() && $user->agent_id) {
             $membersQuery->where('agent_id', $user->agent_id);
         }
-        $members = $membersQuery->get();
+        $members = $membersQuery->orderBy('full_name')->get();
 
         $selectedMember = null;
         $ledgerEntries = collect();
+        $eventContributions = collect();
+        $payments = collect();
+        $stats = [
+            'total_expected' => 0.0,
+            'total_paid' => 0.0,
+            'total_pending' => 0.0,
+            'ledger_debit' => 0.0,
+            'ledger_credit' => 0.0,
+            'running_balance' => 0.0,
+            'events_total_count' => 0,
+            'events_paid_count' => 0,
+            'events_pending_count' => 0,
+        ];
 
         if ($request->filled('member_id')) {
-            // Apply the same agent scope as the member list
-            $selectedQuery = Member::with(['scheme', 'agent', 'ledgers.creator', 'payments'])->where('id', $request->member_id);
+            $selectedQuery = Member::with([
+                'scheme',
+                'agent',
+                'ageSlab',
+                'nominees',
+            ])->where('id', $request->member_id);
+
             if ($user && $user->isAgent() && $user->agent_id) {
                 $selectedQuery->where('agent_id', $user->agent_id);
             }
             $selectedMember = $selectedQuery->first();
+
             if ($selectedMember) {
-                $ledgerEntries = $selectedMember->ledgers()->orderBy('transaction_date')->orderBy('id')->get();
+                $ledgerEntries = $selectedMember->ledgers()
+                    ->with(['agent', 'payment', 'creator'])
+                    ->orderBy('transaction_date')
+                    ->orderBy('id')
+                    ->get();
+
+                $eventContributions = $selectedMember->eventContributions()
+                    ->with(['event', 'agent', 'payment.agent'])
+                    ->orderBy('event_date')
+                    ->orderBy('id')
+                    ->get();
+
+                $payments = $selectedMember->payments()
+                    ->with(['agent', 'event'])
+                    ->latest('payment_date')
+                    ->get();
+
+                $totalExpected = (float)$eventContributions->sum('contribution_amount');
+                $totalPaid = (float)$eventContributions->where('payment_status', 'Paid')->sum('contribution_amount');
+                $totalPending = (float)$eventContributions->where('payment_status', 'Pending')->sum('contribution_amount');
+
+                // If unlinked payments exist (like Joining fee)
+                $unlinkedPaymentsSum = (float)$payments->whereNull('event_contribution_id')->where('status', 'Verified')->sum('amount');
+                $totalPaidAll = $totalPaid + $unlinkedPaymentsSum;
+                $totalExpectedAll = $totalExpected + $unlinkedPaymentsSum;
+
+                $stats = [
+                    'total_expected' => $totalExpectedAll ?: (float)$selectedMember->total_paid + (float)$selectedMember->pending_amount,
+                    'total_paid' => $totalPaidAll ?: (float)$selectedMember->total_paid,
+                    'total_pending' => $totalPending ?: (float)$selectedMember->pending_amount,
+                    'ledger_debit' => (float)$ledgerEntries->sum('debit'),
+                    'ledger_credit' => (float)$ledgerEntries->sum('credit'),
+                    'running_balance' => $selectedMember->calculateCurrentBalance(),
+                    'events_total_count' => $eventContributions->count(),
+                    'events_paid_count' => $eventContributions->where('payment_status', 'Paid')->count(),
+                    'events_pending_count' => $eventContributions->where('payment_status', 'Pending')->count(),
+                ];
             }
         }
 
-        return view('admin.payments.ledger', compact('members', 'selectedMember', 'ledgerEntries'));
+        return view('admin.payments.ledger', compact('members', 'selectedMember', 'ledgerEntries', 'eventContributions', 'payments', 'stats'));
+    }
+
+    public function memberLedgerPdf($id)
+    {
+        $user = auth()->user();
+        $query = Member::query();
+        if ($user && $user->isAgent() && $user->agent_id) {
+            $query->where('agent_id', $user->agent_id);
+        }
+        $member = $query->findOrFail($id);
+        $pdf = \App\Services\MemberLedgerCardService::generatePdf($member->id);
+        $cleanName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $member->membership_no . '_' . $member->full_name);
+        return $pdf->download("Ledger_Card_{$cleanName}.pdf");
     }
 }

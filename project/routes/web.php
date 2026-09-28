@@ -62,8 +62,9 @@ Route::name('admin.')->prefix('admin')->group(function () {
         Route::post('payments', [PaymentController::class, 'store'])->name('payments.store');
         Route::get('receipts', [PaymentController::class, 'receipts'])->name('receipts.index');
         Route::get('receipts/{id}', [PaymentController::class, 'receipt'])->name('payments.receipt');
-        Route::get('receipts/{id}/pdf', [PaymentController::class, 'receiptPdf'])->name('payments.receipt.pdf');
         Route::get('ledger', [PaymentController::class, 'ledger'])->name('ledger.index');
+        Route::get('ledger/{id}/pdf', [PaymentController::class, 'memberLedgerPdf'])->name('ledger.pdf');
+        Route::get('members/{id}/ledger/pdf', [MemberController::class, 'ledgerPdf'])->name('members.ledger.pdf');
 
         // WhatsApp Center
         Route::get('whatsapp', [WhatsAppController::class, 'index'])->name('whatsapp.index');
