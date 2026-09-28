@@ -39,36 +39,9 @@ class MarriageEventController extends Controller
             ->orderBy('full_name')
             ->get();
 
-        // Aggregate list of registered daughters, sons, and members for dynamic Beneficiary dropdown
+        // Aggregate list of registered active members ONLY (excluding nominees/beneficiaries)
         $beneficiariesList = collect();
 
-        // 1. Direct query for all nominees (daughters, sons, spouses, etc.)
-        $nominees = \App\Models\Nominee::with('member:id,membership_no,full_name,scheme_id,father_spouse_name')->get();
-
-        foreach ($nominees as $nom) {
-            if ($nom->member) {
-                $relLower = strtolower(trim($nom->relation ?? ''));
-                $isDaughter = in_array($relLower, ['daughter', 'female', 'beti', 'putri']);
-                $isSon = in_array($relLower, ['son', 'male', 'beta', 'putra']);
-
-                $tag = $isDaughter ? 'Daughter / पुत्री' : ($isSon ? 'Son / पुत्र' : ($nom->relation ?: 'Nominee'));
-                $targetSchemeType = $isDaughter ? 'daughter' : ($isSon ? 'son' : 'other');
-
-                $beneficiariesList->push([
-                    'type' => 'nominee',
-                    'target_type' => $targetSchemeType,
-                    'beneficiary_name' => $nom->name,
-                    'father_name' => $nom->member->full_name,
-                    'member_id' => $nom->member->id,
-                    'scheme_id' => $nom->member->scheme_id,
-                    'member_name' => $nom->member->full_name,
-                    'membership_no' => $nom->member->membership_no,
-                    'label' => "{$nom->name} [{$tag}] (Of {$nom->member->full_name} - {$nom->member->membership_no})",
-                ]);
-            }
-        }
-
-        // 2. Direct query for all active members
         foreach ($members as $mem) {
             $isFemale = strtolower($mem->gender ?? '') === 'female';
             $targetType = $isFemale ? 'daughter' : 'son';
@@ -106,7 +79,7 @@ class MarriageEventController extends Controller
 
         $beneficiaryName = trim($request->beneficiary_name ?: $request->girl_name);
         if (empty($beneficiaryName)) {
-            return back()->with('error', 'कृपया हितग्राही / वर / वधू का नाम दर्ज करें (Beneficiary Name is required).');
+            return back()->with('error', 'कृपया सदस्य का नाम दर्ज करें (Member/Beneficiary Name is required).');
         }
 
         $scheme = Scheme::find($request->scheme_id);
@@ -170,6 +143,56 @@ class MarriageEventController extends Controller
 
         return redirect()->route('admin.events.contributions', $event->id)
             ->with('success', "कार्यक्रम {$eventCode} ({$beneficiaryName}) सफलतापूर्वक दर्ज किया गया! '{$schemeName}' के {$generatedCount} सदस्यों के खाते में आयु-वर्ग अनुसार अंशदान जुड़ गया है।");
+    }
+
+    public function update(Request $request, $id)
+    {
+        $event = MarriageEvent::findOrFail($id);
+
+        $request->validate([
+            'title' => 'nullable|string|max:200',
+            'girl_name' => 'nullable|string|max:100',
+            'beneficiary_name' => 'nullable|string|max:100',
+            'event_type' => 'nullable|string|max:191',
+            'event_date' => 'required|date',
+            'scheme_id' => 'required|exists:schemes,id',
+            'target_amount' => 'nullable|numeric|min:0',
+            'rate_per_event' => 'nullable|numeric|min:0',
+            'venue' => 'nullable|string|max:255',
+            'father_name' => 'nullable|string|max:100',
+            'member_id' => 'nullable|exists:members,id',
+            'status' => 'nullable|string|in:Upcoming,Active,Completed,Cancelled',
+            'description' => 'nullable|string',
+        ]);
+
+        $beneficiaryName = trim($request->beneficiary_name ?: $request->girl_name ?: $event->girl_name);
+        $scheme = Scheme::find($request->scheme_id);
+        $targetAmount = $request->filled('target_amount') ? (float)$request->target_amount : $event->target_amount;
+
+        $event->update([
+            'title' => $request->filled('title') ? $request->title : $event->title,
+            'event_type' => $request->filled('event_type') ? $request->event_type : ($scheme ? ($scheme->name_hindi ?: $scheme->name) : $event->event_type),
+            'girl_name' => $beneficiaryName,
+            'father_name' => $request->father_name,
+            'member_id' => $request->member_id ?: null,
+            'scheme_id' => $request->scheme_id,
+            'event_date' => $request->event_date,
+            'venue' => $request->venue ?: $event->venue,
+            'target_amount' => $targetAmount,
+            'beneficiary_payout_amount' => $targetAmount,
+            'rate_per_event' => $request->rate_per_event ?? $event->rate_per_event,
+            'status' => $request->status ?: $event->status,
+            'description' => $request->description,
+        ]);
+
+        AuditService::log('update', 'events', (string)$event->id, null, [
+            'code' => $event->event_code,
+            'title' => $event->title,
+            'scheme_id' => $event->scheme_id,
+        ]);
+
+        return redirect()->route('admin.events.index')
+            ->with('success', "कार्यक्रम {$event->event_code} ({$beneficiaryName}) सफलतापूर्वक अपडेट किया गया।");
     }
 
     /**

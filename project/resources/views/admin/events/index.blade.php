@@ -101,9 +101,14 @@
                     </div>
 
                     <div class="d-flex align-items-center justify-content-between pt-2 border-top flex-wrap gap-2">
-                        <a href="{{ route('admin.events.contributions', $event->id) }}" class="btn btn-sm btn-primary">
-                            <i class="fas fa-users-cog me-1"></i> View Contributions (अंशदान सूची)
-                        </a>
+                        <div class="d-flex gap-2">
+                            <a href="{{ route('admin.events.contributions', $event->id) }}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-users-cog me-1"></i> View Contributions (अंशदान सूची)
+                            </a>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="openEditEventModal({{ json_encode($event) }})">
+                                <i class="fas fa-edit me-1"></i> Edit
+                            </button>
+                        </div>
 
                         @if($event->status != 'Completed' && auth()->check() && (auth()->user()->hasRole(['admin', 'super_admin']) || auth()->user()->role === 'admin' || auth()->user()->role === 'super_admin'))
                         <a href="{{ route('admin.payouts.index') }}" class="btn btn-sm btn-outline-success">
@@ -156,13 +161,13 @@
                                 </small>
                             </div>
 
-                            <!-- Dynamic Beneficiary Dropdown -->
+                            <!-- Member Dropdown (Only Members, No Nominees) -->
                             <div class="mb-3">
                                 <label class="form-label fw-semibold" id="beneficiaryFieldLabel">
-                                    <i class="fas fa-user text-primary me-1"></i> Select Beneficiary / Name (हितग्राही / वर / वधू का नाम) <span class="text-danger">*</span>
+                                    <i class="fas fa-user text-primary me-1"></i> Select Member (सदस्य का नाम) <span class="text-danger">*</span>
                                 </label>
                                 <select id="beneficiaryDropdownSelect" class="form-select form-select-lg mb-2" onchange="onBeneficiarySelectChange(this)">
-                                    <option value="">-- Choose Registered Member / Nominee --</option>
+                                    <option value="">-- Choose Registered Member (पंजीकृत सदस्य चुनें) --</option>
                                     @foreach($beneficiariesList as $b)
                                     <option value="{{ $b['beneficiary_name'] }}"
                                         data-target-type="{{ $b['target_type'] ?? 'other' }}"
@@ -175,13 +180,13 @@
                                     @endforeach
                                     <option value="__custom__">➕ Other / Enter Name Manually (अन्य नाम खुद दर्ज करें)</option>
                                 </select>
-                                <input type="text" name="beneficiary_name" id="beneficiaryNameField" class="form-control form-control-lg fw-semibold" placeholder="Beneficiary's Full Name (e.g. श्री भंवर लाल गुर्जर / कुमारी पूजा)" required oninput="onBeneficiaryManualTyping()">
+                                <input type="text" name="beneficiary_name" id="beneficiaryNameField" class="form-control form-control-lg fw-semibold" placeholder="Member's Full Name (सदस्य का पूरा नाम)" required oninput="onBeneficiaryManualTyping()">
                                 <input type="hidden" name="girl_name" id="legacyGirlNameField">
                             </div>
 
                             <div class="row g-3 mb-3">
                                 <div class="col-6">
-                                    <label class="form-label fw-semibold" id="fatherFieldLabel">Father / Guardian (पिता)</label>
+                                    <label class="form-label fw-semibold" id="fatherFieldLabel">Father / Spouse / Guardian (पिता / अभिभावक)</label>
                                     <input type="text" name="father_name" id="fatherNameField" class="form-control" placeholder="e.g. श्री राधेश्याम शर्मा">
                                 </div>
                                 <div class="col-6">
@@ -257,6 +262,129 @@
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary btn-lg px-4" style="background: #1B365D;">
                         <i class="fas fa-check-circle me-1"></i> Create Event & Generate Contributions
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Event Modal -->
+<div class="modal fade" id="editEventModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <form action="" method="POST" id="editEventForm">
+                @csrf
+                @method('PUT')
+                <input type="hidden" name="event_type" id="editEventTypeField">
+                <div class="modal-header" style="background: #1B365D; color: #fff;">
+                    <h5 class="modal-title fw-bold text-white">
+                        <i class="fas fa-edit me-2"></i>Edit Welfare Event (कार्यक्रम संपादित करें)
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6 col-12">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-hand-holding-heart text-primary me-1"></i> Scheme (योजना) <span class="text-danger">*</span>
+                            </label>
+                            <select name="scheme_id" id="editEventSchemeSelect" class="form-select" required>
+                                <option value="">-- Choose Society Scheme --</option>
+                                @foreach($schemes as $sch)
+                                <option value="{{ $sch->id }}"
+                                    data-code="{{ $sch->code }}"
+                                    data-name="{{ $sch->name }}"
+                                    data-hindi="{{ $sch->name_hindi }}">
+                                    {{ $sch->name_hindi }} ({{ $sch->name }})
+                                </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 col-12">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-info-circle text-primary me-1"></i> Status (स्थिति) <span class="text-danger">*</span>
+                            </label>
+                            <select name="status" id="editEventStatusSelect" class="form-select" required>
+                                <option value="Upcoming">Upcoming</option>
+                                <option value="Active">Active</option>
+                                <option value="Completed">Completed</option>
+                                <option value="Cancelled">Cancelled</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">
+                                <i class="fas fa-user text-primary me-1"></i> Select Member (सदस्य चुनें) <span class="text-danger">*</span>
+                            </label>
+                            <select id="editBeneficiaryDropdownSelect" class="form-select mb-2" onchange="onEditBeneficiarySelectChange(this)">
+                                <option value="">-- Choose Registered Member (पंजीकृत सदस्य चुनें) --</option>
+                                @foreach($beneficiariesList as $b)
+                                <option value="{{ $b['beneficiary_name'] }}"
+                                    data-father="{{ $b['father_name'] }}"
+                                    data-member-id="{{ $b['member_id'] }}"
+                                    data-scheme-id="{{ $b['scheme_id'] ?? '' }}"
+                                    data-member-name="{{ $b['member_name'] }}">
+                                    {{ $b['label'] }}
+                                </option>
+                                @endforeach
+                                <option value="__custom__">➕ Other / Enter Name Manually (अन्य नाम खुद दर्ज करें)</option>
+                            </select>
+                            <input type="text" name="beneficiary_name" id="editBeneficiaryNameField" class="form-control fw-semibold" placeholder="Member's Full Name (सदस्य का पूरा नाम)" required>
+                            <input type="hidden" name="girl_name" id="editLegacyGirlNameField">
+                        </div>
+
+                        <div class="col-md-6 col-12">
+                            <label class="form-label fw-semibold">Father / Spouse / Guardian (पिता / अभिभावक)</label>
+                            <input type="text" name="father_name" id="editFatherNameField" class="form-control" placeholder="e.g. श्री राधेश्याम शर्मा">
+                        </div>
+
+                        <div class="col-md-6 col-12">
+                            <label class="form-label fw-semibold">Linked Member ID</label>
+                            <select name="member_id" id="editLinkedMemberSelect" class="form-select">
+                                <option value="">-- Direct Welfare --</option>
+                                @foreach($members as $mem)
+                                <option value="{{ $mem->id }}">{{ $mem->membership_no }} - {{ $mem->full_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Event Title (कार्यक्रम शीर्षक)</label>
+                            <input type="text" name="title" id="editEventTitleField" class="form-control" placeholder="Event Title">
+                        </div>
+
+                        <div class="col-md-4 col-12">
+                            <label class="form-label fw-semibold">Event Date (दिनांक) <span class="text-danger">*</span></label>
+                            <input type="date" name="event_date" id="editEventDateField" class="form-control" required>
+                        </div>
+
+                        <div class="col-md-4 col-12">
+                            <label class="form-label fw-semibold">Grant Pool (सहायता राशि ₹)</label>
+                            <input type="number" name="target_amount" id="editEventTargetAmount" class="form-control fw-bold text-success" step="0.01">
+                        </div>
+
+                        <div class="col-md-4 col-12">
+                            <label class="form-label fw-semibold">Rate per Event (₹)</label>
+                            <input type="number" name="rate_per_event" id="editEventRatePerEvent" class="form-control" step="0.01">
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Venue (स्थल)</label>
+                            <input type="text" name="venue" id="editEventVenueField" class="form-control">
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Description / Notes</label>
+                            <textarea name="description" id="editEventDescriptionField" class="form-control" rows="2" placeholder="Event notes..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary px-4" style="background: #1B365D;">
+                        <i class="fas fa-save me-1"></i> Update Event
                     </button>
                 </div>
             </form>
@@ -485,62 +613,107 @@ function onSchemeSelected(schemeId) {
     const fatherLabel = document.getElementById('fatherFieldLabel');
     const grantLabel = document.getElementById('grantPoolFieldLabel');
     const dateLabel = document.getElementById('eventDateFieldLabel');
-    const beneficiarySelect = document.getElementById('beneficiaryDropdownSelect');
-
-    let schemeType = 'other'; // 'daughter', 'son', 'other'
 
     if (schemeCode.includes('PUTRA') || schemeHindi.includes('पुत्र')) {
-        schemeType = 'son';
         if (modalTitle) modalTitle.innerHTML = '<i class="fas fa-user-friends me-2"></i>Create Son Marriage Event (पुत्र विवाह कार्यक्रम जोड़ें)';
-        if (beneficiaryLabel) beneficiaryLabel.innerHTML = '<i class="fas fa-male text-primary me-1"></i> Select Groom / Son (वर / पुत्र का नाम - जैसे भंवर लाल गुर्जर) <span class="text-danger">*</span>';
+        if (beneficiaryLabel) beneficiaryLabel.innerHTML = '<i class="fas fa-user text-primary me-1"></i> Select Member (सदस्य का नाम) <span class="text-danger">*</span>';
         if (beneficiaryInput) beneficiaryInput.placeholder = 'e.g. श्री भंवर लाल गुर्जर';
-        if (fatherLabel) fatherLabel.innerText = 'Father / Guardian (पिता)';
+        if (fatherLabel) fatherLabel.innerText = 'Father / Spouse / Guardian (पिता / अभिभावक)';
         if (grantLabel) grantLabel.innerText = 'Grant Pool (विवाह सहयोग राशि ₹)';
         if (dateLabel) dateLabel.innerHTML = 'विवाह दिनांक (Marriage Date) <span class="text-danger">*</span>';
     } else if (schemeCode.includes('PUTRI') || schemeHindi.includes('पुत्री') || schemeHindi.includes('कन्या')) {
-        schemeType = 'daughter';
         if (modalTitle) modalTitle.innerHTML = '<i class="fas fa-heart text-danger me-2"></i>Create Daughter Marriage Event (पुत्री विवाह सहायता कार्यक्रम जोड़ें)';
-        if (beneficiaryLabel) beneficiaryLabel.innerHTML = '<i class="fas fa-female text-primary me-1"></i> Select Bride / Daughter (कन्या / वधू का नाम) <span class="text-danger">*</span>';
+        if (beneficiaryLabel) beneficiaryLabel.innerHTML = '<i class="fas fa-user text-primary me-1"></i> Select Member (सदस्य का नाम) <span class="text-danger">*</span>';
         if (beneficiaryInput) beneficiaryInput.placeholder = 'e.g. कुमारी पूजा शर्मा';
-        if (fatherLabel) fatherLabel.innerText = 'Father / Guardian (पिता)';
+        if (fatherLabel) fatherLabel.innerText = 'Father / Spouse / Guardian (पिता / अभिभावक)';
         if (grantLabel) grantLabel.innerText = 'Grant Pool (कन्यादान ₹)';
         if (dateLabel) dateLabel.innerHTML = 'विवाह दिनांक (Marriage Date) <span class="text-danger">*</span>';
     } else {
-        schemeType = 'other';
         if (modalTitle) modalTitle.innerHTML = '<i class="fas fa-calendar-plus me-2"></i>Create Welfare Event (कल्याण कार्यक्रम जोड़ें)';
-        if (beneficiaryLabel) beneficiaryLabel.innerHTML = '<i class="fas fa-user text-primary me-1"></i> Select Beneficiary / Member (हितग्राही / सदस्य का नाम) <span class="text-danger">*</span>';
+        if (beneficiaryLabel) beneficiaryLabel.innerHTML = '<i class="fas fa-user text-primary me-1"></i> Select Member (सदस्य का नाम) <span class="text-danger">*</span>';
         if (beneficiaryInput) beneficiaryInput.placeholder = 'e.g. श्री रामेश्वर लाल';
-        if (fatherLabel) fatherLabel.innerText = 'Nominee / Guardian (नॉमिनी / वारिसदार)';
+        if (fatherLabel) fatherLabel.innerText = 'Father / Spouse / Guardian (पिता / अभिभावक)';
         if (grantLabel) grantLabel.innerText = 'Assistance Grant Pool (सहायता राशि ₹)';
         if (dateLabel) dateLabel.innerHTML = 'कार्यक्रम / घटना दिनांक <span class="text-danger">*</span>';
     }
 
-    // 1. Filter Beneficiary Dropdown based on selected scheme
-    if (beneficiarySelect) {
-        for (let i = 0; i < beneficiarySelect.options.length; i++) {
-            const opt = beneficiarySelect.options[i];
-            if (!opt.value || opt.value === '__custom__') {
-                opt.style.display = '';
-                continue;
-            }
-            const targetType = opt.getAttribute('data-target-type') || 'other';
-            const optScheme = opt.getAttribute('data-scheme-id');
-
-            if (!schemeId) {
-                opt.style.display = '';
-            } else if (schemeType === 'daughter') {
-                opt.style.display = (targetType === 'daughter' || optScheme === schemeId) ? '' : 'none';
-            } else if (schemeType === 'son') {
-                opt.style.display = (targetType === 'son' || optScheme === schemeId) ? '' : 'none';
-            } else {
-                opt.style.display = '';
-            }
-        }
-        beneficiarySelect.value = '';
-    }
-
     // 2. Fetch and render Member Contributions Preview based on Age Slabs
     triggerMemberPreview();
+}
+
+function openEditEventModal(event) {
+    const form = document.getElementById('editEventForm');
+    form.action = '{{ url("admin/events") }}/' + event.id;
+
+    document.getElementById('editEventSchemeSelect').value = event.scheme_id || '';
+    document.getElementById('editEventStatusSelect').value = event.status || 'Upcoming';
+    document.getElementById('editEventTypeField').value = event.event_type || '';
+    document.getElementById('editBeneficiaryNameField').value = event.girl_name || event.beneficiary_name || '';
+    document.getElementById('editLegacyGirlNameField').value = event.girl_name || event.beneficiary_name || '';
+    document.getElementById('editFatherNameField').value = event.father_name || '';
+    document.getElementById('editLinkedMemberSelect').value = event.member_id || '';
+    document.getElementById('editEventTitleField').value = event.title || '';
+    document.getElementById('editEventDateField').value = event.event_date ? event.event_date.split('T')[0] : '';
+    document.getElementById('editEventTargetAmount').value = event.target_amount || '0';
+    document.getElementById('editEventRatePerEvent').value = event.rate_per_event || '200';
+    document.getElementById('editEventVenueField').value = event.venue || '';
+    document.getElementById('editEventDescriptionField').value = event.description || '';
+
+    // Match member dropdown if member_id matches
+    const select = document.getElementById('editBeneficiaryDropdownSelect');
+    if (select) {
+        select.value = '';
+        if (event.member_id) {
+            for (let i = 0; i < select.options.length; i++) {
+                if (select.options[i].getAttribute('data-member-id') == event.member_id) {
+                    select.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+    }
+
+    const editModal = new bootstrap.Modal(document.getElementById('editEventModal'));
+    editModal.show();
+}
+
+function onEditBeneficiarySelectChange(select) {
+    const selectedOption = select.options[select.selectedIndex];
+    const nameField = document.getElementById('editBeneficiaryNameField');
+    const legacyField = document.getElementById('editLegacyGirlNameField');
+    const fatherField = document.getElementById('editFatherNameField');
+    const memberSelect = document.getElementById('editLinkedMemberSelect');
+    const titleField = document.getElementById('editEventTitleField');
+
+    if (select.value === '__custom__') {
+        nameField.value = '';
+        if (legacyField) legacyField.value = '';
+        nameField.focus();
+        return;
+    }
+
+    if (select.value) {
+        nameField.value = select.value;
+        if (legacyField) legacyField.value = select.value;
+        const father = selectedOption.getAttribute('data-father') || '';
+        const memberId = selectedOption.getAttribute('data-member-id') || '';
+
+        if (father) fatherField.value = father;
+        if (memberId && memberSelect) memberSelect.value = memberId;
+
+        const schemeSelect = document.getElementById('editEventSchemeSelect');
+        const selectedSchemeOpt = schemeSelect ? schemeSelect.options[schemeSelect.selectedIndex] : null;
+        const schemeCode = selectedSchemeOpt ? (selectedSchemeOpt.getAttribute('data-code') || '') : '';
+        const schemeHindi = selectedSchemeOpt ? (selectedSchemeOpt.getAttribute('data-hindi') || '') : '';
+
+        if (schemeCode.includes('PUTRA') || schemeHindi.includes('पुत्र')) {
+            titleField.value = 'पुत्र विवाह सहायता कार्यक्रम - श्री ' + select.value;
+        } else if (schemeCode.includes('PUTRI') || schemeHindi.includes('पुत्री') || schemeHindi.includes('कन्या')) {
+            titleField.value = 'कन्या विवाह सहायता कार्यक्रम - सुपुत्री ' + select.value;
+        } else {
+            titleField.value = 'कल्याण सहयोग कार्यक्रम - ' + select.value;
+        }
+    }
 }
 
 function triggerMemberPreview() {
