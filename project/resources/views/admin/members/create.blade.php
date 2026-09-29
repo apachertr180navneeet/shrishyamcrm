@@ -97,12 +97,12 @@
                     <div class="wizard-step-label">2. Documents</div>
                 </div>
                 <div class="wizard-step" id="stepIndicator3" onclick="goToStep(3)">
-                    <div class="wizard-step-circle"><i class="fas fa-users-cog"></i></div>
-                    <div class="wizard-step-label">3. Nominees (वारिसदार)</div>
+                    <div class="wizard-step-circle"><i class="fas fa-hand-holding-heart"></i></div>
+                    <div class="wizard-step-label">3. Scheme & Slab (योजना)</div>
                 </div>
                 <div class="wizard-step" id="stepIndicator4" onclick="goToStep(4)">
-                    <div class="wizard-step-circle"><i class="fas fa-hand-holding-heart"></i></div>
-                    <div class="wizard-step-label">4. Scheme & Slab</div>
+                    <div class="wizard-step-circle"><i class="fas fa-users-cog"></i></div>
+                    <div class="wizard-step-label">4. Nominees (वारिसदार)</div>
                 </div>
                 <div class="wizard-step" id="stepIndicator5" onclick="goToStep(5)">
                     <div class="wizard-step-circle"><i class="fas fa-check-circle"></i></div>
@@ -218,14 +218,101 @@
                     </div>
                     <div class="d-flex justify-content-between mt-4">
                         <button type="button" class="btn btn-outline-secondary" onclick="goToStep(1)"><i class="fas fa-arrow-left me-1"></i> Back</button>
-                        <button type="button" class="btn btn-primary px-4" onclick="goToStep(3)">Next: Nominees <i class="fas fa-arrow-right ms-1"></i></button>
+                        <button type="button" class="btn btn-primary px-4" onclick="goToStep(3)">Next: Scheme & Slab <i class="fas fa-arrow-right ms-1"></i></button>
                     </div>
                 </div>
 
-                <!-- STEP 3: Nominees -->
+                <!-- STEP 3: Scheme & Slab (योजना एवं आयु वर्ग) -->
                 <div class="wizard-pane" id="stepPane3">
                     <h5 class="fw-bold mb-3 border-bottom pb-2 text-primary">
-                        <i class="fas fa-users-cog me-2"></i> Step 3: Nominee Details (वारिसदार विवरण)
+                        <i class="fas fa-hand-holding-heart me-2"></i> Step 3: Scheme Enrolment & Dynamic Age Slab (योजना एवं आयु वर्ग चयन)
+                    </h5>
+                    <div class="row g-3">
+                        <div class="col-md-6 col-12">
+                            <label class="form-label fw-semibold">Select Society Scheme (योजना का चयन करें) <span class="text-danger">*</span></label>
+                            <select name="scheme_id" id="schemeSelect" class="form-select" required onchange="onSchemeChange()">
+                                <option value="" selected disabled>-- योजना का चयन करें (Select Scheme - अनिवार्य) --</option>
+                                @forelse($schemes as $sch)
+                                <option value="{{ $sch->id }}" data-code="{{ $sch->code }}" {{ old('scheme_id') == $sch->id ? 'selected' : '' }}>{{ $sch->name_hindi ?? $sch->name }} ({{ $sch->name }})</option>
+                                @empty
+                                <option value="" disabled>-- No Active Schemes Available --</option>
+                                @endforelse
+                            </select>
+                        </div>
+                        <div class="col-md-6 col-12">
+                            <label class="form-label fw-semibold">Assigned Agent (आवंटित एजेंट) <span class="text-danger">*</span></label>
+                            @if(auth()->check() && auth()->user()->isAgent() && auth()->user()->agent_id)
+                                @php $currentAgent = $agents->first(); @endphp
+                                <input type="hidden" name="agent_id" value="{{ auth()->user()->agent_id }}">
+                                <input type="text" class="form-control bg-light fw-semibold" value="{{ $currentAgent ? $currentAgent->name . ' (' . $currentAgent->agent_code . ' - ' . $currentAgent->district . ')' : 'Assigned to your agent profile' }}" readonly>
+                            @else
+                                <select name="agent_id" id="agentSelect" class="form-select" required>
+                                    <option value="" selected disabled>-- एजेंट का चयन करें (Select Agent - अनिवार्य) --</option>
+                                    @forelse($agents as $agt)
+                                    <option value="{{ $agt->id }}" {{ old('agent_id') == $agt->id ? 'selected' : '' }}>{{ $agt->name }} ({{ $agt->agent_code }} - {{ $agt->district }})</option>
+                                    @empty
+                                    <option value="" disabled>-- No Active Agents Available --</option>
+                                    @endforelse
+                                </select>
+                            @endif
+                        </div>
+
+                        <div class="col-md-6 col-12">
+                            <label class="form-label fw-semibold">Select Scheme Age Slab (आयु वर्ग का चयन करें) <span class="text-danger">*</span></label>
+                            <select name="age_slab_id" id="ageSlabSelect" class="form-select" required onchange="onAgeSlabChange()" disabled>
+                                <option value="" selected disabled>-- पहले योजना का चयन करें (Select Scheme First) --</option>
+                            </select>
+                            <input type="hidden" name="joining_amount" id="joiningAmountInput" value="{{ old('joining_amount') }}">
+                            <input type="hidden" name="monthly_support_amount" id="supportAmountInput" value="{{ old('monthly_support_amount') }}">
+                        </div>
+
+                        <div class="col-md-6 col-12 d-flex align-items-end">
+                            <div class="alert alert-light border py-2 px-3 mb-0 w-100 text-muted small" id="slabHint">
+                                <i class="fas fa-info-circle text-primary me-1"></i> योजना चयन के बाद आयु वर्ग लोड होगा एवं जन्मतिथि अनुसार स्वतः चयनित होगा।
+                            </div>
+                        </div>
+
+                        <!-- Auto Determined Slab Details Card -->
+                        <div class="col-12">
+                            <div class="card border border-primary bg-lighter mt-2">
+                                <div class="card-body p-4">
+                                    <h6 class="fw-bold text-primary mb-3">
+                                        <i class="fas fa-calculator me-1"></i> Determined Scheme Amounts (आयु वर्ग के अनुसार निर्धारित शुल्क)
+                                    </h6>
+                                    <div class="row g-3 text-center">
+                                        <div class="col-md-4 col-12">
+                                            <div class="bg-white p-3 rounded border">
+                                                <small class="text-muted d-block">Applicable Age Slab</small>
+                                                <span class="fs-5 fw-bold text-heading" id="slabLabel">--</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 col-12">
+                                            <div class="bg-white p-3 rounded border">
+                                                <small class="text-muted d-block">Initial Joining Amount</small>
+                                                <span class="fs-4 fw-bold text-success" id="joiningAmountDisplay">₹0</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 col-12">
+                                            <div class="bg-white p-3 rounded border">
+                                                <small class="text-muted d-block">Monthly Support Amount</small>
+                                                <span class="fs-4 fw-bold text-primary" id="supportAmountDisplay">₹0 / mo</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between mt-4">
+                        <button type="button" class="btn btn-outline-secondary" onclick="goToStep(2)"><i class="fas fa-arrow-left me-1"></i> Back</button>
+                        <button type="button" class="btn btn-primary px-4" onclick="goToStep(4)">Next: Nominees <i class="fas fa-arrow-right ms-1"></i></button>
+                    </div>
+                </div>
+
+                <!-- STEP 4: Nominees (वारिसदार विवरण) -->
+                <div class="wizard-pane" id="stepPane4">
+                    <h5 class="fw-bold mb-3 border-bottom pb-2 text-primary">
+                        <i class="fas fa-users-cog me-2"></i> Step 4: Nominee Details (वारिसदार विवरण)
                     </h5>
                     <!-- Nominee 1 -->
                     <div class="card border mb-3 bg-light">
@@ -234,7 +321,7 @@
                             <div class="row g-3">
                                 <div class="col-md-4 col-12">
                                     <label class="form-label fw-semibold">Nominee Name <span class="text-danger">*</span></label>
-                                    <input type="text" name="nominee1_name" class="form-control" placeholder="e.g. Rameshwar Sharma" value="{{ old('nominee1_name') }}">
+                                    <input type="text" name="nominee1_name" class="form-control" placeholder="e.g. Rameshwar Sharma" value="{{ old('nominee1_name') }}" required>
                                 </div>
                                 <div class="col-md-4 col-12">
                                     <label class="form-label fw-semibold">Relation (संबंध)</label>
@@ -274,93 +361,6 @@
                                 <div class="col-md-4 col-12">
                                     <label class="form-label fw-semibold">Nominee Mobile</label>
                                     <input type="tel" name="nominee2_mobile" class="form-control" placeholder="10 digit mobile" value="{{ old('nominee2_mobile') }}">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="d-flex justify-content-between mt-4">
-                        <button type="button" class="btn btn-outline-secondary" onclick="goToStep(2)"><i class="fas fa-arrow-left me-1"></i> Back</button>
-                        <button type="button" class="btn btn-primary px-4" onclick="goToStep(4)">Next: Scheme & Slab <i class="fas fa-arrow-right ms-1"></i></button>
-                    </div>
-                </div>
-
-                <!-- STEP 4: Scheme & Slab -->
-                <div class="wizard-pane" id="stepPane4">
-                    <h5 class="fw-bold mb-3 border-bottom pb-2 text-primary">
-                        <i class="fas fa-hand-holding-heart me-2"></i> Step 4: Scheme Enrolment & Dynamic Age Slab
-                    </h5>
-                    <div class="row g-3">
-                        <div class="col-md-6 col-12">
-                            <label class="form-label fw-semibold">Select Society Scheme (योजना का चयन करें) <span class="text-danger">*</span></label>
-                            <select name="scheme_id" id="schemeSelect" class="form-select" required onchange="onSchemeChange()">
-                                <option value="" selected disabled>-- योजना का चयन करें (Select Scheme) --</option>
-                                @forelse($schemes as $sch)
-                                <option value="{{ $sch->id }}" data-code="{{ $sch->code }}">{{ $sch->name_hindi ?? $sch->name }} ({{ $sch->name }})</option>
-                                @empty
-                                <option value="" disabled>-- No Active Schemes Available --</option>
-                                @endforelse
-                            </select>
-                        </div>
-                        <div class="col-md-6 col-12">
-                            <label class="form-label fw-semibold">Assigned Agent (आवंटित एजेंट) <span class="text-danger">*</span></label>
-                            @if(auth()->check() && auth()->user()->isAgent() && auth()->user()->agent_id)
-                                @php $currentAgent = $agents->first(); @endphp
-                                <input type="hidden" name="agent_id" value="{{ auth()->user()->agent_id }}">
-                                <input type="text" class="form-control bg-light fw-semibold" value="{{ $currentAgent ? $currentAgent->name . ' (' . $currentAgent->agent_code . ' - ' . $currentAgent->district . ')' : 'Assigned to your agent profile' }}" readonly>
-                            @else
-                                <select name="agent_id" id="agentSelect" class="form-select" required>
-                                    <option value="" selected disabled>-- एजेंट का चयन करें (Select Agent) --</option>
-                                    @forelse($agents as $agt)
-                                    <option value="{{ $agt->id }}">{{ $agt->name }} ({{ $agt->agent_code }} - {{ $agt->district }})</option>
-                                    @empty
-                                    <option value="" disabled>-- No Active Agents Available --</option>
-                                    @endforelse
-                                </select>
-                            @endif
-                        </div>
-
-                        <div class="col-md-6 col-12">
-                            <label class="form-label fw-semibold">Select Scheme Age Slab (आयु वर्ग का चयन करें) <span class="text-danger">*</span></label>
-                            <select name="age_slab_id" id="ageSlabSelect" class="form-select" required onchange="onAgeSlabChange()" disabled>
-                                <option value="" selected disabled>-- पहले योजना का चयन करें (Select Scheme First) --</option>
-                            </select>
-                            <input type="hidden" name="joining_amount" id="joiningAmountInput" value="">
-                            <input type="hidden" name="monthly_support_amount" id="supportAmountInput" value="">
-                        </div>
-
-                        <div class="col-md-6 col-12 d-flex align-items-end">
-                            <div class="alert alert-light border py-2 px-3 mb-0 w-100 text-muted small" id="slabHint">
-                                <i class="fas fa-info-circle text-primary me-1"></i> योजना चयन के बाद आयु वर्ग लोड होगा एवं जन्मतिथि अनुसार स्वतः चयनित होगा।
-                            </div>
-                        </div>
-
-                        <!-- Auto Determined Slab Details Card -->
-                        <div class="col-12">
-                            <div class="card border border-primary bg-lighter mt-2">
-                                <div class="card-body p-4">
-                                    <h6 class="fw-bold text-primary mb-3">
-                                        <i class="fas fa-calculator me-1"></i> Determined Scheme Amounts (आयु वर्ग के अनुसार निर्धारित शुल्क)
-                                    </h6>
-                                    <div class="row g-3 text-center">
-                                        <div class="col-md-4 col-12">
-                                            <div class="bg-white p-3 rounded border">
-                                                <small class="text-muted d-block">Applicable Age Slab</small>
-                                                <span class="fs-5 fw-bold text-heading" id="slabLabel">--</span>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4 col-12">
-                                            <div class="bg-white p-3 rounded border">
-                                                <small class="text-muted d-block">Initial Joining Amount</small>
-                                                <span class="fs-4 fw-bold text-success" id="joiningAmountDisplay">₹0</span>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4 col-12">
-                                            <div class="bg-white p-3 rounded border">
-                                                <small class="text-muted d-block">Monthly Support Amount</small>
-                                                <span class="fs-4 fw-bold text-primary" id="supportAmountDisplay">₹0 / mo</span>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         </div>
