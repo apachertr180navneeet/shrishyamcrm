@@ -597,6 +597,17 @@ function fetchMonthEventsData(monthStr) {
 
 // Pre-load on modal open
 document.addEventListener('DOMContentLoaded', function() {
+    @if(isset($editEvent) && $editEvent)
+        openEditEventModal(@json($editEvent));
+    @endif
+
+    if (window.location.hash === '#createEventModal' || window.location.hash === '#createEvent') {
+        const addModal = document.getElementById('createEventModal');
+        if (addModal) {
+            new bootstrap.Modal(addModal).show();
+        }
+    }
+
     const broadcastModal = document.getElementById('monthlyBroadcastModal');
     if (broadcastModal) {
         broadcastModal.addEventListener('shown.bs.modal', function () {

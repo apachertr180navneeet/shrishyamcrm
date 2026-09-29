@@ -183,4 +183,63 @@ class AgentController extends Controller
         $agent = Agent::with(['members.scheme', 'payments.member'])->findOrFail($id);
         return view('admin.agents.show', compact('agent'));
     }
+
+    public function edit(Request $request, $id)
+    {
+        $user = auth()->user();
+        if ($user && $user->isAgent() && $user->agent_id && (int)$id !== (int)$user->agent_id) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        $agent = Agent::with(['members.scheme', 'payments.member', 'user'])->findOrFail($id);
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json($agent);
+        }
+
+        return redirect()->route('admin.agents.show', $agent->id);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $user = auth()->user();
+        if ($user && $user->isAgent() && $user->agent_id && (int)$id !== (int)$user->agent_id) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        $agent = Agent::findOrFail($id);
+
+        $request->validate([
+            'name' => 'required|string|max:150',
+            'mobile' => 'required|string|max:20',
+            'district' => 'required|string|max:100',
+            'commission_rate' => 'required|numeric|min:0|max:100',
+        ]);
+
+        $agent->update($request->only([
+            'name', 'mobile', 'email', 'district', 'address', 'commission_rate', 'status'
+        ]));
+
+        if ($agent->user) {
+            $agent->user->update([
+                'full_name' => $agent->name,
+                'phone' => $agent->mobile,
+                'city' => $agent->district,
+            ]);
+        }
+
+        return redirect()->route('admin.agents.show', $agent->id)->with('success', "Agent {$agent->name} updated successfully.");
+    }
+
+    public function destroy($id)
+    {
+        $user = auth()->user();
+        if ($user && $user->isAgent()) {
+            abort(403, 'Unauthorized.');
+        }
+
+        $agent = Agent::findOrFail($id);
+        $agent->delete();
+
+        return redirect()->route('admin.agents.index')->with('success', "Agent {$agent->name} archived successfully.");
+    }
 }

@@ -45,6 +45,45 @@ class RoleController extends Controller
         return back()->with('success', "Role '{$role->display_name}' created successfully!");
     }
 
+    public function show(Request $request, $id)
+    {
+        return $this->edit($request, $id);
+    }
+
+    public function edit(Request $request, $id)
+    {
+        $role = Role::with('permissions', 'users')->findOrFail($id);
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json($role);
+        }
+
+        $roles = Role::with('permissions', 'users')->get();
+        $permissions = Permission::all()->groupBy('group');
+        $editRole = $role;
+
+        return view('admin.roles.index', compact('roles', 'permissions', 'editRole'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        return $this->updatePermissions($request, $id);
+    }
+
+    public function destroy($id)
+    {
+        $role = Role::findOrFail($id);
+        if (in_array($role->name, ['admin', 'super_admin', 'agent', 'member'])) {
+            return back()->with('error', "System default role '{$role->display_name}' cannot be deleted.");
+        }
+
+        $role->permissions()->detach();
+        $role->delete();
+
+        AuditService::log('delete', 'roles', (string)$id, null, ['name' => $role->name]);
+
+        return redirect()->route('admin.roles.index')->with('success', "Role '{$role->display_name}' deleted successfully.");
+    }
+
     public function updatePermissions(Request $request, $id)
     {
         $role = Role::findOrFail($id);

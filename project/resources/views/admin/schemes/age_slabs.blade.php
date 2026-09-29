@@ -214,7 +214,7 @@
 @section('script')
 <script>
 function openEditSlabModal(slab) {
-    document.getElementById('editSlabForm').action = "/admin/age-slabs/" + slab.id;
+    document.getElementById('editSlabForm').action = "{{ url('admin/age-slabs') }}/" + slab.id;
     document.getElementById('edit_slab_scheme_id').value = slab.scheme_id || '';
     document.getElementById('edit_slab_code').value = slab.slab_code || '';
     document.getElementById('edit_slab_min_age').value = slab.min_age || 0;
@@ -226,5 +226,18 @@ function openEditSlabModal(slab) {
     const modal = new bootstrap.Modal(document.getElementById('editSlabModal'));
     modal.show();
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    @if(isset($editSlab) && $editSlab)
+        openEditSlabModal(@json($editSlab));
+    @endif
+
+    if (window.location.hash === '#addSlabModal' || window.location.hash === '#addSlab') {
+        const addModal = document.getElementById('addSlabModal');
+        if (addModal) {
+            new bootstrap.Modal(addModal).show();
+        }
+    }
+});
 </script>
 @endsection

@@ -389,7 +389,7 @@
 @section('script')
 <script>
 function openEditSchemeModal(scheme) {
-    document.getElementById('editSchemeForm').action = "/admin/schemes/" + scheme.id;
+    document.getElementById('editSchemeForm').action = "{{ url('admin/schemes') }}/" + scheme.id;
     document.getElementById('edit_code').value = scheme.code || '';
     document.getElementById('edit_name_hindi').value = scheme.name_hindi || '';
     document.getElementById('edit_name').value = scheme.name || '';
@@ -404,6 +404,10 @@ function openEditSchemeModal(scheme) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    @if(isset($editScheme) && $editScheme)
+        openEditSchemeModal(@json($editScheme));
+    @endif
+
     if (window.location.hash === '#addSchemeModal' || window.location.hash === '#addScheme') {
         const addModal = document.getElementById('addSchemeModal');
         if (addModal) {

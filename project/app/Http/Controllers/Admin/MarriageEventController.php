@@ -208,6 +208,77 @@ class MarriageEventController extends Controller
             ->with('success', "कार्यक्रम {$event->event_code} ({$beneficiaryName}) सफलतापूर्वक अपडेट किया गया।");
     }
 
+    public function show(Request $request, $id)
+    {
+        return $this->edit($request, $id);
+    }
+
+    public function edit(Request $request, $id)
+    {
+        $event = MarriageEvent::with(['member', 'scheme', 'contributions'])->findOrFail($id);
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json($event);
+        }
+
+        $events = MarriageEvent::with(['member', 'scheme'])
+            ->withCount([
+                'contributions',
+                'contributions as paid_count' => function ($q) {
+                    $q->where('payment_status', 'Paid');
+                },
+            ])
+            ->withSum('contributions as expected_sum', 'contribution_amount')
+            ->withSum(['contributions as collected_sum' => function ($q) {
+                $q->where('payment_status', 'Paid');
+            }], 'contribution_amount')
+            ->latest('event_date')
+            ->paginate(10);
+
+        $schemes = Scheme::where('status', 'Active')->get();
+        $billings = EventBilling::with(['event', 'creator'])->latest('billing_date')->take(10)->get();
+
+        $members = Member::where('status', 'Active')
+            ->select('id', 'membership_no', 'full_name', 'gender', 'scheme_id', 'age', 'dob', 'father_spouse_name')
+            ->orderBy('full_name')
+            ->get();
+
+        $beneficiariesList = collect();
+        foreach ($members as $mem) {
+            $isFemale = strtolower($mem->gender ?? '') === 'female';
+            $targetType = $isFemale ? 'daughter' : 'son';
+
+            $beneficiariesList->push([
+                'type' => 'member',
+                'target_type' => $targetType,
+                'beneficiary_name' => $mem->full_name,
+                'father_name' => $mem->father_spouse_name ?: '',
+                'member_id' => $mem->id,
+                'scheme_id' => $mem->scheme_id,
+                'member_name' => $mem->full_name,
+                'membership_no' => $mem->membership_no,
+                'label' => "{$mem->full_name} [Member: {$mem->membership_no}]",
+            ]);
+        }
+        $girlsList = $beneficiariesList;
+        $editEvent = $event;
+
+        return view('admin.events.index', compact('events', 'members', 'schemes', 'billings', 'beneficiariesList', 'girlsList', 'editEvent'));
+    }
+
+    public function destroy($id)
+    {
+        $event = MarriageEvent::findOrFail($id);
+        $event->contributions()->delete();
+        $event->delete();
+
+        AuditService::log('delete', 'events', (string)$id, null, [
+            'code' => $event->event_code,
+            'title' => $event->title,
+        ]);
+
+        return redirect()->route('admin.events.index')->with('success', "Event {$event->event_code} removed successfully.");
+    }
+
     /**
      * Live Preview of Active Members, Age Slabs, and Contribution amounts.
      */

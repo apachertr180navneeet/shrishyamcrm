@@ -60,6 +60,8 @@ Route::name('admin.')->prefix('admin')->group(function () {
         Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
         Route::get('payment-entry', [PaymentController::class, 'create'])->name('payments.create');
         Route::post('payments', [PaymentController::class, 'store'])->name('payments.store');
+        Route::get('payments/{id}', [PaymentController::class, 'show'])->name('payments.show');
+        Route::get('payments/{id}/edit', [PaymentController::class, 'edit'])->name('payments.edit');
         Route::get('receipts', [PaymentController::class, 'receipts'])->name('receipts.index');
         Route::get('receipts/{id}', [PaymentController::class, 'receipt'])->name('payments.receipt');
         Route::get('ledger', [PaymentController::class, 'ledger'])->name('ledger.index');
@@ -95,23 +97,30 @@ Route::name('admin.')->prefix('admin')->group(function () {
             // Schemes & Age Slabs
             Route::get('schemes', [SchemeController::class, 'index'])->name('schemes.index');
             Route::post('schemes', [SchemeController::class, 'store'])->name('schemes.store');
+            Route::get('schemes/{id}', [SchemeController::class, 'showScheme'])->name('schemes.show');
+            Route::get('schemes/{id}/edit', [SchemeController::class, 'editScheme'])->name('schemes.edit');
             Route::put('schemes/{id}', [SchemeController::class, 'update'])->name('schemes.update');
             Route::delete('schemes/{id}', [SchemeController::class, 'destroy'])->name('schemes.destroy');
             Route::post('schemes/{id}/status', [SchemeController::class, 'toggleStatus'])->name('schemes.toggle-status');
 
             Route::get('age-slabs', [SchemeController::class, 'ageSlabs'])->name('schemes.age-slabs');
+            Route::get('age-slabs/{id}', [SchemeController::class, 'showAgeSlab'])->name('schemes.age-slabs.show');
+            Route::get('age-slabs/{id}/edit', [SchemeController::class, 'editAgeSlab'])->name('schemes.age-slabs.edit');
             Route::post('age-slabs', [SchemeController::class, 'storeAgeSlab'])->name('schemes.age-slabs.store');
             Route::put('age-slabs/{id}', [SchemeController::class, 'updateAgeSlab'])->name('schemes.age-slabs.update');
             Route::delete('age-slabs/{id}', [SchemeController::class, 'destroyAgeSlab'])->name('schemes.age-slabs.destroy');
             Route::get('api/slab-by-age', [SchemeController::class, 'getSlabByAge'])->name('api.slab-by-age');
 
             // Agent Network (manage agents)
-            Route::resource('agents', AgentController::class)->only(['index', 'store', 'show']);
+            Route::resource('agents', AgentController::class);
 
             // Marriage Events & All-Events Broadcast
             Route::get('events', [MarriageEventController::class, 'index'])->name('events.index');
             Route::post('events', [MarriageEventController::class, 'store'])->name('events.store');
+            Route::get('events/{id}', [MarriageEventController::class, 'show'])->name('events.show');
+            Route::get('events/{id}/edit', [MarriageEventController::class, 'edit'])->name('events.edit');
             Route::put('events/{id}', [MarriageEventController::class, 'update'])->name('events.update');
+            Route::delete('events/{id}', [MarriageEventController::class, 'destroy'])->name('events.destroy');
             Route::get('events/{id}/contributions', [MarriageEventController::class, 'contributions'])->name('events.contributions');
             Route::get('api/scheme-members-preview', [MarriageEventController::class, 'previewSchemeMembers'])->name('api.scheme-members-preview');
             Route::post('events/billing', [MarriageEventController::class, 'billMembers'])->name('events.billing');
@@ -121,11 +130,15 @@ Route::name('admin.')->prefix('admin')->group(function () {
             // Beneficiary Payouts (Admin Only - Blocked for Agents)
             Route::get('payouts', [PayoutController::class, 'index'])->name('payouts.index');
             Route::post('payouts', [PayoutController::class, 'store'])->name('payouts.store');
+            Route::get('payouts/{id}', [PayoutController::class, 'show'])->name('payouts.show');
+            Route::get('payouts/{id}/edit', [PayoutController::class, 'edit'])->name('payouts.edit');
+            Route::put('payouts/{id}', [PayoutController::class, 'update'])->name('payouts.update');
+            Route::delete('payouts/{id}', [PayoutController::class, 'destroy'])->name('payouts.destroy');
             Route::post('payouts/{id}/status', [PayoutController::class, 'updateStatus'])->name('payouts.update-status');
 
             // User & Role Management
-            Route::resource('users', UserController::class)->only(['index', 'store', 'update', 'destroy']);
-            Route::resource('roles', RoleController::class)->only(['index', 'store']);
+            Route::resource('users', UserController::class);
+            Route::resource('roles', RoleController::class);
             Route::put('roles/{id}/permissions', [RoleController::class, 'updatePermissions'])->name('roles.permissions.update');
 
             // Society Settings (Super Admin)

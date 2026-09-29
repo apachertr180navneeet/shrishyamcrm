@@ -144,6 +144,24 @@ class PaymentController extends Controller
         return view('admin.payments.receipts', compact('payments'));
     }
 
+    public function show(Request $request, $id)
+    {
+        if ($request->wantsJson() || $request->ajax()) {
+            $user = auth()->user();
+            $query = Payment::with(['member.scheme', 'member.agent', 'agent', 'event']);
+            if ($user && $user->isAgent() && $user->agent_id) {
+                $query->where('agent_id', $user->agent_id);
+            }
+            return response()->json($query->findOrFail($id));
+        }
+        return $this->receipt($id);
+    }
+
+    public function edit(Request $request, $id)
+    {
+        return $this->show($request, $id);
+    }
+
     public function receipt($id)
     {
         $user = auth()->user();

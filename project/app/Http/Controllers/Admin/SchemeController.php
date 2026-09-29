@@ -82,11 +82,49 @@ class SchemeController extends Controller
         return back()->with('success', "Scheme '{$scheme->name_hindi}' status updated to {$scheme->status}!");
     }
 
-    public function ageSlabs()
+    public function showScheme(Request $request, $id)
+    {
+        return $this->editScheme($request, $id);
+    }
+
+    public function editScheme(Request $request, $id)
+    {
+        $scheme = Scheme::with(['ageSlabs', 'members'])->findOrFail($id);
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json($scheme);
+        }
+        $schemes = Scheme::with(['ageSlabs', 'members'])->get();
+        $editScheme = $scheme;
+        return view('admin.schemes.index', compact('schemes', 'editScheme'));
+    }
+
+    public function ageSlabs(Request $request, $id = null)
     {
         $schemes = Scheme::with('ageSlabs')->get();
         $ageSlabs = AgeSlab::with('scheme')->orderBy('scheme_id')->orderBy('min_age')->get();
-        return view('admin.schemes.age_slabs', compact('schemes', 'ageSlabs'));
+        $editSlab = null;
+        $editId = $id ?: $request->query('edit_id');
+        if ($editId) {
+            $editSlab = AgeSlab::with('scheme')->find($editId);
+        }
+        return view('admin.schemes.age_slabs', compact('schemes', 'ageSlabs', 'editSlab'));
+    }
+
+    public function showAgeSlab(Request $request, $id)
+    {
+        return $this->editAgeSlab($request, $id);
+    }
+
+    public function editAgeSlab(Request $request, $id)
+    {
+        $slab = AgeSlab::with('scheme')->findOrFail($id);
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json($slab);
+        }
+        $schemes = Scheme::with('ageSlabs')->get();
+        $ageSlabs = AgeSlab::with('scheme')->orderBy('scheme_id')->orderBy('min_age')->get();
+        $editSlab = $slab;
+        return view('admin.schemes.age_slabs', compact('schemes', 'ageSlabs', 'editSlab'));
     }
 
     public function storeAgeSlab(Request $request)

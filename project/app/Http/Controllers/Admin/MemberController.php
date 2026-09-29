@@ -131,6 +131,43 @@ class MemberController extends Controller
         return view('admin.members.show', compact('member', 'whatsappData'));
     }
 
+    public function edit(Request $request, $id)
+    {
+        $user = auth()->user();
+        $query = Member::with(['scheme', 'ageSlab', 'agent', 'nominees', 'documents']);
+        if ($user && $user->isAgent() && $user->agent_id) {
+            $query->where('agent_id', $user->agent_id);
+        }
+        $member = $query->findOrFail($id);
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json($member);
+        }
+        return redirect()->route('admin.members.show', $member->id);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $user = auth()->user();
+        $query = Member::query();
+        if ($user && $user->isAgent() && $user->agent_id) {
+            $query->where('agent_id', $user->agent_id);
+        }
+        $member = $query->findOrFail($id);
+
+        $request->validate([
+            'full_name' => 'required|string|max:150',
+            'mobile' => 'required|string|max:20',
+        ]);
+
+        $member->update($request->only([
+            'full_name', 'father_spouse_name', 'mother_name', 'gender',
+            'dob', 'mobile', 'gotra', 'caste', 'address', 'district', 'state', 'pincode',
+            'aadhaar_no', 'status', 'scheme_id', 'agent_id'
+        ]));
+
+        return redirect()->route('admin.members.show', $member->id)->with('success', "Member {$member->full_name} details updated successfully.");
+    }
+
     public function destroy($id)
     {
         $user = auth()->user();

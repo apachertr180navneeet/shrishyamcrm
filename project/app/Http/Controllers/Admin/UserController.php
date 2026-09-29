@@ -76,6 +76,25 @@ class UserController extends Controller
         return back()->with('success', "User {$user->full_name} created successfully with role {$role->display_name}.");
     }
 
+    public function show(Request $request, $id)
+    {
+        return $this->edit($request, $id);
+    }
+
+    public function edit(Request $request, $id)
+    {
+        $user = User::with(['roles', 'roleModel', 'agent'])->findOrFail($id);
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json($user);
+        }
+        $users = User::with(['roles', 'roleModel', 'agent'])->latest()->paginate(15);
+        $roles = Role::all();
+        $agents = Agent::where('status', 'Active')->get();
+        $editUser = $user;
+
+        return view('admin.users.index', compact('users', 'roles', 'agents', 'editUser'));
+    }
+
     public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);
