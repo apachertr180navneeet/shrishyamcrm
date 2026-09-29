@@ -24,6 +24,9 @@
                     </div>
                 </div>
                 <div class="d-flex flex-wrap gap-2">
+                    <a href="{{ route('admin.members.edit', $member->id) }}" class="btn btn-primary">
+                        <i class="fas fa-user-edit me-1"></i> Edit Member Profile
+                    </a>
                     <a href="{{ $whatsappData['url'] ?? '#' }}" target="_blank" class="btn btn-success">
                         <i class="fab fa-whatsapp me-1"></i> WhatsApp Due Alert
                     </a>
@@ -36,7 +39,7 @@
                     <a href="{{ route('admin.members.certificate.pdf', $member->id) }}" class="btn btn-danger">
                         <i class="fas fa-file-pdf me-1"></i> Certificate PDF
                     </a>
-                    <a href="{{ route('admin.payments.create', ['member_id' => $member->id]) }}" class="btn btn-primary" style="background: #1B365D;">
+                    <a href="{{ route('admin.payments.create', ['member_id' => $member->id]) }}" class="btn btn-outline-primary">
                         <i class="fas fa-rupee-sign me-1"></i> Record Payment
                     </a>
                 </div>

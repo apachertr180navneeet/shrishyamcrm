@@ -121,6 +121,9 @@
                                 <a href="{{ route('admin.members.show', $m->id) }}" class="btn btn-outline-primary" title="View Profile">
                                     <i class="fas fa-eye"></i>
                                 </a>
+                                <a href="{{ route('admin.members.edit', $m->id) }}" class="btn btn-outline-info" title="Edit Member">
+                                    <i class="fas fa-edit"></i>
+                                </a>
                                 <a href="{{ route('admin.members.ledger.pdf', $m->id) }}" class="btn btn-outline-danger" title="Download Ledger Card PDF" target="_blank">
                                     <i class="fas fa-file-invoice"></i>
                                 </a>
