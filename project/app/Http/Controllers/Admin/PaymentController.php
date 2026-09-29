@@ -274,10 +274,14 @@ class PaymentController extends Controller
                 }
                 $totalDue = $thisMonthExpected + $previousDue;
 
+                $totalExpectedAll = (float)$selectedMember->total_paid + (float)$selectedMember->pending_amount;
+                $totalPaidAll = (float)$selectedMember->total_paid;
+                $totalPendingAll = (float)$selectedMember->pending_amount;
+
                 $stats = [
-                    'total_expected' => $totalExpectedAll ?: (float)$selectedMember->total_paid + (float)$selectedMember->pending_amount,
-                    'total_paid' => $totalPaidAll ?: (float)$selectedMember->total_paid,
-                    'total_pending' => $totalPending ?: (float)$selectedMember->pending_amount,
+                    'total_expected' => $totalExpectedAll,
+                    'total_paid' => $totalPaidAll,
+                    'total_pending' => $totalPendingAll,
                     'this_month_expected' => $thisMonthExpected,
                     'previous_month_due' => $previousDue,
                     'total_due' => $totalDue,

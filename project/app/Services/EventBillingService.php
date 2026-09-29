@@ -82,8 +82,14 @@ class EventBillingService
                 if ($rateType === 'fixed_rate') {
                     $memberRate = $fallbackRate;
                 } else {
-                    $memberRate = (float)($member->monthly_support_amount 
-                        ?: ($member->ageSlab ? $member->ageSlab->support_amount : $fallbackRate));
+                    $supportAmt = (float)$member->monthly_support_amount;
+                    if ($supportAmt > 0) {
+                        $memberRate = $supportAmt;
+                    } elseif ($member->ageSlab && (float)$member->ageSlab->support_amount > 0) {
+                        $memberRate = (float)$member->ageSlab->support_amount;
+                    } else {
+                        $memberRate = $fallbackRate;
+                    }
                 }
 
                 $totalForThisMember = $eventsCount * $memberRate;

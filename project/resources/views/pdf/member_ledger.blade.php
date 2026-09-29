@@ -389,7 +389,7 @@
                     <tr>
                         <th style="width: 6%;">क्र.सं.</th>
                         <th style="width: 44%;">नाम / विवरण</th>
-                        <th style="width: 16%;">जुड़ने की तिथी</th>
+                        <th style="width: 16%;">कार्यक्रम दिनांक</th>
                         <th style="width: 18%;">भुगतान तिथि</th>
                         <th style="width: 16%;">कार्यकर्ता नाम</th>
                     </tr>

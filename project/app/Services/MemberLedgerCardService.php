@@ -161,9 +161,10 @@ class MemberLedgerCardService
             ];
         }
 
-        // 2. Also check direct payments not linked to event contributions (e.g. Joining Fee, Monthly Support)
+        // 2. Also check direct monthly support payments not linked to specific event contributions (EXCLUDE Joining Fee)
         $unlinkedPayments = $member->payments()
             ->whereNull('event_contribution_id')
+            ->where('payment_type', '!=', 'Joining Fee')
             ->where('status', 'Verified')
             ->get();
 
@@ -183,14 +184,9 @@ class MemberLedgerCardService
             ];
         }
 
-        // If no events in current month but member has a monthly support rate or general pending amount
+        // If no events in current month but member has a monthly support rate
         if ($thisMonthAmount == 0 && $contributions->count() == 0 && $member->monthly_support_amount > 0) {
             $thisMonthAmount = (float)$member->monthly_support_amount;
-        }
-
-        // Previous due fallback if ledger has extra balance
-        if ($member->pending_amount > 0 && ($thisMonthPending + $previousDue) < (float)$member->pending_amount) {
-            $previousDue = max(0, (float)$member->pending_amount - $thisMonthPending);
         }
 
         $totalDue = $thisMonthAmount + $previousDue;
@@ -206,8 +202,9 @@ class MemberLedgerCardService
             : '-';
 
         // Kisht rate
-        $kishtRate = $member->monthly_support_amount
-            ?: ($member->ageSlab ? $member->ageSlab->amount : ($contributions->first() ? $contributions->first()->contribution_amount : 400));
+        $kishtRate = (float)$member->monthly_support_amount > 0
+            ? (float)$member->monthly_support_amount
+            : ($member->ageSlab && (float)$member->ageSlab->support_amount > 0 ? (float)$member->ageSlab->support_amount : ($contributions->first() ? (float)$contributions->first()->contribution_amount : 400));
 
         $sanCode = $member->san_code ?: $society['san_prefix'];
 

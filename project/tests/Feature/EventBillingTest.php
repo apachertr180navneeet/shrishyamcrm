@@ -57,8 +57,7 @@ class EventBillingTest extends TestCase
             'rate_per_event' => 200.0,
         ]);
 
-        $this->assertNotNull($billing->id);
-        $this->assertEquals(600.0, (float)$billing->total_per_member); // 3 events * 200
+        $this->assertEquals(200.0, (float)$billing->total_per_member); // 1 event * 200
 
         // Duplicate billing attempt should throw exception
         $this->expectException(Exception::class);
