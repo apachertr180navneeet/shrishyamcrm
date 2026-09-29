@@ -101,10 +101,11 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Select Scheme <span class="text-danger">*</span></label>
+                        <label class="form-label fw-semibold">Select Scheme (योजना का चयन करें) <span class="text-danger">*</span></label>
                         <select name="scheme_id" class="form-select" required>
+                            <option value="" selected disabled>-- योजना का चयन करें (Select Scheme - अनिवार्य) --</option>
                             @foreach($schemes as $sch)
-                            <option value="{{ $sch->id }}">{{ $sch->name_hindi }} ({{ $sch->name }})</option>
+                            <option value="{{ $sch->id }}" {{ old('scheme_id') == $sch->id ? 'selected' : '' }}>{{ $sch->name_hindi }} ({{ $sch->name }})</option>
                             @endforeach
                         </select>
                     </div>
@@ -162,8 +163,9 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Select Scheme <span class="text-danger">*</span></label>
+                        <label class="form-label fw-semibold">Select Scheme (योजना का चयन करें) <span class="text-danger">*</span></label>
                         <select name="scheme_id" id="edit_slab_scheme_id" class="form-select" required>
+                            <option value="" disabled>-- योजना का चयन करें (Select Scheme - अनिवार्य) --</option>
                             @foreach($schemes as $sch)
                             <option value="{{ $sch->id }}">{{ $sch->name_hindi }} ({{ $sch->name }})</option>
                             @endforeach
