@@ -98,6 +98,9 @@ class EventBillingService
                             continue;
                         }
 
+                        $memberAge = (int)($member->age ?: ($member->dob ? Carbon::parse($member->dob)->diffInYears($ev->event_date ?: now()) : 25));
+                        $slabName = $member->ageSlab ? $member->ageSlab->slab_name : ($memberAge . ' वर्ष');
+
                         EventContribution::firstOrCreate(
                             [
                                 'event_id' => $ev->id,
@@ -107,10 +110,12 @@ class EventBillingService
                                 'scheme_id' => $member->scheme_id ?? $ev->scheme_id,
                                 'agent_id' => $member->agent_id,
                                 'event_name' => $ev->title ?: "विवाह कार्यक्रम: {$ev->girl_name}",
-                                'event_date' => $ev->event_date,
+                                'event_date' => $ev->event_date ?: $billingDate,
+                                'member_name' => $member->full_name,
+                                'member_age' => $memberAge,
+                                'age_slab' => $slabName,
                                 'contribution_amount' => $memberRate,
                                 'payment_status' => 'Pending',
-                                'due_date' => $ev->event_date ?: $billingDate,
                             ]
                         );
                     }
