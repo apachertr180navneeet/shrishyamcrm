@@ -80,6 +80,15 @@ class MemberLedgerCardService
         $totalPending = 0.0;
         $totalExpected = 0.0;
 
+        $now = \Carbon\Carbon::now();
+        $startOfCurrentMonth = $now->copy()->startOfMonth();
+        $endOfCurrentMonth = $now->copy()->endOfMonth();
+
+        $thisMonthAmount = 0.0;
+        $thisMonthPaid = 0.0;
+        $thisMonthPending = 0.0;
+        $previousDue = 0.0;
+
         foreach ($contributions as $ec) {
             $isPaid = ($ec->payment_status === 'Paid');
             $amount = (float)$ec->contribution_amount;
@@ -89,6 +98,22 @@ class MemberLedgerCardService
                 $totalPaid += $amount;
             } else {
                 $totalPending += $amount;
+            }
+
+            $eventDate = $ec->event_date ?: ($ec->event && $ec->event->event_date ? $ec->event->event_date : null);
+            $isCurrentMonth = $eventDate && $eventDate->greaterThanOrEqualTo($startOfCurrentMonth) && $eventDate->lessThanOrEqualTo($endOfCurrentMonth);
+
+            if ($isCurrentMonth) {
+                $thisMonthAmount += $amount;
+                if ($isPaid) {
+                    $thisMonthPaid += $amount;
+                } else {
+                    $thisMonthPending += $amount;
+                }
+            } else {
+                if (!$isPaid) {
+                    $previousDue += $amount;
+                }
             }
 
             // Description: Girl Name / Father Name / Venue or Event Title
@@ -158,6 +183,18 @@ class MemberLedgerCardService
             ];
         }
 
+        // If no events in current month but member has a monthly support rate or general pending amount
+        if ($thisMonthAmount == 0 && $contributions->count() == 0 && $member->monthly_support_amount > 0) {
+            $thisMonthAmount = (float)$member->monthly_support_amount;
+        }
+
+        // Previous due fallback if ledger has extra balance
+        if ($member->pending_amount > 0 && ($thisMonthPending + $previousDue) < (float)$member->pending_amount) {
+            $previousDue = max(0, (float)$member->pending_amount - $thisMonthPending);
+        }
+
+        $totalDue = $thisMonthAmount + $previousDue;
+
         // 3. Ensure minimum 20 rows for the grid to look authentic like the printed ledger card
         $minimumRows = 20;
         $blankRowsCount = max(0, $minimumRows - count($tableRows));
@@ -189,6 +226,9 @@ class MemberLedgerCardService
             'totalPaid',
             'totalPending',
             'totalExpected',
+            'thisMonthAmount',
+            'previousDue',
+            'totalDue',
             'nomineeName',
             'kishtRate',
             'sanCode',

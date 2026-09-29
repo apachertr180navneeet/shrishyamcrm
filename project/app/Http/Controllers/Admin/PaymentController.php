@@ -243,19 +243,44 @@ class PaymentController extends Controller
                     ->latest('payment_date')
                     ->get();
 
-                $totalExpected = (float)$eventContributions->sum('contribution_amount');
-                $totalPaid = (float)$eventContributions->where('payment_status', 'Paid')->sum('contribution_amount');
-                $totalPending = (float)$eventContributions->where('payment_status', 'Pending')->sum('contribution_amount');
+                $now = \Carbon\Carbon::now();
+                $startOfCurrentMonth = $now->copy()->startOfMonth();
+                $endOfCurrentMonth = $now->copy()->endOfMonth();
 
-                // If unlinked payments exist (like Joining fee)
-                $unlinkedPaymentsSum = (float)$payments->whereNull('event_contribution_id')->where('status', 'Verified')->sum('amount');
-                $totalPaidAll = $totalPaid + $unlinkedPaymentsSum;
-                $totalExpectedAll = $totalExpected + $unlinkedPaymentsSum;
+                $thisMonthExpected = 0.0;
+                $thisMonthPaid = 0.0;
+                $thisMonthPending = 0.0;
+                $previousDue = 0.0;
+
+                foreach ($eventContributions as $ec) {
+                    $amt = (float)$ec->contribution_amount;
+                    $isPaid = ($ec->payment_status === 'Paid');
+                    $eventDate = $ec->event_date ?: ($ec->event && $ec->event->event_date ? $ec->event->event_date : null);
+                    $isCurrentMonth = $eventDate && $eventDate->greaterThanOrEqualTo($startOfCurrentMonth) && $eventDate->lessThanOrEqualTo($endOfCurrentMonth);
+
+                    if ($isCurrentMonth) {
+                        $thisMonthExpected += $amt;
+                        if ($isPaid) { $thisMonthPaid += $amt; } else { $thisMonthPending += $amt; }
+                    } else {
+                        if (!$isPaid) { $previousDue += $amt; }
+                    }
+                }
+
+                if ($thisMonthExpected == 0 && $eventContributions->count() == 0 && $selectedMember->monthly_support_amount > 0) {
+                    $thisMonthExpected = (float)$selectedMember->monthly_support_amount;
+                }
+                if ($selectedMember->pending_amount > 0 && ($thisMonthPending + $previousDue) < (float)$selectedMember->pending_amount) {
+                    $previousDue = max(0, (float)$selectedMember->pending_amount - $thisMonthPending);
+                }
+                $totalDue = $thisMonthExpected + $previousDue;
 
                 $stats = [
                     'total_expected' => $totalExpectedAll ?: (float)$selectedMember->total_paid + (float)$selectedMember->pending_amount,
                     'total_paid' => $totalPaidAll ?: (float)$selectedMember->total_paid,
                     'total_pending' => $totalPending ?: (float)$selectedMember->pending_amount,
+                    'this_month_expected' => $thisMonthExpected,
+                    'previous_month_due' => $previousDue,
+                    'total_due' => $totalDue,
                     'ledger_debit' => (float)$ledgerEntries->sum('debit'),
                     'ledger_credit' => (float)$ledgerEntries->sum('credit'),
                     'running_balance' => $selectedMember->calculateCurrentBalance(),

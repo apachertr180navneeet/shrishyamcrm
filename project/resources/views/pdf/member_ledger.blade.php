@@ -173,15 +173,56 @@
         .footer-summary-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 5px;
+            margin-top: 6px;
         }
-        .total-box-table {
-            border: 1.8px solid #1e3a8a;
-            border-radius: 5px;
+        .summary-box {
+            border: 1.5px solid #1e3a8a;
+            border-radius: 4px;
+            background: #f8fafc;
             border-collapse: separate;
             border-spacing: 0;
-            background: #f8fafc;
             display: inline-table;
+        }
+        .summary-box-header {
+            padding: 2px 6px 1px 6px;
+            text-align: center;
+            font-size: 8.5px;
+            font-weight: bold;
+            border-bottom: 1px solid #cbd5e1;
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+        .summary-box-val {
+            padding: 3px 8px;
+            text-align: center;
+            font-size: 13.5px;
+            font-weight: bold;
+            color: #1e3a8a;
+            line-height: 1.1;
+        }
+        .summary-box-due {
+            border-color: #dc2626;
+        }
+        .summary-box-due .summary-box-header {
+            background: #fee2e2;
+            border-bottom-color: #fecaca;
+            color: #991b1b;
+        }
+        .summary-box-due .summary-box-val {
+            color: #b91c1c;
+        }
+        .summary-box-total {
+            border-color: #1e3a8a;
+            background: #1e3a8a;
+        }
+        .summary-box-total .summary-box-header {
+            background: #1e3a8a;
+            border-bottom: 1px solid #3b82f6;
+            color: #93c5fd;
+        }
+        .summary-box-total .summary-box-val {
+            color: #ffffff;
+            font-size: 14.5px;
         }
     </style>
 </head>
@@ -386,31 +427,69 @@
                 </tbody>
             </table>
 
-            <!-- Footer Summary Section: Single Total Box & Signature Line -->
+            <!-- Footer Summary Section: 3-Box Formula [This Month] + [Previous Due] = [Total] & Signature Line -->
             <table class="footer-summary-table">
                 <tr>
-                    <td style="width: 50%; vertical-align: middle;">
-                        <table class="total-box-table">
+                    <td style="width: 72%; vertical-align: middle;">
+                        <table style="border-collapse: separate; border-spacing: 0;">
                             <tr>
-                                <td style="padding: 3px 6px 3px 5px; vertical-align: middle;">
-                                    @php
-                                        $rupeeImg = $rupeeIconPath ?? public_path('assets/rupee_icon.png');
-                                    @endphp
-                                    @if(file_exists($rupeeImg))
-                                        <img src="{{ str_replace('\\', '/', $rupeeImg) }}" width="22" height="22" alt="₹" style="display: block; vertical-align: middle;"/>
-                                    @endif
+                                <!-- Box 1: This Month -->
+                                <td style="vertical-align: middle;">
+                                    <table class="summary-box" style="min-width: 95px;">
+                                        <tr>
+                                            <td class="summary-box-header">इस माह (This m.)</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="summary-box-val">
+                                                ₹{{ number_format($thisMonthAmount, 0) }}
+                                            </td>
+                                        </tr>
+                                    </table>
                                 </td>
-                                <td style="padding: 3px 14px 3px 0; vertical-align: middle; font-size: 16px; font-weight: bold; color: #1e3a8a; line-height: 1;">
-                                    {{ number_format($totalPaid ?: $totalExpected, 0) }}
+
+                                <td style="padding: 0 6px; font-size: 16px; font-weight: bold; color: #1e3a8a; vertical-align: middle; text-align: center;">
+                                    +
+                                </td>
+
+                                <!-- Box 2: Previous Due -->
+                                <td style="vertical-align: middle;">
+                                    <table class="summary-box summary-box-due" style="min-width: 95px;">
+                                        <tr>
+                                            <td class="summary-box-header">पिछला बकाया (Due)</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="summary-box-val">
+                                                ₹{{ number_format($previousDue, 0) }}
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+
+                                <td style="padding: 0 6px; font-size: 16px; font-weight: bold; color: #1e3a8a; vertical-align: middle; text-align: center;">
+                                    =
+                                </td>
+
+                                <!-- Box 3: Total -->
+                                <td style="vertical-align: middle;">
+                                    <table class="summary-box summary-box-total" style="min-width: 105px;">
+                                        <tr>
+                                            <td class="summary-box-header">कुल योग (Total)</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="summary-box-val">
+                                                ₹{{ number_format($totalDue, 0) }}
+                                            </td>
+                                        </tr>
+                                    </table>
                                 </td>
                             </tr>
                         </table>
                     </td>
-                    <td style="width: 50%; text-align: right; vertical-align: bottom;">
-                        <div style="display: inline-block; text-align: center; width: 130px;">
-                            <div style="margin-bottom: 22px;"></div>
-                            <div style="border-top: 1.5px dotted #334155; padding-top: 2px; font-size: 10.5px; font-weight: bold; color: #1e3a8a;">
-                                हस्ताक्षर
+                    <td style="width: 28%; text-align: right; vertical-align: bottom;">
+                        <div style="display: inline-block; text-align: center; width: 120px;">
+                            <div style="margin-bottom: 24px;"></div>
+                            <div style="border-top: 1.5px dotted #334155; padding-top: 2px; font-size: 9.5px; font-weight: bold; color: #1e3a8a;">
+                                हस्ताक्षर / Signature
                             </div>
                         </div>
                     </td>

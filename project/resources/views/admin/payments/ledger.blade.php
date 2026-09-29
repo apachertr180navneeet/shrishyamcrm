@@ -113,6 +113,30 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Monthly Dues Breakdown Formula Widget -->
+            <div class="mt-3 p-3 bg-white rounded border d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <div>
+                    <h6 class="fw-bold mb-1 text-heading"><i class="fas fa-calculator text-primary me-1"></i> चालू माह एवं बकाया गणना (Monthly Dues Calculation: {{ date('M Y') }})</h6>
+                    <small class="text-muted">मासिक सहयोग/कार्यक्रम + पूर्व माह बकाया = कुल देय राशि</small>
+                </div>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <div class="px-3 py-2 bg-light rounded text-center border">
+                        <small class="text-muted d-block fw-semibold">इस माह (This m.)</small>
+                        <strong class="text-primary fs-5">₹{{ number_format($stats['this_month_expected'] ?? 0) }}</strong>
+                    </div>
+                    <span class="fs-4 fw-bold text-muted">+</span>
+                    <div class="px-3 py-2 bg-light rounded text-center border">
+                        <small class="text-muted d-block fw-semibold">पिछला बकाया (Due)</small>
+                        <strong class="text-danger fs-5">₹{{ number_format($stats['previous_month_due'] ?? 0) }}</strong>
+                    </div>
+                    <span class="fs-4 fw-bold text-muted">=</span>
+                    <div class="px-4 py-2 bg-primary text-white rounded text-center shadow-sm">
+                        <small class="text-white-50 d-block fw-semibold">कुल देय (Total)</small>
+                        <strong class="fs-5 text-white">₹{{ number_format($stats['total_due'] ?? 0) }}</strong>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
