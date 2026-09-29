@@ -128,11 +128,11 @@
 			</a>
 		</li>
 
+		@if(auth()->check() && (auth()->user()->isSuperAdmin() || auth()->user()->role === 'admin' || auth()->user()->role === 'super_admin' || auth()->user()->hasRole(['admin', 'super_admin'])))
 		<!-- Events & Broadcast -->
 		<li class="menu-header small text-uppercase">
 			<span class="menu-header-text">{{ __('erp.certificates_events') }}</span>
 		</li>
-		@if(auth()->check() && (auth()->user()->isSuperAdmin() || auth()->user()->role === 'admin' || auth()->user()->role === 'super_admin' || auth()->user()->hasRole(['admin', 'super_admin'])))
 		<!-- Certificate: Seen ONLY by Admin -->
 		<li class="menu-item {{ request()->is('admin/certificates*') ? 'active' : '' }}">
 			<a href="{{ route('admin.certificates.index') }}" class="menu-link">
@@ -140,14 +140,12 @@
 				<div>{{ __('erp.certificates') }}</div>
 			</a>
 		</li>
-		@endif
 		<li class="menu-item {{ request()->is('admin/events*') ? 'active' : '' }}">
 			<a href="{{ route('admin.events.index') }}" class="menu-link">
 				<i class="menu-icon tf-icons fas fa-calendar-alt"></i>
 				<div>{{ __('erp.marriage_events') }}</div>
 			</a>
 		</li>
-		@if(auth()->check() && (auth()->user()->isSuperAdmin() || auth()->user()->role === 'admin' || auth()->user()->role === 'super_admin' || auth()->user()->hasRole(['admin', 'super_admin'])))
 		<!-- Beneficiary Payouts: Seen ONLY by Admin (Hidden from Agent) -->
 		<li class="menu-item {{ request()->is('admin/payouts*') ? 'active' : '' }}">
 			<a href="{{ route('admin.payouts.index') }}" class="menu-link">
@@ -155,7 +153,6 @@
 				<div>{{ __('erp.payouts') }}</div>
 			</a>
 		</li>
-		@endif
 		<li class="menu-item {{ request()->is('admin/whatsapp*') ? 'active' : '' }}">
 			<a href="{{ route('admin.whatsapp.index') }}" class="menu-link">
 				<i class="menu-icon tf-icons fab fa-whatsapp text-success"></i>
@@ -173,7 +170,6 @@
 				<div>{{ __('erp.reports') }}</div>
 			</a>
 		</li>
-		@if(auth()->check() && (auth()->user()->isSuperAdmin() || auth()->user()->role === 'admin' || auth()->user()->role === 'super_admin' || auth()->user()->hasRole(['admin', 'super_admin'])))
 		<li class="menu-item {{ request()->is('admin/users*') || request()->is('admin/roles*') ? 'active open' : '' }}">
 			<a href="javascript:void(0);" class="menu-link menu-toggle">
 				<i class="menu-icon tf-icons fas fa-user-shield"></i>

@@ -68,14 +68,6 @@ Route::name('admin.')->prefix('admin')->group(function () {
         Route::get('ledger/{id}/pdf', [PaymentController::class, 'memberLedgerPdf'])->name('ledger.pdf');
         Route::get('members/{id}/ledger/pdf', [MemberController::class, 'ledgerPdf'])->name('members.ledger.pdf');
 
-        // WhatsApp Center
-        Route::get('whatsapp', [WhatsAppController::class, 'index'])->name('whatsapp.index');
-        Route::post('whatsapp/send', [WhatsAppController::class, 'send'])->name('whatsapp.send');
-
-        // Reports Center
-        Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
-        Route::get('reports/export', [ReportController::class, 'export'])->name('reports.export');
-
         // Profile & Account Settings
         Route::get('change-password', [AdminAuthController::class, 'changePassword'])->name('change.password');
         Route::post('update-password', [AdminAuthController::class, 'updatePassword'])->name('update.password');
@@ -86,6 +78,14 @@ Route::name('admin.')->prefix('admin')->group(function () {
         // ---- Admin / Super-Admin-only routes (agents blocked) ----
 
         Route::middleware(['role:admin,super_admin'])->group(function () {
+            // WhatsApp Center (Admin Only)
+            Route::get('whatsapp', [WhatsAppController::class, 'index'])->name('whatsapp.index');
+            Route::post('whatsapp/send', [WhatsAppController::class, 'send'])->name('whatsapp.send');
+
+            // Reports Center (Admin Only)
+            Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
+            Route::get('reports/export', [ReportController::class, 'export'])->name('reports.export');
+
             // Member Certificate Download (Admin Only)
             Route::get('members/{id}/certificate/pdf', [MemberController::class, 'certificatePdf'])->name('members.certificate.pdf');
 
