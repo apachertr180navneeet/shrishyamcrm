@@ -496,6 +496,7 @@
         <div class="modal-content border-0 shadow-lg">
             <form action="{{ route('admin.events.billing') }}" method="POST">
                 @csrf
+                <input type="hidden" name="rate_type" value="member_slab">
                 <div class="modal-header" style="background: #1B365D; color: #fff;">
                     <h5 class="modal-title fw-bold text-white"><i class="fas fa-calculator me-2"></i>Consolidated Monthly Event Billing (मासिक कार्यक्रम बिलिंग)</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -503,7 +504,7 @@
                 <div class="modal-body p-4">
                     <div class="alert alert-info py-2 px-3 small mb-3">
                         <i class="fas fa-info-circle me-1"></i>
-                        यह प्रक्रिया सभी सक्रिय सदस्यों के वित्तीय लेजर (Financial Ledger) में चयनित माह के सभी कार्यक्रमों का बिल स्वचालित रूप से दर्ज करती है तथा डुप्लीकेट बिलिंग से सुरक्षा प्रदान करती है।
+                        यह प्रक्रिया सभी सक्रिय सदस्यों के वित्तीय लेजर में उनकी <strong>मासिक सहयोग दर (Monthly Support / Age Slab Amount)</strong> के आधार पर कार्यक्रमों का बिल दर्ज करती है।
                     </div>
 
                     <div class="row g-3 mb-3">
@@ -512,69 +513,42 @@
                             <input type="month" name="billing_month" id="billingMonthInput" class="form-control form-control-lg fw-bold" value="{{ date('Y-m') }}" required onchange="onBillingMonthChange(this.value)">
                         </div>
                         <div class="col-md-6 col-12">
-                            <label class="form-label fw-bold">Target Scheme (योजना चयन - Optional)</label>
-                            <select name="scheme_id" class="form-select form-select-lg">
-                                <option value="">-- All Active Members Across Schemes (सभी योजनाएं) --</option>
-                                @foreach($schemes as $sch)
-                                <option value="{{ $sch->id }}">{{ $sch->name_hindi }} ({{ $sch->name }})</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Rate Type Selection -->
-                    <div class="mb-3">
-                        <label class="form-label fw-bold text-dark">
-                            <i class="fas fa-tags text-primary me-1"></i> दर निर्धारण प्रकार (Rate Calculation Method) <span class="text-danger">*</span>
-                        </label>
-                        <div class="row g-2">
-                            <div class="col-md-6 col-12">
-                                <div class="form-check card p-3 border m-0 h-100 cursor-pointer shadow-xs bg-light" id="cardMemberSlab" onclick="selectRateType('member_slab')">
-                                    <input class="form-check-input ms-0 me-2" type="radio" name="rate_type" id="rateTypeMemberSlab" value="member_slab" checked onchange="onRateTypeChange()">
-                                    <label class="form-check-label fw-bold text-dark cursor-pointer d-block" for="rateTypeMemberSlab">
-                                        <i class="fas fa-user-check text-success me-1"></i> प्रत्येक सदस्य की स्लैब दर (Member Slab Rate)
-                                    </label>
-                                    <small class="text-muted d-block mt-1">
-                                        प्रत्येक सदस्य की निर्धारित आयु स्लैब / मासिक सहयोग दर (₹200, ₹300, ₹500 आदि) अनुसार बिल बनेगा। <strong>(Recommended)</strong>
-                                    </small>
-                                </div>
-                            </div>
-                            <div class="col-md-6 col-12">
-                                <div class="form-check card p-3 border m-0 h-100 cursor-pointer shadow-xs" id="cardFixedRate" onclick="selectRateType('fixed_rate')">
-                                    <input class="form-check-input ms-0 me-2" type="radio" name="rate_type" id="rateTypeFixed" value="fixed_rate" onchange="onRateTypeChange()">
-                                    <label class="form-check-label fw-bold text-dark cursor-pointer d-block" for="rateTypeFixed">
-                                        <i class="fas fa-equals text-primary me-1"></i> एक समान निश्चित दर (Fixed Flat Rate)
-                                    </label>
-                                    <small class="text-muted d-block mt-1">
-                                        सभी सदस्यों पर एक समान निश्चित दर प्रति कार्यक्रम लागू होगी।
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-6 col-12">
-                            <label class="form-label fw-semibold">Number of Events in Month (माह के कुल कार्यक्रम)</label>
-                            <input type="number" name="events_count" class="form-control form-control-lg fw-bold" value="1" min="1" required id="billingEventsCount" oninput="updateTotalCharge()">
+                            <label class="form-label fw-bold">Number of Events in Month (माह के कुल कार्यक्रम) <span class="text-danger">*</span></label>
+                            <input type="number" name="events_count" class="form-control form-control-lg fw-bold" value="1" min="1" required id="billingEventsCount" oninput="updateBillingLiveSummary()">
                             <small class="text-muted" id="billingMonthEventsHint">माह के पंजीकृत कार्यक्रमों की संख्या</small>
                         </div>
-                        <div class="col-md-6 col-12">
-                            <label class="form-label fw-semibold" id="billingRateLabel">Fallback / Backup Rate (₹/कार्यक्रम)</label>
-                            <input type="number" name="rate_per_event" class="form-control form-control-lg fw-bold" value="200" min="1" required id="billingRatePerEvent" oninput="updateTotalCharge()">
-                            <small class="text-muted" id="billingRateHint">यदि सदस्य का स्लैब न हो तो यह दर लागू होगी</small>
-                        </div>
                     </div>
 
-                    <div class="p-3 bg-light rounded border text-center">
-                        <div id="billingDynamicNotice" class="text-muted small mb-1">
-                            गणना: <strong>[कुल कार्यक्रम] × [सदस्य की निर्धारित स्लैब दर]</strong> = सदस्य के लेजर में डेबिट
-                        </div>
-                        <div class="d-flex justify-content-center align-items-center gap-3">
-                            <div>
-                                <small class="text-muted d-block">औसत दर (Estimated Rate)</small>
-                                <h4 class="text-primary fw-bold mb-0" id="totalDebitPerMember">₹200.00 / सदस्य</h4>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Target Scheme (योजना चयन - Optional)</label>
+                        <select name="scheme_id" class="form-select form-select-lg">
+                            <option value="">-- All Active Members Across Schemes (सभी योजनाएं) --</option>
+                            @foreach($schemes as $sch)
+                            <option value="{{ $sch->id }}">{{ $sch->name_hindi }} ({{ $sch->name }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Live Calculation Summary Card -->
+                    <div class="card border bg-light shadow-xs p-3">
+                        <div class="row g-3 text-center align-items-center">
+                            <div class="col-4">
+                                <small class="text-muted d-block" style="font-size: 0.75rem;">माह के कार्यक्रम</small>
+                                <strong class="fs-5 text-primary" id="billingSummaryEventsCount">0</strong>
                             </div>
+                            <div class="col-4">
+                                <small class="text-muted d-block" style="font-size: 0.75rem;">सक्रिय सदस्य</small>
+                                <strong class="fs-5 text-dark" id="billingSummaryMembersCount">0</strong>
+                            </div>
+                            <div class="col-4">
+                                <small class="text-muted d-block" style="font-size: 0.75rem;">अनुमानित कुल बिलिंग</small>
+                                <strong class="fs-5 text-success fw-bold" id="billingSummaryTotalAmount">₹0</strong>
+                            </div>
+                        </div>
+                        <hr class="my-2">
+                        <div class="small text-muted text-center">
+                            <i class="fas fa-check-circle text-success me-1"></i>
+                            प्रत्येक सदस्य के खाते में केवल उसकी <strong>निर्धारित मासिक सहयोग राशि (Monthly Support Amount)</strong> × कार्यक्रमों की संख्या के अनुसार बिल डेबिट होगा।
                         </div>
                     </div>
                 </div>
@@ -593,65 +567,37 @@
 @section('script')
 <script>
 let allMembersCache = [];
-
-function selectRateType(type) {
-    if (type === 'member_slab') {
-        document.getElementById('rateTypeMemberSlab').checked = true;
-    } else {
-        document.getElementById('rateTypeFixed').checked = true;
-    }
-    onRateTypeChange();
-}
-
-function onRateTypeChange() {
-    const isMemberSlab = document.getElementById('rateTypeMemberSlab').checked;
-    const rateLabel = document.getElementById('billingRateLabel');
-    const rateHint = document.getElementById('billingRateHint');
-    const cardSlab = document.getElementById('cardMemberSlab');
-    const cardFixed = document.getElementById('cardFixedRate');
-    const notice = document.getElementById('billingDynamicNotice');
-
-    if (isMemberSlab) {
-        cardSlab.classList.add('bg-light', 'border-primary');
-        cardFixed.classList.remove('bg-light', 'border-primary');
-        rateLabel.innerText = 'Fallback / Backup Rate (₹/कार्यक्रम)';
-        rateHint.innerText = 'यदि किसी सदस्य का आयु स्लैब निर्धारित न हो तो यह डिफ़ॉल्ट दर लागू होगी।';
-        notice.innerHTML = '✨ <strong>सदस्य स्लैब अनुसार:</strong> प्रत्येक सदस्य की निर्धारित योजना/आयु स्लैब दर × कुल कार्यक्रमों के आधार पर बिल बनेगा।';
-    } else {
-        cardFixed.classList.add('bg-light', 'border-primary');
-        cardSlab.classList.remove('bg-light', 'border-primary');
-        rateLabel.innerText = 'Fixed Rate for All Members (₹/कार्यक्रम)';
-        rateHint.innerText = 'सभी सदस्यों से यह निश्चित दर प्रति कार्यक्रम ली जाएगी।';
-        notice.innerHTML = '✨ <strong>निश्चित दर:</strong> सभी सक्रिय सदस्यों से निश्चित दर × कार्यक्रमों की संख्या के हिसाब से डेबिट होगा।';
-    }
-    updateTotalCharge();
-}
-
-function updateTotalCharge() {
-    const count = parseFloat(document.getElementById('billingEventsCount').value) || 0;
-    const rate = parseFloat(document.getElementById('billingRatePerEvent').value) || 0;
-    const total = count * rate;
-    const isMemberSlab = document.getElementById('rateTypeMemberSlab').checked;
-    if (isMemberSlab) {
-        document.getElementById('totalDebitPerMember').innerText = `₹${total.toFixed(2)} (बेस दर पर)`;
-    } else {
-        document.getElementById('totalDebitPerMember').innerText = `₹${total.toFixed(2)} / सदस्य`;
-    }
-}
+let billingMonthDataCache = null;
 
 function onBillingMonthChange(monthStr) {
     if (!monthStr) return;
     fetch('{{ route("admin.api.events-by-month") }}?month=' + encodeURIComponent(monthStr))
         .then(res => res.json())
         .then(data => {
-            if (data.events_count !== undefined) {
-                const countInput = document.getElementById('billingEventsCount');
-                countInput.value = data.events_count > 0 ? data.events_count : 1;
-                document.getElementById('billingMonthEventsHint').innerText = `${data.events_count} कार्यक्रम पंजीकृत हैं (${data.month_name})`;
-                updateTotalCharge();
-            }
+            billingMonthDataCache = data;
+            const countInput = document.getElementById('billingEventsCount');
+            const eventsCount = data.events_count > 0 ? data.events_count : 1;
+            countInput.value = eventsCount;
+            document.getElementById('billingMonthEventsHint').innerText = `${data.events_count || 0} कार्यक्रम पंजीकृत हैं (${data.month_name})`;
+            updateBillingLiveSummary();
         })
         .catch(err => console.error(err));
+}
+
+function updateBillingLiveSummary() {
+    if (!billingMonthDataCache) return;
+    const eventsCount = parseInt(document.getElementById('billingEventsCount').value) || 1;
+    const members = billingMonthDataCache.members_preview || [];
+    
+    let totalBilling = 0;
+    members.forEach(m => {
+        const rate = parseFloat(m.rate) || 0;
+        totalBilling += (rate * eventsCount);
+    });
+
+    document.getElementById('billingSummaryEventsCount').innerText = eventsCount;
+    document.getElementById('billingSummaryMembersCount').innerText = members.length;
+    document.getElementById('billingSummaryTotalAmount').innerText = '₹' + totalBilling.toLocaleString('en-IN');
 }
 
 function onBeneficiaryManualTyping() {

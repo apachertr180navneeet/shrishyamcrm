@@ -266,8 +266,8 @@ class PaymentController extends Controller
                     }
                 }
 
-                if ($thisMonthExpected == 0 && $eventContributions->count() == 0 && $selectedMember->monthly_support_amount > 0) {
-                    $thisMonthExpected = (float)$selectedMember->monthly_support_amount;
+                if ($thisMonthExpected == 0 && $eventContributions->count() == 0) {
+                    $thisMonthExpected = (float)($selectedMember->monthly_support_amount ?: ($selectedMember->ageSlab ? $selectedMember->ageSlab->support_amount : 0.0));
                 }
                 if ($selectedMember->pending_amount > 0 && ($thisMonthPending + $previousDue) < (float)$selectedMember->pending_amount) {
                     $previousDue = max(0, (float)$selectedMember->pending_amount - $thisMonthPending);
