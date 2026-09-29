@@ -171,11 +171,11 @@
                         </div>
                         <div class="col-md-3 col-12">
                             <label class="form-label fw-semibold">District (जिला)</label>
-                            <input type="text" name="district" class="form-control" value="{{ old('district', 'Mahendragarh') }}">
+                            <input type="text" name="district" class="form-control" placeholder="जिला दर्ज करें (District)" value="{{ old('district') }}">
                         </div>
                         <div class="col-md-3 col-12">
-                            <label class="form-label fw-semibold">Pincode</label>
-                            <input type="text" name="pincode" class="form-control" value="{{ old('pincode', '123001') }}">
+                            <label class="form-label fw-semibold">Pincode (पिनकोड)</label>
+                            <input type="text" name="pincode" class="form-control" placeholder="पिनकोड (Pincode)" value="{{ old('pincode') }}">
                         </div>
                     </div>
                     <div class="d-flex justify-content-end mt-4">
