@@ -507,11 +507,16 @@ function calculateAgeAndSlab() {
 function onSchemeChange() {
     const schemeSelect = document.getElementById('schemeSelect');
     const slabSelect = document.getElementById('ageSlabSelect');
+    const hintEl = document.getElementById('slabHint');
     const schemeId = schemeSelect ? parseInt(schemeSelect.value) : null;
 
     if (!schemeId) {
         slabSelect.innerHTML = '<option value="" selected disabled>-- पहले योजना का चयन करें (Select Scheme First) --</option>';
         slabSelect.disabled = true;
+        if (hintEl) {
+            hintEl.className = 'alert alert-light border py-2 px-3 mb-0 w-100 text-muted small';
+            hintEl.innerHTML = '<i class="fas fa-info-circle text-primary me-1"></i> योजना चयन के बाद सदस्य की आयु के अनुसार आयु वर्ग स्वतः लोड होगा।';
+        }
         resetSlabDisplay();
         return;
     }
@@ -519,19 +524,70 @@ function onSchemeChange() {
     const selectedScheme = schemesData.find(s => s.id === schemeId);
     const slabs = selectedScheme && (selectedScheme.age_slabs || selectedScheme.ageSlabs) ? (selectedScheme.age_slabs || selectedScheme.ageSlabs) : [];
 
-    slabSelect.innerHTML = '<option value="" selected disabled>-- आयु वर्ग का चयन करें (Select Age Slab) --</option>';
+    slabSelect.innerHTML = '';
     slabSelect.disabled = false;
 
     if (slabs.length === 0) {
-        slabSelect.innerHTML = '<option value="" disabled selected>-- No Age Slabs Configured for this Scheme --</option>';
+        slabSelect.innerHTML = '<option value="" disabled selected>-- इस योजना के लिए कोई आयु वर्ग कॉन्फ़िगर नहीं है --</option>';
+        if (hintEl) {
+            hintEl.className = 'alert alert-warning py-2 px-3 mb-0 w-100 small';
+            hintEl.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i> चयनित योजना में कोई सक्रिय आयु वर्ग उपलब्ध नहीं है।';
+        }
         resetSlabDisplay();
         return;
     }
 
     const memberAge = calculateAge();
-    let autoMatchedSlabId = null;
 
+    if (memberAge === null || isNaN(memberAge)) {
+        slabSelect.innerHTML = '<option value="" selected disabled>-- कृपया पहले Step 1 में जन्मतिथि (DOB) दर्ज करें --</option>';
+        slabs.forEach(sl => {
+            const opt = document.createElement('option');
+            opt.value = sl.id;
+            opt.setAttribute('data-min', sl.min_age);
+            opt.setAttribute('data-max', sl.max_age);
+            opt.setAttribute('data-joining', sl.joining_amount);
+            opt.setAttribute('data-support', sl.support_amount);
+            opt.setAttribute('data-code', sl.slab_code || '');
+            opt.innerText = `${sl.min_age} – ${sl.max_age} वर्ष (${sl.slab_code || 'SLAB'})`;
+            slabSelect.appendChild(opt);
+        });
+        if (hintEl) {
+            hintEl.className = 'alert alert-warning py-2 px-3 mb-0 w-100 small';
+            hintEl.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> सदस्य की जन्मतिथि (DOB) खाली है। उचित आयु वर्ग हेतु Step 1 में DOB भरें।';
+        }
+        resetSlabDisplay();
+        return;
+    }
+
+    // Find the slab strictly matching member's calculated age
+    const autoMatchedSlab = slabs.find(sl => memberAge >= sl.min_age && memberAge <= sl.max_age);
+
+    if (!autoMatchedSlab) {
+        const minOverall = Math.min(...slabs.map(s => s.min_age));
+        const maxOverall = Math.max(...slabs.map(s => s.max_age));
+
+        slabSelect.innerHTML = `<option value="" selected disabled>-- सदस्य की आयु (${memberAge} वर्ष) अनुसार कोई स्लैब मान्य नहीं है --</option>`;
+        slabs.forEach(sl => {
+            const opt = document.createElement('option');
+            opt.value = sl.id;
+            opt.disabled = true;
+            opt.innerText = `${sl.min_age} – ${sl.max_age} वर्ष (${sl.slab_code || 'SLAB'}) [आयु ${memberAge} वर्ष हेतु अमान्य]`;
+            slabSelect.appendChild(opt);
+        });
+
+        if (hintEl) {
+            hintEl.className = 'alert alert-danger py-2 px-3 mb-0 w-100 small';
+            hintEl.innerHTML = `<i class="fas fa-times-circle me-1"></i> सदस्य की आयु (<strong>${memberAge} वर्ष</strong>) इस योजना के मान्य आयु वर्ग (<strong>${minOverall} से ${maxOverall} वर्ष</strong>) से बाहर है।`;
+        }
+        resetSlabDisplay();
+        return;
+    }
+
+    // Matching slab found: populate dropdown, select the matched slab, disable non-matching ones
+    slabSelect.innerHTML = '';
     slabs.forEach(sl => {
+        const isMatched = (sl.id === autoMatchedSlab.id);
         const opt = document.createElement('option');
         opt.value = sl.id;
         opt.setAttribute('data-min', sl.min_age);
@@ -539,19 +595,22 @@ function onSchemeChange() {
         opt.setAttribute('data-joining', sl.joining_amount);
         opt.setAttribute('data-support', sl.support_amount);
         opt.setAttribute('data-code', sl.slab_code || '');
-        opt.innerText = `${sl.min_age} – ${sl.max_age} Years (${sl.slab_code || 'SLAB'})`;
 
-        if (memberAge !== null && memberAge >= sl.min_age && memberAge <= sl.max_age) {
-            autoMatchedSlabId = sl.id;
+        if (isMatched) {
+            opt.innerText = `✓ ${sl.min_age} – ${sl.max_age} वर्ष (${sl.slab_code || 'SLAB'}) [आयु ${memberAge} वर्ष अनुसार चयनित]`;
+            opt.selected = true;
+        } else {
+            opt.innerText = `${sl.min_age} – ${sl.max_age} वर्ष (${sl.slab_code || 'SLAB'}) [आयु से बाहर]`;
+            opt.disabled = true;
         }
-
         slabSelect.appendChild(opt);
     });
 
-    if (autoMatchedSlabId) {
-        slabSelect.value = autoMatchedSlabId;
-    } else if (slabs.length > 0) {
-        slabSelect.value = slabs[0].id;
+    slabSelect.value = autoMatchedSlab.id;
+
+    if (hintEl) {
+        hintEl.className = 'alert alert-success py-2 px-3 mb-0 w-100 small';
+        hintEl.innerHTML = `<i class="fas fa-check-circle me-1"></i> सदस्य आयु (<strong>${memberAge} वर्ष</strong>) के अनुसार <strong>${autoMatchedSlab.min_age}–${autoMatchedSlab.max_age} वर्ष (${autoMatchedSlab.slab_code || 'SLAB'})</strong> स्वतः चयनित।`;
     }
 
     onAgeSlabChange();
@@ -576,7 +635,7 @@ function onAgeSlabChange() {
     const joining = Number(selectedOption.getAttribute('data-joining') || 0);
     const support = Number(selectedOption.getAttribute('data-support') || 0);
 
-    const slabText = `${minAge} – ${maxAge} Years` + (code ? ` (${code})` : '');
+    const slabText = `${minAge} – ${maxAge} वर्ष` + (code ? ` (${code})` : '');
 
     document.getElementById('slabLabel').innerText = slabText;
     document.getElementById('joiningAmountDisplay').innerText = '₹' + joining.toLocaleString('en-IN');

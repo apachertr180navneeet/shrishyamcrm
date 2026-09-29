@@ -24,21 +24,27 @@ class MemberRegistrationService
             $dob = Carbon::parse($data['dob']);
             $age = $dob->age;
 
-            // 2. Resolve Scheme & Applicable Age Slab
+            // 2. Resolve Scheme & Applicable Age Slab strictly by Member Age
             $scheme = Scheme::findOrFail($data['scheme_id']);
-            $slab = null;
-            if (!empty($data['age_slab_id'])) {
-                $slab = AgeSlab::where('id', $data['age_slab_id'])->where('scheme_id', $scheme->id)->first();
+            
+            // Find active slab strictly covering member's calculated age
+            $slab = AgeSlab::where('scheme_id', $scheme->id)
+                ->where('status', 'Active')
+                ->where('min_age', '<=', $age)
+                ->where('max_age', '>=', $age)
+                ->first();
+
+            // If not found in active slabs, check provided age_slab_id if valid for this age
+            if (!$slab && !empty($data['age_slab_id'])) {
+                $providedSlab = AgeSlab::where('id', $data['age_slab_id'])->where('scheme_id', $scheme->id)->first();
+                if ($providedSlab && $age >= $providedSlab->min_age && $age <= $providedSlab->max_age) {
+                    $slab = $providedSlab;
+                }
             }
+
+            // Fallback if no exact bounds configured, otherwise throw descriptive error
             if (!$slab) {
-                $slab = AgeSlab::where('scheme_id', $scheme->id)
-                    ->where('status', 'Active')
-                    ->where('min_age', '<=', $age)
-                    ->where('max_age', '>=', $age)
-                    ->first();
-            }
-            if (!$slab) {
-                $slab = AgeSlab::where('scheme_id', $scheme->id)->first();
+                $slab = AgeSlab::where('scheme_id', $scheme->id)->where('status', 'Active')->orderBy('min_age')->first();
             }
 
             $joiningAmount = isset($data['joining_amount']) && $data['joining_amount'] !== '' 
