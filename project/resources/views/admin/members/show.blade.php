@@ -31,13 +31,16 @@
                 </div>
                 <div class="d-flex flex-wrap gap-2">
                     <a href="{{ route('admin.members.edit', $member->id) }}" class="btn btn-primary">
-                        <i class="fas fa-user-edit me-1"></i> Edit Member Profile
+                        <i class="fas fa-user-edit me-1"></i> Edit Profile
+                    </a>
+                    <a href="{{ route('admin.ledger.index', ['member_id' => $member->id]) }}" class="btn btn-dark">
+                        <i class="fas fa-file-invoice-dollar me-1"></i> लेजर स्टेटमेंट (Ledger Statement)
+                    </a>
+                    <a href="{{ route('admin.members.ledger.pdf', $member->id) }}" class="btn btn-outline-dark" target="_blank">
+                        <i class="fas fa-file-pdf me-1"></i> लेजर कार्ड PDF
                     </a>
                     <a href="{{ $whatsappData['url'] ?? '#' }}" target="_blank" class="btn btn-success">
                         <i class="fab fa-whatsapp me-1"></i> WhatsApp Due Alert
-                    </a>
-                    <a href="{{ route('admin.members.ledger.pdf', $member->id) }}" class="btn btn-dark" target="_blank">
-                        <i class="fas fa-file-invoice me-1"></i> Ledger Card PDF
                     </a>
                     <a href="{{ route('admin.certificates.show', $member->id) }}" class="btn btn-warning text-dark" target="_blank">
                         <i class="fas fa-certificate me-1"></i> View Certificate
@@ -78,7 +81,7 @@
             </li>
             <li class="nav-item">
                 <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#tab-ledger">
-                    <i class="fas fa-book-open me-1"></i> Ledger ({{ $member->ledgers->count() }})
+                    <i class="fas fa-book-open me-1"></i> लेजर स्टेटमेंट / Ledger Statement ({{ $member->ledgers->count() }})
                 </button>
             </li>
             <li class="nav-item">
@@ -245,28 +248,86 @@
                 </div>
             </div>
 
-            <!-- Tab 5: Financial Ledger -->
+            <!-- Tab 5: Financial Ledger Statement -->
             <div class="tab-pane fade" id="tab-ledger" role="tabpanel">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 pb-3 border-bottom">
+                    <div>
+                        <h5 class="fw-bold mb-1 text-dark" style="font-family: 'Hind', sans-serif;">
+                            <i class="fas fa-file-invoice-dollar text-primary me-2"></i>सदस्य लेजर खाता स्टेटमेंट (Member Ledger Statement)
+                        </h5>
+                        <p class="text-muted small mb-0">
+                            सदस्यता क्र.: <span class="badge bg-label-primary font-monospace">{{ $member->membership_no }}</span> &nbsp;|&nbsp;
+                            नाम: <strong>{{ $member->full_name }}</strong> &nbsp;|&nbsp;
+                            योजना: <strong>{{ $member->scheme ? $member->scheme->name_hindi : 'Welfare' }}</strong>
+                        </p>
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a href="{{ route('admin.ledger.index', ['member_id' => $member->id]) }}" class="btn btn-sm btn-dark">
+                            <i class="fas fa-expand me-1"></i> संपूर्ण लेजर कार्ड (Full Ledger Page)
+                        </a>
+                        <a href="{{ route('admin.members.ledger.pdf', $member->id) }}" target="_blank" class="btn btn-sm btn-danger">
+                            <i class="fas fa-file-pdf me-1"></i> लेजर कार्ड PDF
+                        </a>
+                        <a href="{{ route('admin.payments.create', ['member_id' => $member->id]) }}" class="btn btn-sm btn-success">
+                            <i class="fas fa-cash-register me-1"></i> राशि जमा करें (Record Payment)
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Ledger KPI Cards -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4 col-12">
+                        <div class="card border-0 bg-lighter p-3 rounded">
+                            <small class="text-muted d-block fw-semibold">कुल नामे / देय (Total Debit / Due)</small>
+                            <h4 class="fw-bold text-danger mb-0">₹{{ number_format($member->ledgers->sum('debit'), 2) }}</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-12">
+                        <div class="card border-0 bg-lighter p-3 rounded">
+                            <small class="text-muted d-block fw-semibold">कुल जमा (Total Credit / Paid)</small>
+                            <h4 class="fw-bold text-success mb-0">₹{{ number_format($member->ledgers->sum('credit'), 2) }}</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-12">
+                        <div class="card border-0 p-3 rounded {{ $member->pending_amount > 0 ? 'bg-label-danger' : 'bg-label-success' }}">
+                            <small class="d-block fw-semibold">वर्तमान शुद्ध बकाया (Net Outstanding Due)</small>
+                            <h4 class="fw-bold mb-0 {{ $member->pending_amount > 0 ? 'text-danger' : 'text-success' }}">
+                                ₹{{ number_format($member->pending_amount, 2) }}
+                            </h4>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
-                            <tr>
-                                <th>Date</th>
-                                <th>Txn No</th>
-                                <th>Description / Particulars</th>
-                                <th class="text-end">Debit / Due (₹)</th>
-                                <th class="text-end">Credit / Paid (₹)</th>
-                                <th class="text-end">Running Balance (₹)</th>
+                            <tr style="font-size: 0.85rem;">
+                                <th style="width: 45px;">#</th>
+                                <th>दिनांक (Date)</th>
+                                <th>वाउचर / संदर्भ क्र.</th>
+                                <th>प्रविष्टि प्रकार</th>
+                                <th>विवरण (Description / Particulars)</th>
+                                <th class="text-end">नामे / देय (Debit ₹)</th>
+                                <th class="text-end">जमा (Credit ₹)</th>
+                                <th class="text-end">शेष बकाया (Balance ₹)</th>
+                                <th class="text-center">रसीद / पावती</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($member->ledgers as $ledger)
+                            @forelse($member->ledgers as $idx => $ledger)
                             <tr>
-                                <td>{{ $ledger->transaction_date ? $ledger->transaction_date->format('d-M-Y') : '' }}</td>
-                                <td><code>{{ $ledger->transaction_no }}</code></td>
+                                <td class="text-muted fw-semibold">{{ $idx + 1 }}</td>
                                 <td>
-                                    <span class="badge bg-label-secondary me-1">{{ $ledger->entry_type }}</span>
-                                    {{ $ledger->description }}
+                                    <strong>{{ $ledger->transaction_date ? $ledger->transaction_date->format('d/m/Y') : '-' }}</strong>
+                                </td>
+                                <td>
+                                    <span class="badge bg-label-secondary font-monospace">{{ $ledger->transaction_no }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-label-primary">{{ $ledger->entry_type }}</span>
+                                </td>
+                                <td>
+                                    <span class="text-dark">{{ $ledger->description }}</span>
                                 </td>
                                 <td class="text-end fw-bold text-danger">
                                     {{ $ledger->debit > 0 ? '₹' . number_format($ledger->debit, 2) : '-' }}
@@ -277,13 +338,38 @@
                                 <td class="text-end fw-bold {{ $ledger->running_balance > 0 ? 'text-danger' : 'text-success' }}">
                                     ₹{{ number_format($ledger->running_balance, 2) }}
                                 </td>
+                                <td class="text-center">
+                                    @if($ledger->payment_id)
+                                        <a href="{{ route('admin.payments.receipt', $ledger->payment_id) }}" class="btn btn-xs btn-outline-primary py-1 px-2" target="_blank" title="View Official Receipt">
+                                            <i class="fas fa-receipt me-1"></i> रसीद
+                                        </a>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                </td>
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="6" class="text-center py-4 text-muted">No ledger transactions posted yet.</td>
+                                <td colspan="9" class="text-center py-5 text-muted">
+                                    <i class="fas fa-file-invoice fs-1 text-secondary d-block mb-2"></i>
+                                    कोई लेजर प्रविष्टि उपलब्ध नहीं है (No ledger transactions posted yet).
+                                </td>
                             </tr>
                             @endforelse
                         </tbody>
+                        @if($member->ledgers->count() > 0)
+                        <tfoot class="table-light fw-bold">
+                            <tr>
+                                <td colspan="5" class="text-end">कुल योग (Grand Totals):</td>
+                                <td class="text-end text-danger fs-6">₹{{ number_format($member->ledgers->sum('debit'), 2) }}</td>
+                                <td class="text-end text-success fs-6">₹{{ number_format($member->ledgers->sum('credit'), 2) }}</td>
+                                <td class="text-end {{ $member->pending_amount > 0 ? 'text-danger' : 'text-success' }} fs-6">
+                                    ₹{{ number_format($member->pending_amount, 2) }}
+                                </td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                        @endif
                     </table>
                 </div>
             </div>
