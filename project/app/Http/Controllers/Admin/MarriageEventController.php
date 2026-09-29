@@ -120,18 +120,7 @@ class MarriageEventController extends Controller
             'description' => $request->description,
         ]);
 
-        // Automatically identify members, calculate age-slabs, and generate EventContribution records
-        $generatedCount = \App\Services\ContributionCalculationService::generateEventContributions($event);
-
-        $totalContributionSum = (float)$event->contributions()->sum('contribution_amount');
-        if ((!$targetAmount || $targetAmount <= 0) && $totalContributionSum > 0) {
-            $event->update([
-                'target_amount' => $totalContributionSum,
-                'beneficiary_payout_amount' => $totalContributionSum,
-            ]);
-        }
-
-        // When a person's marriage takes place, their membership is automatically closed (Inactive)
+        // When a person's marriage takes place, their membership is immediately closed (Inactive)
         if ($event->member_id) {
             $beneficiaryMember = Member::find($event->member_id);
             if ($beneficiaryMember && $beneficiaryMember->status === 'Active') {
@@ -152,6 +141,28 @@ class MarriageEventController extends Controller
             }
         }
 
+        // Automatically identify members, calculate age-slabs, and generate EventContribution records ONLY for remaining Active members
+        $generatedCount = \App\Services\ContributionCalculationService::generateEventContributions($event);
+
+        // Ensure the beneficiary member does not pay for their own event
+        if ($event->member_id) {
+            \App\Models\EventContribution::where('event_id', $event->id)
+                ->where('member_id', $event->member_id)
+                ->delete();
+        } elseif (!empty($beneficiaryName)) {
+            \App\Models\EventContribution::where('event_id', $event->id)
+                ->where('member_name', $beneficiaryName)
+                ->delete();
+        }
+
+        $totalContributionSum = (float)$event->contributions()->sum('contribution_amount');
+        if ((!$targetAmount || $targetAmount <= 0) && $totalContributionSum > 0) {
+            $event->update([
+                'target_amount' => $totalContributionSum,
+                'beneficiary_payout_amount' => $totalContributionSum,
+            ]);
+        }
+
         AuditService::log('create', 'events', (string)$event->id, null, [
             'code' => $eventCode,
             'title' => $event->title,
@@ -160,7 +171,7 @@ class MarriageEventController extends Controller
         ]);
 
         return redirect()->route('admin.events.contributions', $event->id)
-            ->with('success', "कार्यक्रम {$eventCode} ({$beneficiaryName}) सफलतापूर्वक दर्ज किया गया! लाभार्थी सदस्य की सदस्यता विवाह संपन्न होने पर क्लोज (Inactive) कर दी गई है एवं अन्य सभी {$generatedCount} सक्रिय सदस्यों के खाते में अंशदान जुड़ गया है।");
+            ->with('success', "कार्यक्रम {$eventCode} ({$beneficiaryName}) सफलतापूर्वक दर्ज किया गया! लाभार्थी सदस्य की सदस्यता विवाह संपन्न होने पर क्लोज (Inactive) कर दी गई है एवं केवल सक्रिय सदस्यों के खाते में अंशदान जुड़ा है।");
     }
 
     public function update(Request $request, $id)
@@ -715,13 +726,22 @@ class MarriageEventController extends Controller
 
         $defaultMessage = implode("\n", $msgLines);
 
-        // Compute Per-Member breakdown for dispatch preview
-        $activeMembers = Member::with(['scheme', 'ageSlab', 'agent'])->where('status', 'Active')->orderBy('full_name')->get();
+        // Compute Per-Member breakdown for dispatch preview (ONLY Active members, excluding event beneficiaries)
+        $eventBeneficiaryMemberIds = $events->pluck('member_id')->filter()->toArray();
+        $eventBeneficiaryNames = $events->pluck('girl_name')->filter()->map(fn($n) => trim($n))->toArray();
+
+        $activeMembers = Member::with(['scheme', 'ageSlab', 'agent'])
+            ->where('status', 'Active')
+            ->when(!empty($eventBeneficiaryMemberIds), fn($q) => $q->whereNotIn('id', $eventBeneficiaryMemberIds))
+            ->when(!empty($eventBeneficiaryNames), fn($q) => $q->whereNotIn('full_name', $eventBeneficiaryNames))
+            ->orderBy('full_name')
+            ->get();
         $membersPreview = [];
         $grandThisMonthTotal = 0;
         $grandPreviousDueTotal = 0;
 
         foreach ($activeMembers as $m) {
+            if ($m->status !== 'Active') continue;
             $rate = (float)($m->monthly_support_amount ?: ($m->ageSlab ? $m->ageSlab->support_amount : 200.0));
             $thisMonthAmt = $eventsCount * $rate;
             $prevDue = (float)$m->pending_amount;
@@ -815,13 +835,22 @@ class MarriageEventController extends Controller
         $events = MarriageEvent::whereYear('event_date', $year)->whereMonth('event_date', $month)->get();
         $eventsCount = $events->count();
 
-        $members = Member::with(['scheme', 'ageSlab', 'agent'])->where('status', 'Active')->whereNotNull('mobile')->get();
+        $eventBeneficiaryMemberIds = $events->pluck('member_id')->filter()->toArray();
+        $eventBeneficiaryNames = $events->pluck('girl_name')->filter()->map(fn($n) => trim($n))->toArray();
+
+        $members = Member::with(['scheme', 'ageSlab', 'agent'])
+            ->where('status', 'Active')
+            ->whereNotNull('mobile')
+            ->when(!empty($eventBeneficiaryMemberIds), fn($q) => $q->whereNotIn('id', $eventBeneficiaryMemberIds))
+            ->when(!empty($eventBeneficiaryNames), fn($q) => $q->whereNotIn('full_name', $eventBeneficiaryNames))
+            ->get();
         if ($members->isEmpty()) {
             return back()->with('error', 'No active members with phone numbers found.');
         }
 
         $sentCount = 0;
         foreach ($members as $m) {
+            if ($m->status !== 'Active') continue;
             $rate = (float)($m->monthly_support_amount ?: ($m->ageSlab ? $m->ageSlab->support_amount : 200.0));
             $thisMonthAmt = $eventsCount * $rate;
             $prevDue = (float)$m->pending_amount;

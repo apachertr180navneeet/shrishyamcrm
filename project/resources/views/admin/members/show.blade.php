@@ -42,9 +42,15 @@
                     <a href="{{ route('admin.ledger.index', ['member_id' => $member->id]) }}" class="btn btn-outline-dark">
                         <i class="fas fa-file-invoice-dollar me-1"></i> लेजर कार्ड
                     </a>
+                    @if($member->status === 'Active' && !($whatsappData['disabled'] ?? false))
                     <a href="{{ $whatsappData['url'] ?? '#' }}" target="_blank" class="btn btn-success">
                         <i class="fab fa-whatsapp me-1"></i> WhatsApp Due Alert
                     </a>
+                    @else
+                    <button type="button" class="btn btn-outline-secondary disabled" title="Inactive सदस्य को WhatsApp संदेश नहीं भेजा जा सकता" disabled>
+                        <i class="fab fa-whatsapp me-1"></i> WhatsApp (Inactive)
+                    </button>
+                    @endif
                     <a href="{{ route('admin.certificates.show', $member->id) }}" class="btn btn-warning text-dark" target="_blank">
                         <i class="fas fa-certificate me-1"></i> View Certificate
                     </a>

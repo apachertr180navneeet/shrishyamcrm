@@ -18,17 +18,28 @@ class WhatsAppService
     {
         $societyName = SocietySetting::getVal('society_name_hindi', 'श्री श्याम वेलफेयर सोसायटी लोहीकी');
         $member = $payment->member;
-        $cleanMobile = preg_replace('/[^0-9]/', '', $member->mobile ?? '');
+
+        // Inactive / Closed members do not receive WhatsApp messages
+        if ($member && $member->status !== 'Active') {
+            return [
+                'mobile' => '',
+                'message' => 'सदस्यता निष्क्रिय (Inactive) होने के कारण WhatsApp संदेश नहीं भेजा जा सकता।',
+                'url' => '#',
+                'disabled' => true,
+            ];
+        }
+
+        $cleanMobile = preg_replace('/[^0-9]/', '', $member ? $member->mobile : '');
         if (strlen($cleanMobile) === 10) {
             $cleanMobile = '91' . $cleanMobile;
         }
 
-        $schemeName = $member->scheme ? $member->scheme->name_hindi : 'कल्याण योजना';
-        $due = $member->pending_amount;
+        $schemeName = $member && $member->scheme ? $member->scheme->name_hindi : 'कल्याण योजना';
+        $due = $member ? $member->pending_amount : 0;
 
         $msg = "🙏 *{$societyName}* 🙏\n\n";
-        $msg .= "आदरणीय *{$member->full_name}* जी,\n";
-        $msg .= "आपकी सदस्यता संख्या: *{$member->membership_no}*\n";
+        $msg .= "आदरणीय *" . ($member ? $member->full_name : 'सदस्य') . "* जी,\n";
+        $msg .= "आपकी सदस्यता संख्या: *" . ($member ? $member->membership_no : 'N/A') . "*\n";
         $msg .= "योजना: *{$schemeName}*\n\n";
         $msg .= "✅ *भुगतान रसीद विवरण:*\n";
         $msg .= "रसीद नं: *{$payment->receipt_no}*\n";
@@ -49,6 +60,7 @@ class WhatsAppService
             'mobile' => $cleanMobile,
             'message' => $msg,
             'url' => $url,
+            'disabled' => false,
         ];
     }
 
@@ -57,6 +69,16 @@ class WhatsAppService
      */
     public static function getDueReminderMessage(Member $member): array
     {
+        // Inactive / Closed members do not receive due reminders
+        if ($member->status !== 'Active') {
+            return [
+                'mobile' => '',
+                'message' => 'सदस्यता निष्क्रिय (Inactive) है। केवल सक्रिय सदस्यों को सूचना भेजी जाती है।',
+                'url' => '#',
+                'disabled' => true,
+            ];
+        }
+
         $societyName = SocietySetting::getVal('society_name_hindi', 'श्री श्याम वेलफेयर सोसायटी लोहीकी');
         $cleanMobile = preg_replace('/[^0-9]/', '', $member->mobile ?? '');
         if (strlen($cleanMobile) === 10) {
@@ -77,6 +99,7 @@ class WhatsAppService
             'mobile' => $cleanMobile,
             'message' => $msg,
             'url' => $url,
+            'disabled' => false,
         ];
     }
 

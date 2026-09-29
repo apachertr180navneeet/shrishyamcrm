@@ -63,9 +63,15 @@
             <i class="fas fa-arrow-left me-1"></i> Back to Payments
         </a>
         <div class="d-flex gap-2">
+            @if($payment->member && $payment->member->status === 'Active' && !($whatsappData['disabled'] ?? false))
             <a href="{{ $whatsappData['url'] ?? '#' }}" target="_blank" class="btn btn-success">
                 <i class="fab fa-whatsapp me-1"></i> Send on WhatsApp
             </a>
+            @else
+            <button type="button" class="btn btn-outline-secondary disabled" title="Inactive सदस्य को WhatsApp संदेश नहीं भेजा जा सकता" disabled>
+                <i class="fab fa-whatsapp me-1"></i> WhatsApp (Inactive)
+            </button>
+            @endif
             <a href="{{ route('admin.payments.receipt.pdf', $payment->id) }}" class="btn btn-danger">
                 <i class="fas fa-file-pdf me-1"></i> Download PDF Receipt
             </a>

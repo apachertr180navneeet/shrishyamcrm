@@ -310,7 +310,8 @@
                         // Build WhatsApp thank you message for paid member
                         $waPaidText = "जय श्री श्याम 🙏\nश्री श्याम वेलफेयर सोसायटी, लोहीकी\n\nप्रिय सदस्य: " . $c->member_name . " (" . ($member ? $member->membership_no : 'N/A') . ")\n\n✅ कार्यक्रम सहयोग रसीद पुष्टि\nकार्यक्रम: " . $event->title . " (" . $event->event_code . ")\n• जमा राशि: ₹" . number_format($c->contribution_amount, 2) . "\n• रसीद क्र.: " . ($c->receipt_no ?? 'N/A') . "\n• जमा दिनांक: " . ($c->payment_date ? $c->payment_date->format('d/m/Y') : date('d/m/Y')) . "\n\nआपके पुनीत सहयोग के लिए सोसायटी आपका हार्दिक आभार व्यक्त करती है।\nजय श्री श्याम 🙏";
 
-                        $cleanMobile = preg_replace('/[^0-9]/', '', $member ? $member->mobile : '');
+                        $isMemberActive = ($member && $member->status === 'Active');
+                        $cleanMobile = ($isMemberActive && $member && $member->mobile) ? preg_replace('/[^0-9]/', '', $member->mobile) : '';
                         if (strlen($cleanMobile) === 10) {
                             $cleanMobile = '91' . $cleanMobile;
                         }
@@ -325,7 +326,12 @@
                                     <i class="fas {{ $isPaid ? 'fa-user-check' : 'fa-user-clock' }} fs-6"></i>
                                 </div>
                                 <div>
-                                    <strong class="text-dark d-block" style="font-size: 0.95rem;">{{ $c->member_name }}</strong>
+                                    <strong class="text-dark d-block" style="font-size: 0.95rem;">
+                                        {{ $c->member_name }}
+                                        @if($member && $member->status !== 'Active')
+                                            <span class="badge bg-label-secondary small ms-1">{{ $member->status }}</span>
+                                        @endif
+                                    </strong>
                                     <small class="text-muted d-block">
                                         <span class="badge bg-label-secondary font-monospace">{{ $member ? $member->membership_no : 'N/A' }}</span>
                                         @if($member && $member->father_spouse_name)

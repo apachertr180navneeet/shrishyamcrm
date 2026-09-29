@@ -14,8 +14,12 @@ class WhatsAppController extends Controller
     public function index()
     {
         $logs = WhatsAppLog::with('member')->latest('id')->paginate(15);
-        $members = Member::where('status', 'Active')->get();
-        $recentPayments = Payment::with('member')->latest('id')->take(10)->get();
+        $members = Member::where('status', 'Active')->orderBy('full_name')->get();
+        $recentPayments = Payment::whereHas('member', fn($q) => $q->where('status', 'Active'))
+            ->with('member')
+            ->latest('id')
+            ->take(10)
+            ->get();
 
         return view('admin.whatsapp.index', compact('logs', 'members', 'recentPayments'));
     }
@@ -27,7 +31,15 @@ class WhatsAppController extends Controller
             'mobile' => 'required|string|max:20',
             'message_type' => 'required|string',
             'message_body' => 'required|string',
+            'member_id' => 'nullable|exists:members,id',
         ]);
+
+        if ($request->filled('member_id')) {
+            $member = Member::find($request->member_id);
+            if ($member && $member->status !== 'Active') {
+                return back()->with('error', 'निष्क्रिय / पूर्व सदस्यों (Inactive Members) को WhatsApp संदेश प्रेषित नहीं किया जा सकता।');
+            }
+        }
 
         $cleanMobile = preg_replace('/[^0-9]/', '', $request->mobile);
         if (strlen($cleanMobile) === 10) {

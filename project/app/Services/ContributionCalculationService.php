@@ -168,6 +168,10 @@ class ContributionCalculationService
         $createdCount = 0;
 
         foreach ($members as $member) {
+            if ($member->status !== 'Active') {
+                continue;
+            }
+
             $calc = static::calculateForMember($member, $eventDate);
 
             // Using firstOrCreate with unique constraint to prevent duplicates
