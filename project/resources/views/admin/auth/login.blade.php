@@ -73,8 +73,8 @@
                 <form action="{{ route('admin.login.post') }}" id="" class="mb-3" method="POST">
                     @csrf
                     <div class="mb-3">
-                        <label for="email" class="form-label">Email or Username</label>
-                        <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email or username" required />
+                        <label for="email" class="form-label">मोबाइल नंबर / ईमेल / एजेंट कोड (Login ID)</label>
+                        <input type="text" class="form-control form-control-lg" id="email" name="email" placeholder="10-digit Mobile No., Email or Agent Code" required autofocus />
                     </div>
                     <div class="mb-3 form-password-toggle">
                         <div class="d-flex justify-content-between">

@@ -8,6 +8,7 @@ use App\Models\Agent;
 use App\Models\User;
 use App\Models\Role;
 use App\Services\NumberSeriesService;
+use App\Services\WhatsAppService;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
@@ -261,5 +262,113 @@ class AgentController extends Controller
         $agent->delete();
 
         return redirect()->route('admin.agents.index')->with('success', "Agent {$agent->name} archived successfully.");
+    }
+
+    /**
+     * Get login credentials and formatted WhatsApp message for agent
+     */
+    public function getCredentials(Request $request, $id)
+    {
+        $user = auth()->user();
+        if ($user && $user->isAgent() && (int)$id !== (int)$user->agent_id) {
+            abort(403, 'Unauthorized.');
+        }
+
+        $agent = Agent::with('user')->findOrFail($id);
+        $credentials = WhatsAppService::getAgentCredentialsMessage($agent);
+
+        return response()->json([
+            'status' => 'success',
+            'agent' => $agent,
+            'user' => $agent->user,
+            'login_url' => $credentials['login_url'],
+            'username' => $credentials['username'],
+            'email' => $credentials['email'],
+            'mobile' => $agent->mobile,
+            'whatsapp_url' => $credentials['url'],
+            'message' => $credentials['message'],
+        ]);
+    }
+
+    /**
+     * Update/Reset agent login password & generate fresh credentials WhatsApp message
+     */
+    public function updateCredentials(Request $request, $id)
+    {
+        $currentUser = auth()->user();
+        if ($currentUser && $currentUser->isAgent()) {
+            abort(403, 'Unauthorized. Agents cannot reset credentials.');
+        }
+
+        $request->validate([
+            'password' => 'required|string|min:6',
+            'email' => 'nullable|email|max:150',
+            'mobile' => 'nullable|string|max:20',
+        ]);
+
+        $agent = Agent::with('user')->findOrFail($id);
+
+        if ($request->filled('mobile')) {
+            $agent->mobile = $request->mobile;
+        }
+        if ($request->filled('email')) {
+            $agent->email = $request->email;
+        }
+        $agent->save();
+
+        $agentUser = $agent->user;
+        $agentRole = Role::where('name', 'agent')->first();
+
+        if (!$agentUser) {
+            $nameParts = explode(' ', trim($agent->name));
+            $firstName = $nameParts[0] ?? 'Agent';
+            $lastName = isset($nameParts[1]) ? implode(' ', array_slice($nameParts, 1)) : ($agent->district ?? 'Representative');
+
+            $email = $agent->email ?: ('agent.' . strtolower(str_replace('-', '', $agent->agent_code)) . '@shrishyam.org');
+            $agentUser = User::create([
+                'first_name' => $firstName,
+                'last_name' => $lastName,
+                'full_name' => $agent->name,
+                'slug' => Str::slug($agent->name . '-' . rand(100, 999)),
+                'email' => $email,
+                'phone' => $agent->mobile,
+                'password' => Hash::make($request->password),
+                'role' => 'agent',
+                'role_id' => $agentRole?->id,
+                'city' => $agent->district,
+                'address' => $agent->address ?: '',
+                'state' => 'Haryana',
+                'country' => 'India',
+                'status' => 'active',
+                'agent_id' => $agent->id,
+            ]);
+            $agent->update(['user_id' => $agentUser->id]);
+        } else {
+            $agentUser->update([
+                'password' => Hash::make($request->password),
+                'email' => $request->email ?: $agentUser->email,
+                'phone' => $request->mobile ?: $agentUser->phone,
+                'status' => 'active',
+            ]);
+        }
+
+        $credentials = WhatsAppService::getAgentCredentialsMessage($agent, $request->password);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => "Login credentials updated for {$agent->name}.",
+                'whatsapp_url' => $credentials['url'],
+                'credentials_message' => $credentials['message'],
+                'password' => $request->password,
+                'username' => $credentials['username'],
+                'login_url' => $credentials['login_url'],
+            ]);
+        }
+
+        return redirect()->back()->with([
+            'success' => "Credentials for {$agent->name} updated successfully! You can send them via WhatsApp.",
+            'whatsapp_url' => $credentials['url'],
+        ]);
     }
 }

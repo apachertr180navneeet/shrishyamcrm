@@ -47,33 +47,68 @@ class AdminAuthController extends Controller
 
     public function postLogin(Request $request)
     {
-        try{
+        try {
             $request->validate([
-                "email" => "required|email",
-                "password" => "required",
+                "email" => "required|string",
+                "password" => "required|string",
             ]);
 
-            // Ensure only admin/agent-role users with active status can authenticate.
+            $loginInput = trim($request->email);
+            $password = $request->password;
+
+            // Find user by Email, Phone/Mobile, or Agent Code
+            $userQuery = User::where('status', 'active');
+
+            if (filter_var($loginInput, FILTER_VALIDATE_EMAIL)) {
+                $userQuery->where('email', $loginInput);
+            } elseif (preg_match('/^[0-9+\s\-]{7,15}$/', $loginInput)) {
+                $cleanPhone = preg_replace('/[^0-9]/', '', $loginInput);
+                $tenDigit = substr($cleanPhone, -10);
+                $userQuery->where(function($q) use ($loginInput, $cleanPhone, $tenDigit) {
+                    $q->where('phone', $loginInput)
+                      ->orWhere('phone', $cleanPhone)
+                      ->orWhere('phone', $tenDigit)
+                      ->orWhereHas('agent', fn($aq) => $aq->where('mobile', $loginInput)->orWhere('mobile', $cleanPhone)->orWhere('mobile', $tenDigit));
+                });
+            } else {
+                $cleanCode = strtoupper(str_replace(['-', ' '], '', $loginInput));
+                $userQuery->where(function($q) use ($loginInput, $cleanCode) {
+                    $q->where('email', $loginInput)
+                      ->orWhere('slug', $loginInput)
+                      ->orWhereHas('agent', fn($aq) => $aq->where('agent_code', $loginInput)->orWhere('code', $cleanCode));
+                });
+            }
+
+            $user = $userQuery->first();
+
+            if ($user && Hash::check($password, $user->password)) {
+                if (in_array($user->role, ['admin', 'agent'], true) || (method_exists($user, 'hasRole') && ($user->hasRole('admin') || $user->hasRole('agent')))) {
+                    Auth::login($user, $request->filled('remember'));
+                    return redirect()->route('admin.dashboard')->with('success', 'Welcome to your dashboard.');
+                }
+                return back()->with('error', 'Unauthorized access.');
+            }
+
+            // Fallback attempt with email
             if (Auth::attempt([
                 'email' => $request->email,
                 'password' => $request->password,
                 'status' => 'active',
-            ])) {
+            ], $request->filled('remember'))) {
                 $user = Auth::user();
-                if (in_array($user->role, ['admin', 'agent'], true)) {
+                if (in_array($user->role, ['admin', 'agent'], true) || (method_exists($user, 'hasRole') && ($user->hasRole('admin') || $user->hasRole('agent')))) {
                     return redirect()->route('admin.dashboard')->with('success', 'Welcome to your dashboard.');
                 }
-                // Authenticated but wrong role (e.g. a plain/disabled user role)
                 Auth::logout();
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
-                return back()->with('error', 'Invalid credentials');
+                return back()->with('error', 'Unauthorized access.');
             }
 
-            return back()->with("error","Invalid credentials");
+            return back()->with("error", "Invalid login credentials.");
         }
         catch(Exception $e){
-            return back()->with("error",$e->getMessage());
+            return back()->with("error", $e->getMessage());
         }
     }
 

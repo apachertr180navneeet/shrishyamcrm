@@ -165,4 +165,36 @@ class AgentRestrictionTest extends TestCase
         ]);
         $response->assertRedirect(route('admin.dashboard'));
     }
+
+    public function test_admin_can_view_and_update_agent_login_credentials()
+    {
+        $admin = User::where('email', 'admin@shrishyam.org')->first();
+        $agent = Agent::firstOrCreate(
+            ['agent_code' => 'AGT-CRED-1'],
+            ['name' => 'Credential Agent', 'commission_rate' => 5.0, 'status' => 'Active', 'district' => 'Jaipur', 'mobile' => '9812345678']
+        );
+
+        // 1. Get credentials API
+        $response = $this->actingAs($admin)->get(route('admin.agents.credentials', $agent->id));
+        $response->assertOk();
+        $response->assertJsonStructure(['status', 'login_url', 'username', 'whatsapp_url', 'message']);
+        $this->assertStringContainsString('9812345678', $response->json('message'));
+
+        // 2. Update credentials API
+        $updateResp = $this->actingAs($admin)->postJson(route('admin.agents.credentials.update', $agent->id), [
+            'password' => 'Shyam@9876',
+            'mobile' => '9812345678',
+        ]);
+        $updateResp->assertOk();
+        $updateResp->assertJson(['status' => 'success']);
+        $this->assertStringContainsString('Shyam@9876', $updateResp->json('credentials_message'));
+
+        // 3. Test logging in with Mobile number and new password
+        $loginResp = $this->post(route('admin.login.post'), [
+            'email' => '9812345678',
+            'password' => 'Shyam@9876',
+        ]);
+        $loginResp->assertRedirect(route('admin.dashboard'));
+        $this->assertAuthenticated();
+    }
 }

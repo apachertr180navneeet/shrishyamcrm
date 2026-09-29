@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\WhatsAppLog;
 use App\Models\Payment;
 use App\Models\Member;
+use App\Models\Agent;
 use App\Models\SocietySetting;
 use Carbon\Carbon;
 
@@ -74,6 +75,54 @@ class WhatsAppService
 
         return [
             'mobile' => $cleanMobile,
+            'message' => $msg,
+            'url' => $url,
+        ];
+    }
+
+    /**
+     * Build Agent Login Credentials message text and direct WhatsApp click URL
+     */
+    public static function getAgentCredentialsMessage(Agent $agent, ?string $password = null): array
+    {
+        $societyName = SocietySetting::getVal('society_name_hindi', 'श्री श्याम वेलफेयर सोसायटी लोहीड़ी');
+        $rawMobile = $agent->mobile ?: ($agent->user ? $agent->user->phone : '');
+        $cleanMobile = preg_replace('/[^0-9]/', '', $rawMobile);
+        if (strlen($cleanMobile) === 10) {
+            $cleanMobile = '91' . $cleanMobile;
+        }
+
+        $loginUrl = route('admin.login');
+        $username = $agent->mobile ?: ($agent->user ? $agent->user->email : $agent->agent_code);
+        $email = $agent->email ?: ($agent->user ? $agent->user->email : '-');
+
+        $msg = "🙏 *{$societyName}* 🙏\n\n";
+        $msg .= "आदरणीय कार्यकर्ता *{$agent->name}* जी,\n";
+        $msg .= "सोसायटी एजेंट पोर्टल में आपका स्वागत है। आपके पोर्टल का लॉगिन विवरण निम्नलिखित है:\n\n";
+        $msg .= "🔗 *लॉगिन पोर्टल लिंक:* {$loginUrl}\n";
+        $msg .= "👤 *यूजरनेम (मोबाइल/ईमेल):* *{$username}*\n";
+        if ($email && $email !== $username && $email !== '-') {
+            $msg .= "📧 *ईमेल ID:* {$email}\n";
+        }
+        if (!empty($password)) {
+            $msg .= "🔑 *पासवर्ड (Password):* *{$password}*\n";
+        } else {
+            $msg .= "🔑 *पासवर्ड (Password):* (पंजीकृत पासवर्ड)\n";
+        }
+        $msg .= "🏢 *एजेंट कोड:* *{$agent->agent_code}*\n";
+        $msg .= "📍 *कार्यक्षेत्र (जिला):* {$agent->district}\n\n";
+        $msg .= "कृपया ऊपर दिए गए पोर्टल लिंक पर जाकर लॉगिन करें और अपने क्षेत्र के सदस्यों का रिकॉर्ड देखें व सहयोग राशि दर्ज करें।\n\n";
+        $msg .= "सहयोग/सहायता हेल्पलाइन: " . SocietySetting::getVal('phone', '9664090906');
+
+        $encodedMsg = urlencode($msg);
+        $url = "https://api.whatsapp.com/send?phone={$cleanMobile}&text={$encodedMsg}";
+
+        return [
+            'mobile' => $cleanMobile,
+            'username' => $username,
+            'email' => $email,
+            'password' => $password,
+            'login_url' => $loginUrl,
             'message' => $msg,
             'url' => $url,
         ];

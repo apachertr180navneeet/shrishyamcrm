@@ -54,16 +54,19 @@
                         </div>
                     </div>
 
-                    <div class="d-flex align-items-center justify-content-between pt-2 border-top">
+                    <div class="d-flex align-items-center justify-content-between pt-2 border-top flex-wrap gap-2">
                         <div>
                             <small class="text-muted d-block">Commission ({{ $agent->commission_rate }}%)</small>
                             <strong class="text-warning">₹{{ number_format($agent->total_commission) }}</strong>
                         </div>
-                        <div class="btn-group btn-group-sm">
-                            <button type="button" class="btn btn-outline-primary" title="Edit Agent" onclick='openEditAgentModal(@json($agent))'>
-                                <i class="fas fa-edit me-1"></i> Edit
+                        <div class="d-flex align-items-center gap-1 flex-wrap">
+                            <button type="button" class="btn btn-sm btn-outline-warning" title="Login Credentials (URL, Username, Password)" onclick='openCredentialsModal(@json($agent))'>
+                                <i class="fas fa-key me-1"></i> Credentials
                             </button>
-                            <a href="{{ route('admin.agents.show', $agent->id) }}" class="btn btn-primary" title="View Profile">
+                            <button type="button" class="btn btn-sm btn-outline-primary" title="Edit Agent" onclick='openEditAgentModal(@json($agent))'>
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <a href="{{ route('admin.agents.show', $agent->id) }}" class="btn btn-sm btn-primary" title="View Profile">
                                 Profile <i class="fas fa-arrow-right ms-1"></i>
                             </a>
                         </div>
@@ -97,7 +100,7 @@
             <form action="{{ route('admin.agents.store') }}" method="POST">
                 @csrf
                 <div class="modal-header">
-                    <h5 class="modal-title fw-bold">Register New Society Agent</h5>
+                    <h5 class="modal-title fw-bold"><i class="fas fa-user-plus text-primary me-2"></i>Register New Society Agent</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -132,14 +135,19 @@
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Agent Login Password (लॉगिन पासवर्ड) <span class="text-danger">*</span></label>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label fw-semibold mb-0">Agent Login Password (लॉगिन पासवर्ड) <span class="text-danger">*</span></label>
+                            <button type="button" class="btn btn-link btn-sm p-0 text-primary fw-semibold" onclick="generateRandomPassword('agentPasswordInput')">
+                                <i class="fas fa-magic me-1"></i> Auto-Generate
+                            </button>
+                        </div>
                         <div class="input-group">
                             <input type="password" name="password" id="agentPasswordInput" class="form-control" placeholder="Set password for agent (min 6 characters)" minlength="6" required>
                             <button class="btn btn-outline-secondary" type="button" onclick="const p = document.getElementById('agentPasswordInput'); p.type = p.type === 'password' ? 'text' : 'password';">
                                 <i class="fas fa-eye"></i>
                             </button>
                         </div>
-                        <small class="text-muted">Agent will log in with their Mobile/Email and this password.</small>
+                        <small class="text-muted">Agent will log in with their Mobile Number/Email and this password.</small>
                     </div>
                     <div class="mb-0">
                         <label class="form-label fw-semibold">Office / Residential Address</label>
@@ -148,7 +156,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Register Agent</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-check-circle me-1"></i> Register Agent</button>
                 </div>
             </form>
         </div>
@@ -163,7 +171,7 @@
                 @csrf
                 @method('PUT')
                 <div class="modal-header">
-                    <h5 class="modal-title fw-bold">Edit Society Agent (<span id="editAgentCodeBadge" class="text-primary"></span>)</h5>
+                    <h5 class="modal-title fw-bold"><i class="fas fa-user-edit text-primary me-2"></i>Edit Society Agent (<span id="editAgentCodeBadge" class="text-primary"></span>)</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -201,7 +209,12 @@
                         </div>
                         <div class="col-6">
                             <label class="form-label fw-semibold">New Password (वैकल्पिक)</label>
-                            <input type="password" name="password" id="edit_agent_password" class="form-control" placeholder="Leave blank to keep current">
+                            <div class="input-group">
+                                <input type="password" name="password" id="edit_agent_password" class="form-control" placeholder="Leave blank to keep">
+                                <button class="btn btn-outline-secondary btn-sm" type="button" onclick="generateRandomPassword('edit_agent_password')">
+                                    <i class="fas fa-magic"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div class="mb-0">
@@ -211,9 +224,126 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Update Agent</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Update Agent</button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- Agent Login Credentials & WhatsApp Share Modal -->
+<div class="modal fade" id="agentCredentialsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <div>
+                    <h5 class="modal-title fw-bold text-white mb-0">
+                        <i class="fas fa-key me-2 text-warning"></i> कार्यकर्ता लॉगिन क्रेडेंशियल्स (Agent Portal Login)
+                    </h5>
+                    <small class="text-white-50">URL, Username और Password सीधे कार्यकर्ता को भेजें या साझा करें</small>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <!-- Agent Info Card -->
+                <div class="p-3 bg-light rounded border mb-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="avatar avatar-md bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                            <i class="fas fa-user-tie fs-4"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0 text-heading" id="cred_agent_name">Agent Name</h5>
+                            <span class="badge bg-label-primary font-monospace" id="cred_agent_code">AGT-000</span>
+                            <span class="text-muted small ms-2"><i class="fas fa-map-marker-alt text-danger me-1"></i><span id="cred_agent_district">District</span></span>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <span class="badge bg-success" id="cred_agent_status">Active</span>
+                        <div class="text-muted small mt-1"><i class="fas fa-phone text-primary me-1"></i><strong id="cred_agent_mobile">9800000000</strong></div>
+                    </div>
+                </div>
+
+                <!-- Credential Fields Grid -->
+                <div class="row g-3 mb-4">
+                    <!-- 1. Portal Login URL -->
+                    <div class="col-12">
+                        <label class="form-label fw-bold text-dark mb-1">
+                            <i class="fas fa-globe text-primary me-1"></i> 1. पोर्टल लॉगिन लिंक (Login Portal URL)
+                        </label>
+                        <div class="input-group">
+                            <input type="text" id="cred_portal_url" class="form-control font-monospace" value="{{ route('admin.login') }}" readonly>
+                            <button type="button" class="btn btn-outline-primary" onclick="copyInput('cred_portal_url', 'पोर्टल लिंक कॉपी हो गया!')">
+                                <i class="fas fa-copy me-1"></i> कॉपी लिंक
+                            </button>
+                            <a href="{{ route('admin.login') }}" target="_blank" class="btn btn-outline-secondary" title="Open Login Page">
+                                <i class="fas fa-external-link-alt"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- 2. Username / Login ID -->
+                    <div class="col-md-6 col-12">
+                        <label class="form-label fw-bold text-dark mb-1">
+                            <i class="fas fa-user text-primary me-1"></i> 2. यूजरनेम / लॉगिन ID (Mobile No. / Email)
+                        </label>
+                        <div class="input-group">
+                            <input type="text" id="cred_username" class="form-control font-monospace fw-bold" readonly>
+                            <button type="button" class="btn btn-outline-primary" onclick="copyInput('cred_username', 'यूजरनेम कॉपी हो गया!')">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                        <small class="text-muted">कार्यकर्ता अपने 10-अंकों के मोबाइल नंबर या ईमेल से लॉगिन कर सकते हैं।</small>
+                    </div>
+
+                    <!-- 3. Password Field & Quick Reset -->
+                    <div class="col-md-6 col-12">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label fw-bold text-dark mb-0">
+                                <i class="fas fa-lock text-warning me-1"></i> 3. पासवर्ड (Password)
+                            </label>
+                            <button type="button" class="btn btn-link btn-sm p-0 text-primary fw-semibold" onclick="generateRandomPassword('cred_password')">
+                                <i class="fas fa-magic me-1"></i> नया पासवर्ड बनाएं
+                            </button>
+                        </div>
+                        <div class="input-group">
+                            <input type="text" id="cred_password" class="form-control font-monospace fw-bold" placeholder="पासवर्ड दर्ज करें या जनरेट करें" oninput="updateLivePreview()">
+                            <button type="button" class="btn btn-outline-primary" onclick="copyInput('cred_password', 'पासवर्ड कॉपी हो गया!')">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <button type="button" class="btn btn-success" id="btnSaveCredPassword" onclick="saveAgentPassword()">
+                                <i class="fas fa-save me-1"></i> सेव पासवर्ड
+                            </button>
+                        </div>
+                        <div id="passwordSaveAlert" class="mt-1" style="display: none;"></div>
+                    </div>
+                </div>
+
+                <!-- Formatted WhatsApp Message Preview Box -->
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-label fw-bold text-dark mb-0">
+                            <i class="fab fa-whatsapp text-success me-1"></i> संदेश पूर्वावलोकन (WhatsApp Message Preview)
+                        </label>
+                        <button type="button" class="btn btn-link btn-sm p-0 text-secondary" onclick="copyTextarea('cred_message_preview', 'पूरा संदेश कॉपी हो गया!')">
+                            <i class="fas fa-copy me-1"></i> संदेश कॉपी करें
+                        </button>
+                    </div>
+                    <textarea id="cred_message_preview" class="form-control font-monospace text-dark" rows="7" style="background-color: #f8fafc; font-size: 13px; line-height: 1.45;" readonly></textarea>
+                </div>
+            </div>
+            <div class="modal-footer bg-light d-flex justify-content-between flex-wrap gap-2">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i> बंद करें
+                </button>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-secondary" onclick="copyTextarea('cred_message_preview', 'संपूर्ण क्रेडेंशियल विवरण कॉपी हो गया!')">
+                        <i class="fas fa-copy me-1"></i> पूरा विवरण कॉपी करें
+                    </button>
+                    <a href="#" id="btnSendWhatsAppCred" target="_blank" class="btn btn-success btn-lg shadow-sm" style="background-color: #25D366; border-color: #25D366;">
+                        <i class="fab fa-whatsapp me-2 fs-5"></i> 📲 WhatsApp पर भेजें
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -221,6 +351,178 @@
 
 @section('script')
 <script>
+let currentCredAgent = null;
+
+function openCredentialsModal(agent) {
+    currentCredAgent = agent;
+    
+    document.getElementById('cred_agent_name').innerText = agent.name || 'Agent';
+    document.getElementById('cred_agent_code').innerText = agent.agent_code || '';
+    document.getElementById('cred_agent_district').innerText = agent.district || 'All Districts';
+    document.getElementById('cred_agent_status').innerText = agent.status || 'Active';
+    document.getElementById('cred_agent_mobile').innerText = agent.mobile || (agent.user ? agent.user.phone : '-');
+    
+    const loginUrl = "{{ route('admin.login') }}";
+    document.getElementById('cred_portal_url').value = loginUrl;
+    
+    const username = agent.mobile || (agent.user ? agent.user.phone : (agent.email || agent.agent_code));
+    document.getElementById('cred_username').value = username;
+    
+    // Set a default generated readable password
+    if (!document.getElementById('cred_password').value) {
+        document.getElementById('cred_password').value = generatePassStr();
+    }
+    
+    document.getElementById('passwordSaveAlert').style.display = 'none';
+
+    updateLivePreview();
+
+    const modal = new bootstrap.Modal(document.getElementById('agentCredentialsModal'));
+    modal.show();
+}
+
+function generatePassStr() {
+    const specials = ['@', '#', '$', '!'];
+    const spec = specials[Math.floor(Math.random() * specials.length)];
+    const num = Math.floor(1000 + Math.random() * 9000);
+    return 'Shyam' + spec + num;
+}
+
+function generateRandomPassword(targetId) {
+    const newPass = generatePassStr();
+    const elem = document.getElementById(targetId);
+    if (elem) {
+        elem.value = newPass;
+        elem.type = 'text';
+    }
+    if (targetId === 'cred_password') {
+        updateLivePreview();
+    }
+}
+
+function updateLivePreview() {
+    if (!currentCredAgent) return;
+
+    const loginUrl = "{{ route('admin.login') }}";
+    const agentName = currentCredAgent.name || 'कार्यकर्ता';
+    const agentCode = currentCredAgent.agent_code || '';
+    const district = currentCredAgent.district || '';
+    const mobile = currentCredAgent.mobile || (currentCredAgent.user ? currentCredAgent.user.phone : '');
+    const username = document.getElementById('cred_username').value || mobile;
+    const password = document.getElementById('cred_password').value || '(पंजीकृत पासवर्ड)';
+
+    let cleanMobile = mobile.replace(/[^0-9]/g, '');
+    if (cleanMobile.length === 10) {
+        cleanMobile = '91' + cleanMobile;
+    }
+
+    const societyName = "श्री श्याम वेलफेयर सोसायटी लोहीड़ी";
+    
+    let msg = `🙏 *${societyName}* 🙏\n\n`;
+    msg += `आदरणीय कार्यकर्ता *${agentName}* जी,\n`;
+    msg += `सोसायटी एजेंट पोर्टल में आपका स्वागत है। आपके पोर्टल का लॉगिन विवरण निम्नलिखित है:\n\n`;
+    msg += `🔗 *पोर्टल लॉगिन लिंक:* ${loginUrl}\n`;
+    msg += `👤 *यूजरनेम (मोबाइल नंबर):* *${username}*\n`;
+    msg += `🔑 *पासवर्ड (Password):* *${password}*\n`;
+    msg += `🏢 *एजेंट कोड:* *${agentCode}*\n`;
+    if (district) {
+        msg += `📍 *कार्यक्षेत्र (जिला):* ${district}\n`;
+    }
+    msg += `\nकृपया ऊपर दिए गए लिंक पर जाकर अपने मोबाइल नंबर एवं पासवर्ड से लॉगिन करें और सदस्यों का रिकॉर्ड प्रबंधित करें।\n\n`;
+    msg += `सहयोग/सहायता हेल्पलाइन: 9664090906`;
+
+    document.getElementById('cred_message_preview').value = msg;
+
+    const encodedMsg = encodeURIComponent(msg);
+    const waUrl = `https://api.whatsapp.com/send?phone=${cleanMobile}&text=${encodedMsg}`;
+    document.getElementById('btnSendWhatsAppCred').href = waUrl;
+}
+
+function copyInput(inputId, successMsg) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    input.select();
+    input.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(input.value).then(() => {
+        showToast(successMsg || 'कॉपी हो गया!');
+    });
+}
+
+function copyTextarea(textareaId, successMsg) {
+    const textarea = document.getElementById(textareaId);
+    if (!textarea) return;
+    textarea.select();
+    navigator.clipboard.writeText(textarea.value).then(() => {
+        showToast(successMsg || 'संदेश कॉपी हो गया!');
+    });
+}
+
+function saveAgentPassword() {
+    if (!currentCredAgent) return;
+    const password = document.getElementById('cred_password').value;
+    if (!password || password.length < 6) {
+        alert('पासवर्ड कम से कम 6 अक्षरों का होना चाहिए!');
+        return;
+    }
+
+    const btn = document.getElementById('btnSaveCredPassword');
+    const origHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> सेव हो रहा है...';
+
+    fetch(`{{ url('admin/agents') }}/${currentCredAgent.id}/credentials`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+            password: password,
+            mobile: currentCredAgent.mobile,
+            email: currentCredAgent.email
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        btn.disabled = false;
+        btn.innerHTML = origHtml;
+        if (data.status === 'success') {
+            const alertBox = document.getElementById('passwordSaveAlert');
+            alertBox.style.display = 'block';
+            alertBox.innerHTML = '<span class="badge bg-success"><i class="fas fa-check-circle me-1"></i> पासवर्ड डेटाबेस में सुरक्षित अपडेट हो गया!</span>';
+            updateLivePreview();
+            showToast('पासवर्ड सफलतापूर्वक अपडेट हो गया!');
+        } else {
+            alert('Error: ' + (data.message || 'Could not update password'));
+        }
+    })
+    .catch(err => {
+        btn.disabled = false;
+        btn.innerHTML = origHtml;
+        console.error(err);
+        alert('Server error while saving password.');
+    });
+}
+
+function showToast(msg) {
+    const toast = document.createElement('div');
+    toast.className = 'position-fixed bottom-0 end-0 p-3';
+    toast.style.zIndex = '9999';
+    toast.innerHTML = `
+        <div class="toast show align-items-center text-white bg-dark border-0 shadow" role="alert">
+            <div class="d-flex">
+                <div class="toast-body fs-6">
+                    <i class="fas fa-check-circle text-success me-2"></i> ${msg}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3500);
+}
+
 function openEditAgentModal(agent) {
     document.getElementById('editAgentForm').action = "{{ url('admin/agents') }}/" + agent.id;
     document.getElementById('editAgentCodeBadge').innerText = agent.agent_code || '';

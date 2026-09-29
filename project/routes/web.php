@@ -113,7 +113,9 @@ Route::name('admin.')->prefix('admin')->group(function () {
             Route::delete('age-slabs/{id}', [SchemeController::class, 'destroyAgeSlab'])->name('schemes.age-slabs.destroy');
             Route::get('api/slab-by-age', [SchemeController::class, 'getSlabByAge'])->name('api.slab-by-age');
 
-            // Agent Network (manage agents)
+            // Agent Network (manage agents & login credentials)
+            Route::get('agents/{id}/credentials', [AgentController::class, 'getCredentials'])->name('agents.credentials');
+            Route::post('agents/{id}/credentials', [AgentController::class, 'updateCredentials'])->name('agents.credentials.update');
             Route::resource('agents', AgentController::class);
 
             // Marriage Events & All-Events Broadcast
