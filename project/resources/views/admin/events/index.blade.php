@@ -492,36 +492,31 @@
 
 <!-- Event Billing Modal -->
 <div class="modal fade" id="eventBillingModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg">
             <form action="{{ route('admin.events.billing') }}" method="POST">
                 @csrf
                 <input type="hidden" name="rate_type" value="member_slab">
+                <input type="hidden" name="events_count" id="billingEventsCount" value="1">
+
                 <div class="modal-header" style="background: #1B365D; color: #fff;">
-                    <h5 class="modal-title fw-bold text-white"><i class="fas fa-calculator me-2"></i>Consolidated Monthly Event Billing (मासिक कार्यक्रम बिलिंग)</h5>
+                    <h5 class="modal-title fw-bold text-white"><i class="fas fa-calculator me-2"></i>मासिक बिलिंग (Generate Monthly Bill)</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
                     <div class="alert alert-info py-2 px-3 small mb-3">
                         <i class="fas fa-info-circle me-1"></i>
-                        यह प्रक्रिया सभी सक्रिय सदस्यों के वित्तीय लेजर में उनकी <strong>मासिक सहयोग दर (Monthly Support / Age Slab Amount)</strong> के आधार पर कार्यक्रमों का बिल दर्ज करती है।
+                        प्रत्येक सक्रिय सदस्य के लेजर में उसकी <strong>आयु स्लैब / मासिक सहयोग दर (Age Slab Amount)</strong> के अनुसार बिल स्वतः दर्ज होगा।
                     </div>
 
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-6 col-12">
-                            <label class="form-label fw-bold">Billing Month (बिलिंग माह) <span class="text-danger">*</span></label>
-                            <input type="month" name="billing_month" id="billingMonthInput" class="form-control form-control-lg fw-bold" value="{{ date('Y-m') }}" required onchange="onBillingMonthChange(this.value)">
-                        </div>
-                        <div class="col-md-6 col-12">
-                            <label class="form-label fw-bold">Number of Events in Month (माह के कुल कार्यक्रम) <span class="text-danger">*</span></label>
-                            <input type="number" name="events_count" class="form-control form-control-lg fw-bold" value="1" min="1" required id="billingEventsCount" oninput="updateBillingLiveSummary()">
-                            <small class="text-muted" id="billingMonthEventsHint">माह के पंजीकृत कार्यक्रमों की संख्या</small>
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Billing Month (बिलिंग माह चुनें) <span class="text-danger">*</span></label>
+                        <input type="month" name="billing_month" id="billingMonthInput" class="form-control form-control-lg fw-bold" value="{{ date('Y-m') }}" required onchange="onBillingMonthChange(this.value)">
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label fw-bold">Target Scheme (योजना चयन - Optional)</label>
-                        <select name="scheme_id" class="form-select form-select-lg">
+                        <select name="scheme_id" id="billingSchemeSelect" class="form-select form-select-lg">
                             <option value="">-- All Active Members Across Schemes (सभी योजनाएं) --</option>
                             @foreach($schemes as $sch)
                             <option value="{{ $sch->id }}">{{ $sch->name_hindi }} ({{ $sch->name }})</option>
@@ -529,33 +524,29 @@
                         </select>
                     </div>
 
-                    <!-- Live Calculation Summary Card -->
+                    <!-- Live Summary Card -->
                     <div class="card border bg-light shadow-xs p-3">
-                        <div class="row g-3 text-center align-items-center">
-                            <div class="col-4">
+                        <div class="row g-2 text-center align-items-center">
+                            <div class="col-6">
                                 <small class="text-muted d-block" style="font-size: 0.75rem;">माह के कार्यक्रम</small>
                                 <strong class="fs-5 text-primary" id="billingSummaryEventsCount">0</strong>
                             </div>
-                            <div class="col-4">
+                            <div class="col-6">
                                 <small class="text-muted d-block" style="font-size: 0.75rem;">सक्रिय सदस्य</small>
                                 <strong class="fs-5 text-dark" id="billingSummaryMembersCount">0</strong>
                             </div>
-                            <div class="col-4">
-                                <small class="text-muted d-block" style="font-size: 0.75rem;">अनुमानित कुल बिलिंग</small>
-                                <strong class="fs-5 text-success fw-bold" id="billingSummaryTotalAmount">₹0</strong>
-                            </div>
                         </div>
                         <hr class="my-2">
-                        <div class="small text-muted text-center">
-                            <i class="fas fa-check-circle text-success me-1"></i>
-                            प्रत्येक सदस्य के खाते में केवल उसकी <strong>निर्धारित मासिक सहयोग राशि (Monthly Support Amount)</strong> × कार्यक्रमों की संख्या के अनुसार बिल डेबिट होगा।
+                        <div class="d-flex justify-content-between align-items-center px-1">
+                            <span class="small text-muted">अनुमानित कुल बिलिंग:</span>
+                            <strong class="text-success fs-6 fw-bold" id="billingSummaryTotalAmount">₹0</strong>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer bg-white border-top">
                     <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold" style="background: #1B365D;">
-                        <i class="fas fa-check-circle me-1"></i> Process Consolidated Billing (बिल जनरेट करें)
+                        <i class="fas fa-check-circle me-1"></i> Bill Members (बिल जनरेट करें)
                     </button>
                 </div>
             </form>
