@@ -180,7 +180,7 @@ class AgentController extends Controller
             abort(403, 'Unauthorized access to other agent profiles.');
         }
 
-        $agent = Agent::with(['members.scheme', 'payments.member'])->findOrFail($id);
+        $agent = Agent::with(['members.scheme', 'payments.member', 'user'])->findOrFail($id);
         return view('admin.agents.show', compact('agent'));
     }
 
@@ -196,7 +196,9 @@ class AgentController extends Controller
             return response()->json($agent);
         }
 
-        return redirect()->route('admin.agents.show', $agent->id);
+        $districts = Agent::distinct()->pluck('district')->filter();
+
+        return view('admin.agents.edit', compact('agent', 'districts'));
     }
 
     public function update(Request $request, $id)
@@ -213,21 +215,39 @@ class AgentController extends Controller
             'mobile' => 'required|string|max:20',
             'district' => 'required|string|max:100',
             'commission_rate' => 'required|numeric|min:0|max:100',
+            'status' => 'nullable|string|in:Active,Inactive',
+            'email' => 'nullable|email|max:150',
+            'password' => 'nullable|string|min:6',
         ]);
 
-        $agent->update($request->only([
-            'name', 'mobile', 'email', 'district', 'address', 'commission_rate', 'status'
-        ]));
+        $agent->update([
+            'name' => $request->name,
+            'mobile' => $request->mobile,
+            'email' => $request->email ?: $agent->email,
+            'district' => $request->district,
+            'address' => $request->address,
+            'commission_rate' => $request->commission_rate,
+            'status' => $request->status ?: $agent->status,
+        ]);
 
         if ($agent->user) {
-            $agent->user->update([
+            $userData = [
                 'full_name' => $agent->name,
                 'phone' => $agent->mobile,
                 'city' => $agent->district,
-            ]);
+                'address' => $agent->address,
+                'status' => strtolower($agent->status) === 'active' ? 'active' : 'inactive',
+            ];
+            if ($request->filled('email')) {
+                $userData['email'] = $request->email;
+            }
+            if ($request->filled('password')) {
+                $userData['password'] = \Illuminate\Support\Facades\Hash::make($request->password);
+            }
+            $agent->user->update($userData);
         }
 
-        return redirect()->route('admin.agents.show', $agent->id)->with('success', "Agent {$agent->name} updated successfully.");
+        return redirect()->back()->with('success', "Agent {$agent->name} ({$agent->agent_code}) updated successfully.");
     }
 
     public function destroy($id)

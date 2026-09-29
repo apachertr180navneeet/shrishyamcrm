@@ -59,9 +59,12 @@
                             <small class="text-muted d-block">Commission ({{ $agent->commission_rate }}%)</small>
                             <strong class="text-warning">₹{{ number_format($agent->total_commission) }}</strong>
                         </div>
-                        <div>
-                            <a href="{{ route('admin.agents.show', $agent->id) }}" class="btn btn-sm btn-outline-primary">
-                                View Profile <i class="fas fa-arrow-right ms-1"></i>
+                        <div class="btn-group btn-group-sm">
+                            <button type="button" class="btn btn-outline-primary" title="Edit Agent" onclick='openEditAgentModal(@json($agent))'>
+                                <i class="fas fa-edit me-1"></i> Edit
+                            </button>
+                            <a href="{{ route('admin.agents.show', $agent->id) }}" class="btn btn-primary" title="View Profile">
+                                Profile <i class="fas fa-arrow-right ms-1"></i>
                             </a>
                         </div>
                     </div>
@@ -152,9 +155,93 @@
     </div>
 </div>
 
+<!-- Edit Agent Modal -->
+<div class="modal fade" id="editAgentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="editAgentForm" method="POST">
+                @csrf
+                @method('PUT')
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Edit Society Agent (<span id="editAgentCodeBadge" class="text-primary"></span>)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Agent Full Name (पूरा नाम) <span class="text-danger">*</span></label>
+                        <input type="text" name="name" id="edit_agent_name" class="form-control" required>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Mobile Number <span class="text-danger">*</span></label>
+                            <input type="tel" name="mobile" id="edit_agent_mobile" class="form-control" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">District (जिला) <span class="text-danger">*</span></label>
+                            <input type="text" name="district" id="edit_agent_district" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Email Address</label>
+                            <input type="email" name="email" id="edit_agent_email" class="form-control">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Commission Rate (%) <span class="text-danger">*</span></label>
+                            <input type="number" name="commission_rate" id="edit_agent_commission_rate" class="form-control" step="0.5" required>
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Status <span class="text-danger">*</span></label>
+                            <select name="status" id="edit_agent_status" class="form-select" required>
+                                <option value="Active">Active (सक्रिय)</option>
+                                <option value="Inactive">Inactive (निष्क्रिय)</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">New Password (वैकल्पिक)</label>
+                            <input type="password" name="password" id="edit_agent_password" class="form-control" placeholder="Leave blank to keep current">
+                        </div>
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label fw-semibold">Office / Residential Address</label>
+                        <textarea name="address" id="edit_agent_address" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Agent</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endsection
+
 @section('script')
 <script>
+function openEditAgentModal(agent) {
+    document.getElementById('editAgentForm').action = "{{ url('admin/agents') }}/" + agent.id;
+    document.getElementById('editAgentCodeBadge').innerText = agent.agent_code || '';
+    document.getElementById('edit_agent_name').value = agent.name || '';
+    document.getElementById('edit_agent_mobile').value = agent.mobile || (agent.user ? agent.user.phone : '');
+    document.getElementById('edit_agent_district').value = agent.district || '';
+    document.getElementById('edit_agent_email').value = agent.email || (agent.user ? agent.user.email : '');
+    document.getElementById('edit_agent_commission_rate').value = agent.commission_rate || 5.0;
+    document.getElementById('edit_agent_status').value = agent.status || 'Active';
+    document.getElementById('edit_agent_password').value = '';
+    document.getElementById('edit_agent_address').value = agent.address || '';
+
+    const modal = new bootstrap.Modal(document.getElementById('editAgentModal'));
+    modal.show();
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+    @if(isset($editAgent) && $editAgent)
+        openEditAgentModal(@json($editAgent));
+    @endif
+
     if (window.location.hash === '#addAgentModal' || window.location.hash === '#addAgent') {
         const addModal = document.getElementById('addAgentModal');
         if (addModal) {
@@ -164,4 +251,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endsection
-@endsection
+
