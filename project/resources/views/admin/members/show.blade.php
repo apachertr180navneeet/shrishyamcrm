@@ -33,20 +33,20 @@
                     <a href="{{ route('admin.members.edit', $member->id) }}" class="btn btn-primary">
                         <i class="fas fa-user-edit me-1"></i> Edit Profile
                     </a>
-                    <a href="{{ route('admin.ledger.index', ['member_id' => $member->id]) }}" class="btn btn-dark">
-                        <i class="fas fa-file-invoice-dollar me-1"></i> लेजर स्टेटमेंट (Ledger Statement)
+                    <a href="{{ route('admin.members.ledger.pdf', ['id' => $member->id, 'action' => 'download']) }}" class="btn btn-danger shadow-sm">
+                        <i class="fas fa-file-download me-1"></i> स्टेटमेंट डाउनलोड (Download File)
                     </a>
-                    <a href="{{ route('admin.members.ledger.pdf', $member->id) }}" class="btn btn-outline-dark" target="_blank">
-                        <i class="fas fa-file-pdf me-1"></i> लेजर कार्ड PDF
+                    <a href="{{ route('admin.members.ledger.pdf', ['id' => $member->id, 'action' => 'stream']) }}" class="btn btn-dark shadow-sm" target="_blank">
+                        <i class="fas fa-print me-1"></i> स्टेटमेंट प्रिंट (Print Statement)
+                    </a>
+                    <a href="{{ route('admin.ledger.index', ['member_id' => $member->id]) }}" class="btn btn-outline-dark">
+                        <i class="fas fa-file-invoice-dollar me-1"></i> लेजर कार्ड
                     </a>
                     <a href="{{ $whatsappData['url'] ?? '#' }}" target="_blank" class="btn btn-success">
                         <i class="fab fa-whatsapp me-1"></i> WhatsApp Due Alert
                     </a>
                     <a href="{{ route('admin.certificates.show', $member->id) }}" class="btn btn-warning text-dark" target="_blank">
                         <i class="fas fa-certificate me-1"></i> View Certificate
-                    </a>
-                    <a href="{{ route('admin.members.certificate.pdf', $member->id) }}" class="btn btn-danger">
-                        <i class="fas fa-file-pdf me-1"></i> Certificate PDF
                     </a>
                     <a href="{{ route('admin.payments.create', ['member_id' => $member->id]) }}" class="btn btn-outline-primary">
                         <i class="fas fa-rupee-sign me-1"></i> Record Payment
@@ -262,14 +262,17 @@
                         </p>
                     </div>
                     <div class="d-flex gap-2 flex-wrap">
-                        <a href="{{ route('admin.ledger.index', ['member_id' => $member->id]) }}" class="btn btn-sm btn-dark">
-                            <i class="fas fa-expand me-1"></i> संपूर्ण लेजर कार्ड (Full Ledger Page)
+                        <a href="{{ route('admin.members.ledger.pdf', ['id' => $member->id, 'action' => 'download']) }}" class="btn btn-sm btn-danger shadow-xs">
+                            <i class="fas fa-download me-1"></i> स्टेटमेंट डाउनलोड (Download File)
                         </a>
-                        <a href="{{ route('admin.members.ledger.pdf', $member->id) }}" target="_blank" class="btn btn-sm btn-danger">
-                            <i class="fas fa-file-pdf me-1"></i> लेजर कार्ड PDF
+                        <a href="{{ route('admin.members.ledger.pdf', ['id' => $member->id, 'action' => 'stream']) }}" target="_blank" class="btn btn-sm btn-dark shadow-xs">
+                            <i class="fas fa-print me-1"></i> प्रिंट निकालें (Print Statement)
+                        </a>
+                        <a href="{{ route('admin.ledger.index', ['member_id' => $member->id]) }}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-expand me-1"></i> संपूर्ण लेजर कार्ड
                         </a>
                         <a href="{{ route('admin.payments.create', ['member_id' => $member->id]) }}" class="btn btn-sm btn-success">
-                            <i class="fas fa-cash-register me-1"></i> राशि जमा करें (Record Payment)
+                            <i class="fas fa-cash-register me-1"></i> राशि जमा करें
                         </a>
                     </div>
                 </div>

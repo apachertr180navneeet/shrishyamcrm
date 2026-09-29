@@ -64,8 +64,11 @@
                 </div>
 
                 <div class="d-flex align-items-center gap-2 flex-wrap">
-                    <a href="{{ route('admin.members.ledger.pdf', $selectedMember->id) }}" class="btn btn-danger shadow-sm" target="_blank">
-                        <i class="fas fa-file-pdf me-1"></i> लेजर रसीद कार्ड (Download PDF)
+                    <a href="{{ route('admin.members.ledger.pdf', ['id' => $selectedMember->id, 'action' => 'download']) }}" class="btn btn-danger shadow-sm">
+                        <i class="fas fa-file-download me-1"></i> लेजर रसीद कार्ड (Download PDF)
+                    </a>
+                    <a href="{{ route('admin.members.ledger.pdf', ['id' => $selectedMember->id, 'action' => 'stream']) }}" class="btn btn-dark shadow-sm" target="_blank">
+                        <i class="fas fa-print me-1"></i> स्टेटमेंट प्रिंट (Print Statement)
                     </a>
                     <a href="{{ route('admin.payments.create', ['member_id' => $selectedMember->id]) }}" class="btn btn-success">
                         <i class="fas fa-plus-circle me-1"></i> Record Payment

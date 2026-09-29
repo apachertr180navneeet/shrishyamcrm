@@ -129,12 +129,17 @@ class MemberLedgerCardPdfTest extends TestCase
         ]);
 
         // Test download via member ledger route
-        $response = $this->actingAs($admin)->get(route('admin.members.ledger.pdf', $member->id));
+        $response = $this->actingAs($admin)->get(route('admin.members.ledger.pdf', ['id' => $member->id, 'action' => 'download']));
         $response->assertOk();
         $response->assertHeader('content-type', 'application/pdf');
 
+        // Test stream/print view via member ledger route
+        $responseStream = $this->actingAs($admin)->get(route('admin.members.ledger.pdf', ['id' => $member->id, 'action' => 'stream']));
+        $responseStream->assertOk();
+        $responseStream->assertHeader('content-type', 'application/pdf');
+
         // Test download via ledger page route
-        $response2 = $this->actingAs($admin)->get(route('admin.ledger.pdf', $member->id));
+        $response2 = $this->actingAs($admin)->get(route('admin.ledger.pdf', ['id' => $member->id, 'action' => 'download']));
         $response2->assertOk();
         $response2->assertHeader('content-type', 'application/pdf');
     }

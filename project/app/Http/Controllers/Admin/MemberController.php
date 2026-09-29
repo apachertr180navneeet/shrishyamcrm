@@ -333,7 +333,7 @@ class MemberController extends Controller
         return $pdf->download("SSWS_Certificate_{$id}.pdf");
     }
 
-    public function ledgerPdf($id)
+    public function ledgerPdf($id, Request $request)
     {
         $user = auth()->user();
         $query = Member::query();
@@ -343,6 +343,12 @@ class MemberController extends Controller
         $member = $query->findOrFail($id);
         $pdf = \App\Services\MemberLedgerCardService::generatePdf($member->id);
         $cleanName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $member->membership_no . '_' . $member->full_name);
-        return $pdf->download("Ledger_Card_{$cleanName}.pdf");
+        $fileName = "Ledger_Statement_{$cleanName}.pdf";
+
+        if ($request->get('action') === 'stream' || $request->get('view') === '1') {
+            return $pdf->stream($fileName);
+        }
+
+        return $pdf->download($fileName);
     }
 }
