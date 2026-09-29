@@ -64,6 +64,8 @@ Route::name('admin.')->prefix('admin')->group(function () {
         Route::get('payments/{id}/edit', [PaymentController::class, 'edit'])->name('payments.edit');
         Route::get('receipts', [PaymentController::class, 'receipts'])->name('receipts.index');
         Route::get('receipts/{id}', [PaymentController::class, 'receipt'])->name('payments.receipt');
+        Route::get('receipts/{id}/pdf', [PaymentController::class, 'receiptPdf'])->name('payments.receipt.pdf');
+        Route::get('payments/{id}/pdf', [PaymentController::class, 'receiptPdf']);
         Route::get('ledger', [PaymentController::class, 'ledger'])->name('ledger.index');
         Route::get('ledger/{id}/pdf', [PaymentController::class, 'memberLedgerPdf'])->name('ledger.pdf');
         Route::get('members/{id}/ledger/pdf', [MemberController::class, 'ledgerPdf'])->name('members.ledger.pdf');
