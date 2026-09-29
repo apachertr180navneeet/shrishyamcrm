@@ -7,10 +7,13 @@ use Illuminate\Http\Request;
 use App\Models\MarriageEvent;
 use App\Models\Member;
 use App\Models\Scheme;
+use App\Models\Agent;
+use App\Models\SocietySetting;
 use App\Models\EventBilling;
 use App\Services\EventBillingService;
 use App\Services\NumberSeriesService;
 use App\Services\AuditService;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class MarriageEventController extends Controller
 {
@@ -334,13 +337,38 @@ class MarriageEventController extends Controller
     }
 
     /**
-     * Dedicated Event Contributions List & Tracking page.
+     * Dedicated Event Contributions List & Tracking page (Master List).
      */
     public function contributions($id, Request $request)
     {
         $event = MarriageEvent::with(['scheme', 'member'])->findOrFail($id);
-        
-        $query = $event->contributions()->with(['member.scheme', 'member.agent', 'payment']);
+
+        if ($request->get('export') === 'csv') {
+            return $this->exportContributions($id, $request);
+        }
+
+        $user = auth()->user();
+        $isAgent = $user && $user->isAgent() && $user->agent_id;
+        $agents = $isAgent ? Agent::where('id', $user->agent_id)->get() : Agent::where('status', 'Active')->orderBy('name')->get();
+
+        $query = $event->contributions()->with(['member.scheme', 'member.ageSlab', 'member.agent', 'payment', 'agent']);
+
+        if ($isAgent) {
+            $query->where(function ($q) use ($user) {
+                $q->where('agent_id', $user->agent_id)
+                  ->orWhereHas('member', function ($mq) use ($user) {
+                      $mq->where('agent_id', $user->agent_id);
+                  });
+            });
+        } elseif ($request->filled('agent_id')) {
+            $agentId = $request->agent_id;
+            $query->where(function ($q) use ($agentId) {
+                $q->where('agent_id', $agentId)
+                  ->orWhereHas('member', function ($mq) use ($agentId) {
+                      $mq->where('agent_id', $agentId);
+                  });
+            });
+        }
 
         if ($request->filled('status')) {
             $query->where('payment_status', $request->status);
@@ -351,16 +379,33 @@ class MarriageEventController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('member_name', 'like', "%{$search}%")
                   ->orWhere('receipt_no', 'like', "%{$search}%")
+                  ->orWhere('age_slab', 'like', "%{$search}%")
                   ->orWhereHas('member', function ($mq) use ($search) {
                       $mq->where('membership_no', 'like', "%{$search}%")
-                         ->orWhere('mobile', 'like', "%{$search}%");
+                         ->orWhere('mobile', 'like', "%{$search}%")
+                         ->orWhere('father_spouse_name', 'like', "%{$search}%");
                   });
             });
         }
 
-        $contributions = $query->paginate(20)->withQueryString();
+        $perPage = $request->get('per_page', 25);
+        if ($perPage === 'all') {
+            $contributions = $query->orderBy('payment_status', 'asc')->orderBy('member_name', 'asc')->paginate(2000)->withQueryString();
+        } else {
+            $contributions = $query->orderBy('payment_status', 'asc')->orderBy('member_name', 'asc')->paginate((int)$perPage)->withQueryString();
+        }
 
-        $rawStats = $event->contributions()
+        $statsQuery = $event->contributions();
+        if ($isAgent) {
+            $statsQuery->where(function ($q) use ($user) {
+                $q->where('agent_id', $user->agent_id)
+                  ->orWhereHas('member', function ($mq) use ($user) {
+                      $mq->where('agent_id', $user->agent_id);
+                  });
+            });
+        }
+
+        $rawStats = $statsQuery
             ->selectRaw("
                 COUNT(*) as total_members,
                 COALESCE(SUM(contribution_amount), 0) as total_expected,
@@ -371,16 +416,222 @@ class MarriageEventController extends Controller
             ")
             ->first();
 
+        $totalExpected = (float)($rawStats->total_expected ?? 0);
+        $totalCollected = (float)($rawStats->total_collected ?? 0);
+        $totalPending = (float)($rawStats->total_pending ?? 0);
+        $totalMembers = (int)($rawStats->total_members ?? 0);
+        $paidCount = (int)($rawStats->paid_count ?? 0);
+        $pendingCount = (int)($rawStats->pending_count ?? 0);
+        $collectionPercentage = $totalExpected > 0 ? round(($totalCollected / $totalExpected) * 100, 1) : 0;
+
         $stats = [
-            'total_members' => (int)($rawStats->total_members ?? 0),
-            'total_expected' => (float)($rawStats->total_expected ?? 0),
-            'total_collected' => (float)($rawStats->total_collected ?? 0),
-            'total_pending' => (float)($rawStats->total_pending ?? 0),
-            'paid_count' => (int)($rawStats->paid_count ?? 0),
-            'pending_count' => (int)($rawStats->pending_count ?? 0),
+            'total_members' => $totalMembers,
+            'total_expected' => $totalExpected,
+            'total_collected' => $totalCollected,
+            'total_pending' => $totalPending,
+            'paid_count' => $paidCount,
+            'pending_count' => $pendingCount,
+            'collection_percentage' => $collectionPercentage,
         ];
 
-        return view('admin.events.contributions', compact('event', 'contributions', 'stats'));
+        return view('admin.events.contributions', compact('event', 'contributions', 'stats', 'agents'));
+    }
+
+    /**
+     * Print View for Event Contributions Master List.
+     */
+    public function printContributions($id, Request $request)
+    {
+        $event = MarriageEvent::with(['scheme', 'member'])->findOrFail($id);
+        $user = auth()->user();
+        $isAgent = $user && $user->isAgent() && $user->agent_id;
+
+        $query = $event->contributions()->with(['member.scheme', 'member.ageSlab', 'member.agent', 'payment', 'agent']);
+
+        if ($isAgent) {
+            $query->where(function ($q) use ($user) {
+                $q->where('agent_id', $user->agent_id)
+                  ->orWhereHas('member', function ($mq) use ($user) {
+                      $mq->where('agent_id', $user->agent_id);
+                  });
+            });
+        } elseif ($request->filled('agent_id')) {
+            $agentId = $request->agent_id;
+            $query->where(function ($q) use ($agentId) {
+                $q->where('agent_id', $agentId)
+                  ->orWhereHas('member', function ($mq) use ($agentId) {
+                      $mq->where('agent_id', $agentId);
+                  });
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('payment_status', $request->status);
+        }
+
+        if ($request->filled('search')) {
+            $search = \App\Helpers\Helper::likeEscape($request->search);
+            $query->where(function ($q) use ($search) {
+                $q->where('member_name', 'like', "%{$search}%")
+                  ->orWhere('receipt_no', 'like', "%{$search}%")
+                  ->orWhere('age_slab', 'like', "%{$search}%")
+                  ->orWhereHas('member', function ($mq) use ($search) {
+                      $mq->where('membership_no', 'like', "%{$search}%")
+                         ->orWhere('mobile', 'like', "%{$search}%")
+                         ->orWhere('father_spouse_name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $contributions = $query->orderBy('payment_status', 'asc')->orderBy('member_name', 'asc')->get();
+
+        $statsQuery = $event->contributions();
+        if ($isAgent) {
+            $statsQuery->where(function ($q) use ($user) {
+                $q->where('agent_id', $user->agent_id)
+                  ->orWhereHas('member', function ($mq) use ($user) {
+                      $mq->where('agent_id', $user->agent_id);
+                  });
+            });
+        }
+
+        $rawStats = $statsQuery
+            ->selectRaw("
+                COUNT(*) as total_members,
+                COALESCE(SUM(contribution_amount), 0) as total_expected,
+                COALESCE(SUM(CASE WHEN payment_status = 'Paid' THEN contribution_amount ELSE 0 END), 0) as total_collected,
+                COALESCE(SUM(CASE WHEN payment_status = 'Pending' THEN contribution_amount ELSE 0 END), 0) as total_pending,
+                COUNT(CASE WHEN payment_status = 'Paid' THEN 1 END) as paid_count,
+                COUNT(CASE WHEN payment_status = 'Pending' THEN 1 END) as pending_count
+            ")
+            ->first();
+
+        $totalExpected = (float)($rawStats->total_expected ?? 0);
+        $totalCollected = (float)($rawStats->total_collected ?? 0);
+        $totalPending = (float)($rawStats->total_pending ?? 0);
+        $totalMembers = (int)($rawStats->total_members ?? 0);
+        $paidCount = (int)($rawStats->paid_count ?? 0);
+        $pendingCount = (int)($rawStats->pending_count ?? 0);
+        $collectionPercentage = $totalExpected > 0 ? round(($totalCollected / $totalExpected) * 100, 1) : 0;
+
+        $stats = [
+            'total_members' => $totalMembers,
+            'total_expected' => $totalExpected,
+            'total_collected' => $totalCollected,
+            'total_pending' => $totalPending,
+            'paid_count' => $paidCount,
+            'pending_count' => $pendingCount,
+            'collection_percentage' => $collectionPercentage,
+        ];
+
+        return view('admin.events.contributions_print', compact('event', 'contributions', 'stats'));
+    }
+
+    /**
+     * CSV Master List Export for Event Contributions.
+     */
+    public function exportContributions($id, Request $request)
+    {
+        $event = MarriageEvent::with(['scheme', 'member'])->findOrFail($id);
+        $user = auth()->user();
+        $isAgent = $user && $user->isAgent() && $user->agent_id;
+
+        $query = $event->contributions()->with(['member.scheme', 'member.ageSlab', 'member.agent', 'payment', 'agent']);
+
+        if ($isAgent) {
+            $query->where(function ($q) use ($user) {
+                $q->where('agent_id', $user->agent_id)
+                  ->orWhereHas('member', function ($mq) use ($user) {
+                      $mq->where('agent_id', $user->agent_id);
+                  });
+            });
+        } elseif ($request->filled('agent_id')) {
+            $agentId = $request->agent_id;
+            $query->where(function ($q) use ($agentId) {
+                $q->where('agent_id', $agentId)
+                  ->orWhereHas('member', function ($mq) use ($agentId) {
+                      $mq->where('agent_id', $agentId);
+                  });
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('payment_status', $request->status);
+        }
+
+        if ($request->filled('search')) {
+            $search = \App\Helpers\Helper::likeEscape($request->search);
+            $query->where(function ($q) use ($search) {
+                $q->where('member_name', 'like', "%{$search}%")
+                  ->orWhere('receipt_no', 'like', "%{$search}%")
+                  ->orWhere('age_slab', 'like', "%{$search}%")
+                  ->orWhereHas('member', function ($mq) use ($search) {
+                      $mq->where('membership_no', 'like', "%{$search}%")
+                         ->orWhere('mobile', 'like', "%{$search}%")
+                         ->orWhere('father_spouse_name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $contributions = $query->orderBy('payment_status', 'asc')->orderBy('member_name', 'asc')->get();
+
+        $fileName = "Event_MasterList_{$event->event_code}_" . date('Ymd_His') . ".csv";
+
+        return new StreamedResponse(function () use ($event, $contributions) {
+            $handle = fopen('php://output', 'w');
+            // UTF-8 BOM for Microsoft Excel
+            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            fputcsv($handle, ['श्री श्याम वेलफेयर सोसायटी, लोहीकी - कार्यक्रम अंशदान मास्टर लिस्ट']);
+            fputcsv($handle, ['कार्यक्रम कोड (Event Code)', $event->event_code, 'कार्यक्रम शीर्षक (Event Title)', $event->title]);
+            fputcsv($handle, ['लाभार्थी / कन्या (Beneficiary)', $event->girl_name, 'दिनांक (Event Date)', $event->event_date ? $event->event_date->format('d/m/Y') : 'N/A']);
+            fputcsv($handle, ['स्थल (Venue)', $event->venue, 'योजना (Scheme)', $event->scheme ? $event->scheme->name_hindi : 'All Schemes']);
+            fputcsv($handle, []);
+
+            fputcsv($handle, [
+                'क्र. सं. (Sr No)',
+                'सदस्यता क्र. (Membership No)',
+                'सदस्य का नाम (Member Name)',
+                'पिता / पति का नाम (Father/Spouse)',
+                'मोबाइल नं. (Mobile)',
+                'योजना (Scheme)',
+                'आयु (Age)',
+                'आयु वर्ग (Age Slab)',
+                'अधिकृत कार्यकर्ता / एजेंट (Agent)',
+                'अपेक्षित अंशदान ₹ (Expected Amount)',
+                'कलेक्शन स्थिति (Payment Status)',
+                'प्राप्त राशि ₹ (Paid Amount)',
+                'रसीद क्र. (Receipt No)',
+                'जमा दिनांक (Payment Date)',
+            ]);
+
+            $i = 1;
+            foreach ($contributions as $c) {
+                $paidAmt = $c->payment_status === 'Paid' ? $c->contribution_amount : 0;
+                $agentName = $c->agent ? $c->agent->name : ($c->member && $c->member->agent ? $c->member->agent->name : 'HQ Direct');
+                fputcsv($handle, [
+                    $i++,
+                    $c->member ? $c->member->membership_no : 'N/A',
+                    $c->member_name,
+                    $c->member ? $c->member->father_spouse_name : '',
+                    $c->member ? $c->member->mobile : '',
+                    $c->scheme ? $c->scheme->name_hindi : ($c->member && $c->member->scheme ? $c->member->scheme->name_hindi : ''),
+                    $c->member_age ? $c->member_age . ' वर्ष' : '',
+                    $c->age_slab ?? '',
+                    $agentName,
+                    $c->contribution_amount,
+                    $c->payment_status,
+                    $paidAmt,
+                    $c->receipt_no ?? '',
+                    $c->payment_date ? $c->payment_date->format('d/m/Y') : '',
+                ]);
+            }
+
+            fclose($handle);
+        }, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$fileName}\"",
+        ]);
     }
 
     public function billMembers(Request $request)

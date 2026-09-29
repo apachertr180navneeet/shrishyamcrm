@@ -102,8 +102,8 @@
 
                     <div class="d-flex align-items-center justify-content-between pt-2 border-top flex-wrap gap-2">
                         <div class="d-flex gap-2">
-                            <a href="{{ route('admin.events.contributions', $event->id) }}" class="btn btn-sm btn-primary">
-                                <i class="fas fa-users-cog me-1"></i> View Contributions (अंशदान सूची)
+                            <a href="{{ route('admin.events.contributions', $event->id) }}" class="btn btn-sm btn-primary fw-semibold">
+                                <i class="fas fa-list-check me-1"></i> कलेक्शन मास्टर लिस्ट (Master List)
                             </a>
                             <button type="button" class="btn btn-sm btn-outline-secondary" onclick="openEditEventModal({{ json_encode($event) }})">
                                 <i class="fas fa-edit me-1"></i> Edit

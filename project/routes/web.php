@@ -126,6 +126,8 @@ Route::name('admin.')->prefix('admin')->group(function () {
             Route::put('events/{id}', [MarriageEventController::class, 'update'])->name('events.update');
             Route::delete('events/{id}', [MarriageEventController::class, 'destroy'])->name('events.destroy');
             Route::get('events/{id}/contributions', [MarriageEventController::class, 'contributions'])->name('events.contributions');
+            Route::get('events/{id}/contributions/print', [MarriageEventController::class, 'printContributions'])->name('events.contributions.print');
+            Route::get('events/{id}/contributions/export', [MarriageEventController::class, 'exportContributions'])->name('events.contributions.export');
             Route::get('api/scheme-members-preview', [MarriageEventController::class, 'previewSchemeMembers'])->name('api.scheme-members-preview');
             Route::post('events/billing', [MarriageEventController::class, 'billMembers'])->name('events.billing');
             Route::get('api/events-by-month', [MarriageEventController::class, 'eventsByMonth'])->name('api.events-by-month');

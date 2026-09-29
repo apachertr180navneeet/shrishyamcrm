@@ -294,4 +294,121 @@ class MarriageEventCreationTest extends TestCase
         $member->refresh();
         $this->assertEquals('Inactive', $member->status);
     }
+
+    public function test_event_collection_master_list_shows_paid_vs_pending_and_exports()
+    {
+        $admin = User::where('role', 'admin')->first() ?? User::create([
+            'first_name' => 'Admin',
+            'last_name' => 'User',
+            'email' => 'admin_ml_test@shrishyamcrm.test',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+            'status' => 'active'
+        ]);
+
+        $scheme = Scheme::create([
+            'code' => 'KANYA-ML',
+            'name' => 'Kanya Vivah Scheme ML',
+            'name_hindi' => 'कन्या विवाह',
+            'status' => 'Active'
+        ]);
+
+        $m1 = Member::create([
+            'membership_no' => 'SHYAM-ML-001',
+            'full_name' => 'प्रदीप कुमार',
+            'father_spouse_name' => 'राम कुमार',
+            'gender' => 'Male',
+            'dob' => '1995-01-01',
+            'age' => 31,
+            'mobile' => '9876500001',
+            'scheme_id' => $scheme->id,
+            'status' => 'Active',
+            'joining_date' => now()->subMonths(6),
+        ]);
+
+        $m2 = Member::create([
+            'membership_no' => 'SHYAM-ML-002',
+            'full_name' => 'अमित कुमार',
+            'father_spouse_name' => 'श्याम लाल',
+            'gender' => 'Male',
+            'dob' => '1998-01-01',
+            'age' => 28,
+            'mobile' => '9876500002',
+            'scheme_id' => $scheme->id,
+            'status' => 'Active',
+            'joining_date' => now()->subMonths(6),
+        ]);
+
+        $event = MarriageEvent::create([
+            'event_code' => 'EVT-ML-01',
+            'title' => 'विवाह कार्यक्रम 1',
+            'event_type' => 'विवाह',
+            'girl_name' => 'सुमन',
+            'father_name' => 'राम निवास',
+            'scheme_id' => $scheme->id,
+            'event_date' => '2026-11-20',
+            'venue' => 'श्री श्याम भवन',
+            'target_amount' => 50000,
+            'status' => 'Active',
+        ]);
+
+        // Create 2 contribution records: 1 Paid, 1 Pending
+        $c1 = \App\Models\EventContribution::create([
+            'event_id' => $event->id,
+            'member_id' => $m1->id,
+            'scheme_id' => $scheme->id,
+            'event_name' => $event->title,
+            'event_date' => $event->event_date,
+            'member_name' => $m1->full_name,
+            'member_age' => 31,
+            'age_slab' => '18-35 years',
+            'contribution_amount' => 200,
+            'payment_status' => 'Paid',
+            'receipt_no' => 'REC-ML-001',
+            'payment_date' => now()->toDateString(),
+        ]);
+
+        $c2 = \App\Models\EventContribution::create([
+            'event_id' => $event->id,
+            'member_id' => $m2->id,
+            'scheme_id' => $scheme->id,
+            'event_name' => $event->title,
+            'event_date' => $event->event_date,
+            'member_name' => $m2->full_name,
+            'member_age' => 28,
+            'age_slab' => '18-35 years',
+            'contribution_amount' => 200,
+            'payment_status' => 'Pending',
+        ]);
+
+        // Test Master List page
+        $res = $this->actingAs($admin)->get(route('admin.events.contributions', $event->id));
+        $res->assertOk();
+        $res->assertSee('प्रदीप कुमार');
+        $res->assertSee('अमित कुमार');
+        $res->assertSee('प्राप्त');
+        $res->assertSee('बकाया');
+
+        // Test Filter by Status = Paid
+        $resPaid = $this->actingAs($admin)->get(route('admin.events.contributions', ['id' => $event->id, 'status' => 'Paid']));
+        $resPaid->assertOk();
+        $resPaid->assertSee('प्रदीप कुमार');
+        $resPaid->assertDontSee('अमित कुमार');
+
+        // Test Filter by Status = Pending
+        $resPending = $this->actingAs($admin)->get(route('admin.events.contributions', ['id' => $event->id, 'status' => 'Pending']));
+        $resPending->assertOk();
+        $resPending->assertSee('अमित कुमार');
+        $resPending->assertDontSee('प्रदीप कुमार');
+
+        // Test Print View
+        $resPrint = $this->actingAs($admin)->get(route('admin.events.contributions.print', $event->id));
+        $resPrint->assertOk();
+        $resPrint->assertSee('कार्यक्रम अंशदान मास्टर लिस्ट');
+
+        // Test CSV Export
+        $resExport = $this->actingAs($admin)->get(route('admin.events.contributions.export', $event->id));
+        $resExport->assertOk();
+        $this->assertEquals('text/csv; charset=UTF-8', $resExport->headers->get('content-type'));
+    }
 }
