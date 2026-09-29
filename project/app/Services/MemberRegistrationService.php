@@ -26,12 +26,17 @@ class MemberRegistrationService
 
             // 2. Resolve Scheme & Applicable Age Slab
             $scheme = Scheme::findOrFail($data['scheme_id']);
-            $slab = AgeSlab::where('scheme_id', $scheme->id)
-                ->where('status', 'Active')
-                ->where('min_age', '<=', $age)
-                ->where('max_age', '>=', $age)
-                ->first();
-
+            $slab = null;
+            if (!empty($data['age_slab_id'])) {
+                $slab = AgeSlab::where('id', $data['age_slab_id'])->where('scheme_id', $scheme->id)->first();
+            }
+            if (!$slab) {
+                $slab = AgeSlab::where('scheme_id', $scheme->id)
+                    ->where('status', 'Active')
+                    ->where('min_age', '<=', $age)
+                    ->where('max_age', '>=', $age)
+                    ->first();
+            }
             if (!$slab) {
                 $slab = AgeSlab::where('scheme_id', $scheme->id)->first();
             }

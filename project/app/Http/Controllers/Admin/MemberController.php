@@ -100,7 +100,8 @@ class MemberController extends Controller
             $memberData = $request->only([
                 'membership_no', 'full_name', 'father_spouse_name', 'mother_name', 'gender',
                 'dob', 'mobile', 'gotra', 'caste', 'address', 'district', 'state', 'pincode',
-                'aadhaar_no', 'scheme_id', 'agent_id', 'joining_date', 'payment_mode',
+                'aadhaar_no', 'scheme_id', 'age_slab_id', 'joining_amount', 'monthly_support_amount',
+                'agent_id', 'joining_date', 'payment_mode',
                 'reference_no', 'initial_paid_amount', 'nominee1_name', 'nominee1_father',
                 'nominee1_relation', 'nominee1_mobile', 'nominee1_aadhaar', 'nominee1_address',
                 'nominee1_share', 'nominee2_name', 'nominee2_father', 'nominee2_relation',
