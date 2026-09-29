@@ -9,28 +9,62 @@ use Barryvdh\DomPDF\Facade\Pdf;
 class CertificateService
 {
     /**
-     * Generate printable / downloadable PDF membership certificate
+     * Generate printable / downloadable PDF membership certificate matching the official certificate card
      */
     public static function generatePdf(int $memberId): \Barryvdh\DomPDF\PDF
     {
-        $member = Member::with(['scheme', 'agent', 'nominees'])->findOrFail($memberId);
+        $member = Member::with(['scheme', 'agent', 'nominees', 'ageSlab', 'documents'])->findOrFail($memberId);
 
         $society = [
             'name' => SocietySetting::getVal('society_name', 'Shri Shyam Welfare Society'),
-            'name_hindi' => SocietySetting::getVal('society_name_hindi', 'श्री श्याम वेलफेयर सोसायटी लोहीकी'),
-            'reg_no' => SocietySetting::getVal('reg_no', 'HR/019/2021/04582'),
-            'address' => SocietySetting::getVal('address', 'Main Bazar, Lohki, District Mahendragarh, Haryana - 123001'),
-            'president' => SocietySetting::getVal('president_name', 'Shri R. K. Sharma'),
-            'secretary' => SocietySetting::getVal('secretary_name', 'Shri Mahesh Garg'),
+            'name_hindi' => SocietySetting::getVal('society_name_hindi', 'श्री श्याम वेलफेयर सोसायटी लोहिड़ी'),
+            'reg_no' => SocietySetting::getVal('reg_no', 'COOP/2025/BALOTARA/500219'),
+            'san_code' => $member->san_code ?: SocietySetting::getVal('san_prefix', '0878920000000014'),
+            'address' => SocietySetting::getVal('address', 'ग्रा.पं. लोहिड़ी, पं.स. सिणधरी, जिला बालोतरा (राज.)'),
+            'phone' => SocietySetting::getVal('phone', '9664090906, 9549635631, 9783049650'),
+            'president' => SocietySetting::getVal('president_name', 'लादूराम'),
+            'founder' => SocietySetting::getVal('founder_name', 'लादूराम'),
         ];
+
+        $primaryNominee = $member->nominees->first();
+        $nomineeName = $primaryNominee
+            ? $primaryNominee->name . ($primaryNominee->relation ? ' (' . $primaryNominee->relation . ')' : '')
+            : '-';
+
+        $kishtRate = (float)($member->monthly_support_amount > 0
+            ? $member->monthly_support_amount
+            : ($member->ageSlab && (float)$member->ageSlab->support_amount > 0 ? $member->ageSlab->support_amount : 400.0));
+
+        $photoDoc = $member->documents->where('document_type', 'Photo')->first();
+        $photoPath = null;
+        if ($photoDoc && !empty($photoDoc->file_path)) {
+            $cleaned = ltrim(str_replace('/storage/', 'storage/', $photoDoc->file_path), '/');
+            $abs = public_path($cleaned);
+            if (file_exists($abs)) {
+                $photoPath = str_replace('\\', '/', $abs);
+            }
+        }
 
         MemberLedgerCardService::ensureFontsExist();
         $mangalPath = str_replace('\\', '/', public_path('fonts/mangal.ttf'));
         $mangalbPath = str_replace('\\', '/', public_path('fonts/mangalb.ttf'));
         $aparajPath = str_replace('\\', '/', public_path('fonts/aparaj.ttf'));
         $aparajbPath = str_replace('\\', '/', public_path('fonts/aparajb.ttf'));
+        $logoPath = file_exists(public_path('assets/society_logo.png'))
+            ? str_replace('\\', '/', public_path('assets/society_logo.png'))
+            : (file_exists(public_path('assets/society_logo.jpg')) ? str_replace('\\', '/', public_path('assets/society_logo.jpg')) : null);
 
-        return Pdf::loadView('pdf.certificate', compact('member', 'society', 'mangalPath', 'mangalbPath', 'aparajPath', 'aparajbPath'))
-            ->setPaper('a4', 'landscape');
+        return Pdf::loadView('pdf.certificate', compact(
+            'member',
+            'society',
+            'nomineeName',
+            'kishtRate',
+            'photoPath',
+            'logoPath',
+            'mangalPath',
+            'mangalbPath',
+            'aparajPath',
+            'aparajbPath'
+        ))->setPaper('a4', 'landscape');
     }
 }

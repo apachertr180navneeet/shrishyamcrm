@@ -53,13 +53,36 @@ class CertificateController extends Controller
     public function show($id)
     {
         $user = auth()->user();
-        $query = Member::with(['scheme', 'agent', 'nominees', 'certificates']);
+        $query = Member::with(['scheme', 'agent', 'nominees', 'certificates', 'ageSlab', 'documents']);
         if ($user && $user->isAgent() && $user->agent_id) {
             $query->where('agent_id', $user->agent_id);
         }
 
         $member = $query->findOrFail($id);
-        return view('admin.certificates.show', compact('member'));
+
+        $society = [
+            'name' => \App\Models\SocietySetting::getVal('society_name', 'Shri Shyam Welfare Society'),
+            'name_hindi' => \App\Models\SocietySetting::getVal('society_name_hindi', 'श्री श्याम वेलफेयर सोसायटी लोहिड़ी'),
+            'reg_no' => \App\Models\SocietySetting::getVal('reg_no', 'COOP/2025/BALOTARA/500219'),
+            'san_code' => $member->san_code ?: \App\Models\SocietySetting::getVal('san_prefix', '0878920000000014'),
+            'address' => \App\Models\SocietySetting::getVal('address', 'ग्रा.पं. लोहिड़ी, पं.स. सिणधरी, जिला बालोतरा (राज.)'),
+            'phone' => \App\Models\SocietySetting::getVal('phone', '9664090906, 9549635631, 9783049650'),
+            'president' => \App\Models\SocietySetting::getVal('president_name', 'लादूराम'),
+            'founder' => \App\Models\SocietySetting::getVal('founder_name', 'लादूराम'),
+        ];
+
+        $primaryNominee = $member->nominees->first();
+        $nomineeName = $primaryNominee
+            ? $primaryNominee->name . ($primaryNominee->relation ? ' (' . $primaryNominee->relation . ')' : '')
+            : '-';
+
+        $kishtRate = (float)($member->monthly_support_amount > 0
+            ? $member->monthly_support_amount
+            : ($member->ageSlab && (float)$member->ageSlab->support_amount > 0 ? $member->ageSlab->support_amount : 400.0));
+
+        $photoDoc = $member->documents->where('document_type', 'Photo')->first();
+
+        return view('admin.certificates.show', compact('member', 'society', 'nomineeName', 'kishtRate', 'photoDoc'));
     }
 
     public function downloadPdf($id)
