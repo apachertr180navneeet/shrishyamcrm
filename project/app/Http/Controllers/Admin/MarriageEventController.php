@@ -128,6 +128,27 @@ class MarriageEventController extends Controller
             ]);
         }
 
+        // When a person's marriage takes place, their membership is automatically closed (Inactive)
+        if ($event->member_id) {
+            $beneficiaryMember = Member::find($event->member_id);
+            if ($beneficiaryMember && $beneficiaryMember->status === 'Active') {
+                $beneficiaryMember->update(['status' => 'Inactive']);
+                AuditService::log('membership_closed', 'members', (string)$beneficiaryMember->id, ['status' => 'Active'], [
+                    'status' => 'Inactive',
+                    'reason' => "Membership closed upon marriage event ({$eventCode} - {$beneficiaryName})"
+                ]);
+            }
+        } elseif (!empty($beneficiaryName)) {
+            $beneficiaryMember = Member::where('full_name', $beneficiaryName)->where('status', 'Active')->first();
+            if ($beneficiaryMember) {
+                $beneficiaryMember->update(['status' => 'Inactive']);
+                AuditService::log('membership_closed', 'members', (string)$beneficiaryMember->id, ['status' => 'Active'], [
+                    'status' => 'Inactive',
+                    'reason' => "Membership closed upon marriage event ({$eventCode} - {$beneficiaryName})"
+                ]);
+            }
+        }
+
         AuditService::log('create', 'events', (string)$event->id, null, [
             'code' => $eventCode,
             'title' => $event->title,
@@ -136,7 +157,7 @@ class MarriageEventController extends Controller
         ]);
 
         return redirect()->route('admin.events.contributions', $event->id)
-            ->with('success', "कार्यक्रम {$eventCode} ({$beneficiaryName}) सफलतापूर्वक दर्ज किया गया! सभी {$generatedCount} सक्रिय सदस्यों के खाते में आयु-वर्ग अनुसार अंशदान जुड़ गया है।");
+            ->with('success', "कार्यक्रम {$eventCode} ({$beneficiaryName}) सफलतापूर्वक दर्ज किया गया! लाभार्थी सदस्य की सदस्यता विवाह संपन्न होने पर क्लोज (Inactive) कर दी गई है एवं अन्य सभी {$generatedCount} सक्रिय सदस्यों के खाते में अंशदान जुड़ गया है।");
     }
 
     public function update(Request $request, $id)
@@ -178,6 +199,19 @@ class MarriageEventController extends Controller
             'status' => $request->status ?: $event->status,
             'description' => $request->description,
         ]);
+
+        // When updated, close beneficiary member's membership if still active
+        if ($event->member_id) {
+            $beneficiaryMember = Member::find($event->member_id);
+            if ($beneficiaryMember && $beneficiaryMember->status === 'Active') {
+                $beneficiaryMember->update(['status' => 'Inactive']);
+            }
+        } elseif (!empty($beneficiaryName)) {
+            $beneficiaryMember = Member::where('full_name', $beneficiaryName)->where('status', 'Active')->first();
+            if ($beneficiaryMember) {
+                $beneficiaryMember->update(['status' => 'Inactive']);
+            }
+        }
 
         // Exclude the beneficiary member from contributions
         if ($event->member_id) {

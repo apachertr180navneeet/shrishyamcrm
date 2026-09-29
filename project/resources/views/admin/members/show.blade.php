@@ -13,7 +13,13 @@
                     <div>
                         <div class="d-flex align-items-center gap-2 mb-1">
                             <h3 class="fw-bold text-heading mb-0">{{ $member->full_name }}</h3>
-                            <span class="badge {{ $member->status == 'Active' ? 'bg-success' : 'bg-danger' }}">{{ $member->status }}</span>
+                            @if($member->status === 'Active')
+                                <span class="badge bg-success">Active (सक्रिय)</span>
+                            @elseif($member->marriageEvents()->exists() || $member->payouts()->exists())
+                                <span class="badge bg-secondary"><i class="fas fa-heart me-1"></i> Closed (विवाह संपन्न / सदस्यता समाप्त)</span>
+                            @else
+                                <span class="badge bg-danger">{{ $member->status }} (निष्क्रिय)</span>
+                            @endif
                             <span class="badge bg-label-primary">{{ $member->membership_no }}</span>
                         </div>
                         <p class="text-muted mb-0">

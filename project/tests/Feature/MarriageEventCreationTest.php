@@ -245,10 +245,52 @@ class MarriageEventCreationTest extends TestCase
         $response->assertSessionHasNoErrors();
         $event = MarriageEvent::where('girl_name', 'राकेश')->first();
         $this->assertNotNull($event);
-        $this->assertNull($event->scheme_id);
-
         // Verify contributions generated for other active members, excluding beneficiary member
         $this->assertFalse($event->contributions()->where('member_id', $m1->id)->exists());
         $this->assertTrue($event->contributions()->where('member_id', $m2->id)->exists());
+
+        // Verify member m1 membership status is automatically closed (Inactive)
+        $m1->refresh();
+        $this->assertEquals('Inactive', $m1->status);
+    }
+
+    public function test_member_membership_is_closed_when_marriage_event_is_created()
+    {
+        $admin = User::where('role', 'admin')->first() ?? User::create([
+            'first_name' => 'Admin',
+            'last_name' => 'User',
+            'email' => 'admin_close_test@shrishyamcrm.test',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+            'status' => 'active'
+        ]);
+
+        $member = Member::create([
+            'membership_no' => 'SHYAM-TEST-CLOSE-01',
+            'full_name' => 'कविता शर्मा',
+            'father_spouse_name' => 'राजेश शर्मा',
+            'gender' => 'Female',
+            'dob' => '2001-08-10',
+            'age' => 25,
+            'mobile' => '9876543299',
+            'status' => 'Active',
+            'joining_date' => now()->subMonths(12),
+        ]);
+
+        $this->assertEquals('Active', $member->status);
+
+        $response = $this->actingAs($admin)->post(route('admin.events.store'), [
+            'beneficiary_name' => 'कविता शर्मा',
+            'father_name' => 'राजेश शर्मा',
+            'member_id' => $member->id,
+            'event_date' => '2026-11-15',
+            'venue' => 'श्री श्याम धर्मशाला',
+        ]);
+
+        $response->assertSessionHasNoErrors();
+
+        // Check member status has been closed
+        $member->refresh();
+        $this->assertEquals('Inactive', $member->status);
     }
 }

@@ -51,6 +51,26 @@ class PayoutService
                 }
             }
 
+            // Close membership upon marriage assistance payout disbursement
+            if (!empty($data['member_id'])) {
+                $member = Member::find($data['member_id']);
+                if ($member && $member->status === 'Active') {
+                    $member->update(['status' => 'Inactive']);
+                    AuditService::log('membership_closed', 'members', (string)$member->id, ['status' => 'Active'], [
+                        'status' => 'Inactive',
+                        'reason' => "Membership closed upon marriage assistance payout ({$payoutNo})"
+                    ]);
+                }
+            } elseif (!empty($data['event_id'])) {
+                $event = MarriageEvent::find($data['event_id']);
+                if ($event && $event->member_id) {
+                    $member = Member::find($event->member_id);
+                    if ($member && $member->status === 'Active') {
+                        $member->update(['status' => 'Inactive']);
+                    }
+                }
+            }
+
             // Audit log
             AuditService::log('create', 'payouts', (string)$payout->id, null, [
                 'payout_no' => $payoutNo,

@@ -66,9 +66,19 @@ class Member extends Model
         return $this->hasMany(Payout::class);
     }
 
+    public function marriageEvents()
+    {
+        return $this->hasMany(MarriageEvent::class, 'member_id');
+    }
+
     public function eventContributions()
     {
         return $this->hasMany(EventContribution::class, 'member_id')->latest('event_date');
+    }
+
+    public function closeMembership(string $reason = 'Marriage assistance completed'): void
+    {
+        $this->update(['status' => 'Inactive']);
     }
 
     public function calculateCurrentBalance(): float
