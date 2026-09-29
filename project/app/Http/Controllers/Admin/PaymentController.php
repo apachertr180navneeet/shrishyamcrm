@@ -60,18 +60,18 @@ class PaymentController extends Controller
     public function create(Request $request)
     {
         $user = auth()->user();
-        $membersQuery = Member::with(['scheme', 'agent'])->where('status', 'Active');
+        $membersQuery = Member::with(['scheme', 'ageSlab', 'agent'])->where('status', 'Active');
         $isAgent = $user && $user->isAgent() && $user->agent_id;
         if ($isAgent) {
             $membersQuery->where('agent_id', $user->agent_id);
         }
-        $members = $membersQuery->get();
-        $agents = $isAgent ? Agent::where('id', $user->agent_id)->get() : Agent::where('status', 'Active')->get();
+        $members = $membersQuery->orderBy('full_name')->get();
+        $agents = $isAgent ? Agent::where('id', $user->agent_id)->get() : Agent::where('status', 'Active')->orderBy('name')->get();
         $selectedMemberId = $request->member_id;
 
         $selectedContribution = null;
         if ($request->filled('contribution_id')) {
-            $selectedContribution = \App\Models\EventContribution::with(['event', 'member'])->find($request->contribution_id);
+            $selectedContribution = \App\Models\EventContribution::with(['event', 'member.scheme', 'member.ageSlab'])->find($request->contribution_id);
             if ($selectedContribution) {
                 $selectedMemberId = $selectedContribution->member_id;
             }

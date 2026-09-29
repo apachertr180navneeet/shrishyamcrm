@@ -66,12 +66,26 @@ class ContributionCalculationService
         }
 
         $age = max(0, $age);
-        $slabDetails = static::getSlabDetails($age);
+
+        // 1. If member has explicit monthly support amount
+        if ($member->monthly_support_amount && (float)$member->monthly_support_amount > 0) {
+            $amount = (float)$member->monthly_support_amount;
+            $slab = $member->ageSlab ? $member->ageSlab->slab_name : ($age . ' वर्ष');
+        } elseif ($member->relationLoaded('ageSlab') ? $member->ageSlab : $member->ageSlab()->first()) {
+            $ageSlab = $member->relationLoaded('ageSlab') ? $member->ageSlab : $member->ageSlab()->first();
+            $amount = (float)($ageSlab->support_amount ?: 200.0);
+            $slab = $ageSlab->slab_name;
+        } else {
+            // Fallback to age-based helper
+            $slabDetails = static::getSlabDetails($age);
+            $amount = (float)$slabDetails['amount'];
+            $slab = $slabDetails['slab'];
+        }
 
         return [
             'age' => $age,
-            'slab' => $slabDetails['slab'],
-            'amount' => $slabDetails['amount'],
+            'slab' => $slab,
+            'amount' => $amount,
         ];
     }
 

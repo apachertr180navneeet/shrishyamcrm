@@ -18,6 +18,11 @@
         color: #ffffff;
         border-color: #1B365D;
     }
+    .quick-amount-btn.active-rate {
+        background: #e8f5e9;
+        border-color: #2e7d32;
+        color: #1b5e20;
+    }
     .mode-pill input[type="radio"] {
         display: none;
     }
@@ -81,6 +86,24 @@
         </div>
     @endif
 
+    <!-- Linked Event Contribution Banner if opened from Collect Cash -->
+    @if(isset($selectedContribution) && $selectedContribution)
+        <div class="alert alert-success d-flex align-items-center mb-4 py-3 px-4 shadow-sm border-0 rounded-3">
+            <i class="fas fa-hand-holding-heart fs-2 me-3 text-success"></i>
+            <div class="flex-grow-1">
+                <div class="fw-bold fs-6 text-dark">
+                    कार्यक्रम अंशदान संग्रह (Event Contribution Cash Collection)
+                </div>
+                <div class="small text-muted mt-1">
+                    कार्यक्रम: <strong class="text-primary">{{ $selectedContribution->event ? $selectedContribution->event->title : $selectedContribution->event_name }}</strong> |
+                    सदस्य: <strong>{{ $selectedContribution->member_name }}</strong> |
+                    आयु स्लैब: <span class="badge bg-label-primary">{{ $selectedContribution->age_slab }}</span> |
+                    सदस्य अंशदान राशि: <strong class="text-success fs-6">₹{{ number_format($selectedContribution->contribution_amount, 2) }}</strong>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <!-- Form Container -->
     <div class="row justify-content-center">
         <div class="col-lg-8 col-12">
@@ -88,6 +111,11 @@
                 <div class="card-body p-3 p-md-5 mobile-form-card">
                     <form action="{{ route('admin.payments.store') }}" method="POST" id="receiptEntryForm">
                         @csrf
+
+                        @if(isset($selectedContribution) && $selectedContribution)
+                            <input type="hidden" name="event_contribution_id" value="{{ $selectedContribution->id }}">
+                            <input type="hidden" name="event_id" value="{{ $selectedContribution->event_id }}">
+                        @endif
 
                         <!-- Member Selection -->
                         <div class="mb-3 mb-md-4">
@@ -97,14 +125,18 @@
                             <select name="member_id" id="memberSelect" class="form-select form-select-lg shadow-sm" required onchange="updateMemberInfo()">
                                 <option value="">-- Choose Registered Member --</option>
                                 @foreach($members as $m)
+                                @php
+                                    $rate = (float)($m->monthly_support_amount ?: ($m->ageSlab ? $m->ageSlab->support_amount : 200.0));
+                                @endphp
                                 <option value="{{ $m->id }}"
                                     data-name="{{ $m->full_name }}"
-                                    data-monthly="{{ $m->monthly_support_amount }}"
-                                    data-pending="{{ $m->pending_amount }}"
+                                    data-monthly="{{ $rate }}"
+                                    data-pending="{{ (float)$m->pending_amount }}"
                                     data-agent="{{ $m->agent_id }}"
                                     data-scheme="{{ $m->scheme ? $m->scheme->name_hindi : '' }}"
+                                    data-ageslab="{{ $m->ageSlab ? $m->ageSlab->slab_name : '' }}"
                                     {{ $selectedMemberId == $m->id ? 'selected' : '' }}>
-                                    {{ $m->membership_no }} - {{ $m->full_name }} ({{ $m->mobile }})
+                                    {{ $m->membership_no }} - {{ $m->full_name }} ({{ $m->mobile }}) | दर: ₹{{ number_format($rate, 0) }}
                                 </option>
                                 @endforeach
                             </select>
@@ -113,16 +145,16 @@
                         <!-- Member Quick Summary Card -->
                         <div class="card border bg-light mb-3 mb-md-4 p-3 d-none rounded-3" id="memberSummaryCard">
                             <div class="row g-2 text-center text-md-start">
-                                <div class="col-4">
+                                <div class="col-md-4 col-12 mb-1">
                                     <small class="text-muted d-block" style="font-size: 11px;">योजना (Scheme)</small>
-                                    <strong id="displayScheme" class="small text-truncate d-block">-</strong>
+                                    <strong id="displayScheme" class="small text-truncate d-block text-dark">-</strong>
                                 </div>
-                                <div class="col-4">
-                                    <small class="text-muted d-block" style="font-size: 11px;">मासिक सहयोग</small>
+                                <div class="col-md-4 col-6 mb-1">
+                                    <small class="text-muted d-block" style="font-size: 11px;">सदस्य दर (Slab Rate)</small>
                                     <strong class="text-success small" id="displayMonthly">-</strong>
                                 </div>
-                                <div class="col-4">
-                                    <small class="text-muted d-block" style="font-size: 11px;">कुल बकाया (Due)</small>
+                                <div class="col-md-4 col-6 mb-1">
+                                    <small class="text-muted d-block" style="font-size: 11px;">कुल बकाया (Pending Due)</small>
                                     <strong class="text-danger small" id="displayPending">-</strong>
                                 </div>
                             </div>
@@ -138,18 +170,12 @@
                             </div>
                             <div class="input-group input-group-lg mb-2">
                                 <span class="input-group-text bg-success text-white fw-bold">₹</span>
-                                <input type="number" name="amount" id="paymentAmount" class="form-control form-control-lg fw-bold text-success fs-4" placeholder="Amount" min="1" required>
+                                <input type="number" name="amount" id="paymentAmount" class="form-control form-control-lg fw-bold text-success fs-4" placeholder="Amount" min="1" step="0.01" required value="{{ isset($selectedContribution) && $selectedContribution ? $selectedContribution->contribution_amount : '' }}">
                             </div>
 
-                            <!-- Touch Quick Chips (Mobile Optimized) -->
-                            <div class="d-flex flex-wrap gap-2 mt-2">
-                                <button type="button" class="quick-amount-btn" onclick="setAmount(200)">+ ₹200</button>
-                                <button type="button" class="quick-amount-btn" onclick="setAmount(300)">+ ₹300</button>
-                                <button type="button" class="quick-amount-btn" onclick="setAmount(500)">+ ₹500</button>
-                                <button type="button" class="quick-amount-btn" onclick="setAmount(1000)">+ ₹1000</button>
-                                <button type="button" class="quick-amount-btn text-danger fw-bold border-danger" id="fullDueBtn" onclick="setFullDue()" style="display: none;">
-                                    ⚡ Full Pending Due
-                                </button>
+                            <!-- Dynamic Touch Quick Chips (Adjusts to Member's exact rate) -->
+                            <div class="d-flex flex-wrap gap-2 mt-2" id="quickAmountContainer">
+                                <!-- Generated dynamically via JavaScript -->
                             </div>
                         </div>
 
@@ -190,9 +216,9 @@
                         <div class="row g-3 mb-3">
                             <div class="col-md-6 col-12">
                                 <label class="form-label fw-semibold">Payment Type (प्रकार) <span class="text-danger">*</span></label>
-                                <select name="payment_type" class="form-select form-select-lg" required>
-                                    <option value="Monthly Support" selected>Monthly Support (मासिक सहयोग)</option>
-                                    <option value="Event Contribution">Event Contribution (विवाह सहयोग)</option>
+                                <select name="payment_type" id="paymentTypeSelect" class="form-select form-select-lg" required onchange="onPaymentTypeChange()">
+                                    <option value="Monthly Support" {{ isset($selectedContribution) && $selectedContribution ? '' : 'selected' }}>Monthly Support (मासिक सहयोग)</option>
+                                    <option value="Event Contribution" {{ isset($selectedContribution) && $selectedContribution ? 'selected' : '' }}>Event Contribution (विवाह सहयोग)</option>
                                     <option value="Joining Fee">Joining Fee (प्रवेश शुल्क)</option>
                                     <option value="Special Donation">Special Donation (विशेष दान)</option>
                                 </select>
@@ -201,6 +227,19 @@
                                 <label class="form-label fw-semibold">Collection Date (संग्रह तिथि) <span class="text-danger">*</span></label>
                                 <input type="date" name="payment_date" class="form-control form-select-lg" value="{{ date('Y-m-d') }}" required>
                             </div>
+                        </div>
+
+                        <!-- Event Dropdown if Event Contribution is selected and not locked by selectedContribution -->
+                        <div class="mb-3 {{ isset($selectedContribution) && $selectedContribution ? 'd-none' : '' }}" id="eventSelectGroup" style="{{ isset($selectedContribution) && $selectedContribution ? '' : 'display: none;' }}">
+                            <label class="form-label fw-semibold">Select Applicable Event (विवाह कार्यक्रम चुनें)</label>
+                            <select name="event_id" id="eventSelect" class="form-select" {{ isset($selectedContribution) && $selectedContribution ? 'disabled' : '' }}>
+                                <option value="">-- Direct Pool / Choose Event --</option>
+                                @foreach($events as $ev)
+                                <option value="{{ $ev->id }}" {{ (isset($selectedContribution) && $selectedContribution && $selectedContribution->event_id == $ev->id) ? 'selected' : '' }}>
+                                    {{ $ev->event_code }} - {{ $ev->title }} ({{ $ev->girl_name }})
+                                </option>
+                                @endforeach
+                            </select>
                         </div>
 
                         <!-- Agent Identification -->
@@ -240,41 +279,45 @@
 @section('script')
 <script>
 let currentMemberPending = 0;
+let currentMemberRate = 200;
+const hasInitialContribution = {{ isset($selectedContribution) && $selectedContribution ? 'true' : 'false' }};
+const initialContributionAmount = {{ isset($selectedContribution) && $selectedContribution ? $selectedContribution->contribution_amount : 0 }};
 
 function updateMemberInfo() {
     const select = document.getElementById('memberSelect');
     const option = select.options[select.selectedIndex];
     const card = document.getElementById('memberSummaryCard');
-    const fullDueBtn = document.getElementById('fullDueBtn');
     const badge = document.getElementById('suggestedAmountBadge');
+    const amountInput = document.getElementById('paymentAmount');
 
     if (!option.value) {
         card.classList.add('d-none');
-        fullDueBtn.style.display = 'none';
         badge.innerText = '';
         currentMemberPending = 0;
+        currentMemberRate = 200;
+        renderQuickChips(200, 0);
         return;
     }
 
     card.classList.remove('d-none');
-    document.getElementById('displayScheme').innerText = option.getAttribute('data-scheme') || 'N/A';
-    document.getElementById('displayMonthly').innerText = '₹' + Number(option.getAttribute('data-monthly')).toLocaleString('en-IN') + ' / mo';
-    
+    const scheme = option.getAttribute('data-scheme') || 'N/A';
+    const ageSlab = option.getAttribute('data-ageslab') || '';
+    currentMemberRate = Number(option.getAttribute('data-monthly')) || 200;
     currentMemberPending = Number(option.getAttribute('data-pending')) || 0;
+
+    document.getElementById('displayScheme').innerText = scheme + (ageSlab ? ` (${ageSlab})` : '');
+    document.getElementById('displayMonthly').innerText = '₹' + currentMemberRate.toLocaleString('en-IN') + ' / दर';
     document.getElementById('displayPending').innerText = '₹' + currentMemberPending.toLocaleString('en-IN');
 
-    const monthly = Number(option.getAttribute('data-monthly')) || 0;
-
-    if (currentMemberPending > 0) {
-        document.getElementById('paymentAmount').value = currentMemberPending;
-        fullDueBtn.style.display = 'inline-block';
-        fullDueBtn.innerText = '⚡ Pay Due: ₹' + currentMemberPending;
-        badge.innerText = 'Pending Due Auto-Filled';
-    } else if (monthly > 0) {
-        document.getElementById('paymentAmount').value = monthly;
-        fullDueBtn.style.display = 'none';
-        badge.innerText = 'Monthly Support Auto-Filled';
+    // Auto-fill payment amount if not initialized with an event contribution
+    if (hasInitialContribution && initialContributionAmount > 0 && amountInput.value == initialContributionAmount) {
+        badge.innerText = `अंशदान राशि (₹${initialContributionAmount}) स्वतः दर्ज`;
+    } else {
+        amountInput.value = currentMemberRate;
+        badge.innerText = `सदस्य दर (₹${currentMemberRate}) स्वतः दर्ज`;
     }
+
+    renderQuickChips(currentMemberRate, currentMemberPending);
 
     const agentId = option.getAttribute('data-agent');
     const agentSelect = document.getElementById('agentSelect');
@@ -283,13 +326,51 @@ function updateMemberInfo() {
     }
 }
 
+function renderQuickChips(rate, pending) {
+    const container = document.getElementById('quickAmountContainer');
+    let html = '';
+
+    // Member Base Rate Chip
+    html += `<button type="button" class="quick-amount-btn active-rate fw-bold" onclick="setAmount(${rate})">
+        ⚡ सदस्य दर: ₹${rate}
+    </button>`;
+
+    // Multipliers (2x, 3x, 5x)
+    html += `<button type="button" class="quick-amount-btn" onclick="setAmount(${rate * 2})">2× ₹${rate * 2}</button>`;
+    html += `<button type="button" class="quick-amount-btn" onclick="setAmount(${rate * 3})">3× ₹${rate * 3}</button>`;
+    html += `<button type="button" class="quick-amount-btn" onclick="setAmount(${rate * 5})">5× ₹${rate * 5}</button>`;
+
+    // Full Due Chip if pending > 0
+    if (pending > 0) {
+        html += `<button type="button" class="quick-amount-btn text-danger fw-bold border-danger" onclick="setAmount(${pending})">
+            ⚡ Full Due: ₹${pending}
+        </button>`;
+    }
+
+    // Common standard chips
+    if (rate !== 500 && rate * 2 !== 500) {
+        html += `<button type="button" class="quick-amount-btn" onclick="setAmount(500)">₹500</button>`;
+    }
+    if (rate !== 1000 && rate * 2 !== 1000) {
+        html += `<button type="button" class="quick-amount-btn" onclick="setAmount(1000)">₹1,000</button>`;
+    }
+
+    container.innerHTML = html;
+}
+
 function setAmount(amt) {
     document.getElementById('paymentAmount').value = amt;
 }
 
-function setFullDue() {
-    if (currentMemberPending > 0) {
-        document.getElementById('paymentAmount').value = currentMemberPending;
+function onPaymentTypeChange() {
+    const type = document.getElementById('paymentTypeSelect').value;
+    const eventGroup = document.getElementById('eventSelectGroup');
+    if (eventGroup && !hasInitialContribution) {
+        if (type === 'Event Contribution') {
+            eventGroup.style.display = 'block';
+        } else {
+            eventGroup.style.display = 'none';
+        }
     }
 }
 
@@ -304,6 +385,8 @@ function toggleRefField(mode) {
 
 document.addEventListener("DOMContentLoaded", function () {
     updateMemberInfo();
+    onPaymentTypeChange();
 });
 </script>
 @endsection
+
