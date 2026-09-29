@@ -502,13 +502,13 @@
                 <input type="hidden" name="events_count" id="billingEventsCount" value="1">
 
                 <div class="modal-header" style="background: #1B365D; color: #fff;">
-                    <h5 class="modal-title fw-bold text-white"><i class="fas fa-calculator me-2"></i>मासिक बिलिंग (Generate Monthly Bill)</h5>
+                    <h5 class="modal-title fw-bold text-white"><i class="fas fa-calculator me-2"></i>कार्यक्रम आधारित बिलिंग (Generate Event-Based Bill)</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
                     <div class="alert alert-info py-2 px-3 small mb-3">
                         <i class="fas fa-info-circle me-1"></i>
-                        प्रत्येक सक्रिय सदस्य के लेजर में उसकी <strong>आयु स्लैब / मासिक सहयोग दर (Age Slab Amount)</strong> के अनुसार बिल स्वतः दर्ज होगा।
+                        प्रत्येक सक्रिय सदस्य के लेजर में उसकी <strong>आयु स्लैब / सहयोग दर प्रति कार्यक्रम (Support Per Event)</strong> के अनुसार कुल कार्यक्रमों का बिल स्वतः दर्ज होगा।
                     </div>
 
                     <div class="mb-3">
@@ -738,7 +738,7 @@ function fetchMonthEventsData(monthStr) {
                 html += '</div>';
                 container.innerHTML = html;
             } else {
-                container.innerHTML = '<div class="text-muted small py-3"><i class="fas fa-info-circle me-1"></i> इस माह (' + monthStr + ') में कोई पंजीकृत विवाह कार्यक्रम नहीं है। सामान्य मासिक सहयोग लागू होगा।</div>';
+                container.innerHTML = '<div class="text-muted small py-3"><i class="fas fa-info-circle me-1"></i> इस माह (' + monthStr + ') में कोई पंजीकृत विवाह कार्यक्रम नहीं है। कोई देयता लागू नहीं होगी।</div>';
             }
 
             // Store and Render Members preview table

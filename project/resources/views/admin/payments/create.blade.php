@@ -136,7 +136,7 @@
                                     data-scheme="{{ $m->scheme ? $m->scheme->name_hindi : '' }}"
                                     data-ageslab="{{ $m->ageSlab ? $m->ageSlab->slab_name : '' }}"
                                     {{ $selectedMemberId == $m->id ? 'selected' : '' }}>
-                                    {{ $m->membership_no }} - {{ $m->full_name }} ({{ $m->mobile }}) | दर: ₹{{ number_format($rate, 0) }}
+                                    {{ $m->membership_no }} - {{ $m->full_name }} ({{ $m->mobile }}) | दर: ₹{{ number_format($rate, 0) }}/कार्यक्रम
                                 </option>
                                 @endforeach
                             </select>
@@ -150,7 +150,7 @@
                                     <strong id="displayScheme" class="small text-truncate d-block text-dark">-</strong>
                                 </div>
                                 <div class="col-md-4 col-6 mb-1">
-                                    <small class="text-muted d-block" style="font-size: 11px;">सदस्य दर (Slab Rate)</small>
+                                    <small class="text-muted d-block" style="font-size: 11px;">सदस्य दर (प्रति कार्यक्रम)</small>
                                     <strong class="text-success small" id="displayMonthly">-</strong>
                                 </div>
                                 <div class="col-md-4 col-6 mb-1">
@@ -217,7 +217,7 @@
                             <div class="col-md-6 col-12">
                                 <label class="form-label fw-semibold">Payment Type (प्रकार) <span class="text-danger">*</span></label>
                                 <select name="payment_type" id="paymentTypeSelect" class="form-select form-select-lg" required onchange="onPaymentTypeChange()">
-                                    <option value="Monthly Support" {{ isset($selectedContribution) && $selectedContribution ? '' : 'selected' }}>Monthly Support (मासिक सहयोग)</option>
+                                    <option value="Monthly Support" {{ isset($selectedContribution) && $selectedContribution ? '' : 'selected' }}>Event Support (सहयोग राशि - प्रति कार्यक्रम)</option>
                                     <option value="Event Contribution" {{ isset($selectedContribution) && $selectedContribution ? 'selected' : '' }}>Event Contribution (विवाह सहयोग)</option>
                                     <option value="Joining Fee">Joining Fee (प्रवेश शुल्क)</option>
                                     <option value="Special Donation">Special Donation (विशेष दान)</option>
@@ -306,7 +306,7 @@ function updateMemberInfo() {
     currentMemberPending = Number(option.getAttribute('data-pending')) || 0;
 
     document.getElementById('displayScheme').innerText = scheme + (ageSlab ? ` (${ageSlab})` : '');
-    document.getElementById('displayMonthly').innerText = '₹' + currentMemberRate.toLocaleString('en-IN') + ' / दर';
+    document.getElementById('displayMonthly').innerText = '₹' + currentMemberRate.toLocaleString('en-IN') + ' / कार्यक्रम';
     document.getElementById('displayPending').innerText = '₹' + currentMemberPending.toLocaleString('en-IN');
 
     // Auto-fill payment amount if not initialized with an event contribution
@@ -332,7 +332,7 @@ function renderQuickChips(rate, pending) {
 
     // Member Base Rate Chip
     html += `<button type="button" class="quick-amount-btn active-rate fw-bold" onclick="setAmount(${rate})">
-        ⚡ सदस्य दर: ₹${rate}
+        ⚡ 1× कार्यक्रम दर: ₹${rate}
     </button>`;
 
     // Multipliers (2x, 3x, 5x)

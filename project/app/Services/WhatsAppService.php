@@ -67,7 +67,7 @@ class WhatsAppService
         $msg .= "प्रिय सदस्य *{$member->full_name}* जी,\n";
         $msg .= "सदस्यता संख्या: *{$member->membership_no}*\n\n";
         $msg .= "आपके खाते में कुल बकाया राशि: *₹" . number_format($member->pending_amount, 2) . "* है।\n";
-        $msg .= "कृपया समय पर मासिक सहयोग राशि जमा करवाकर समाज सेवा में भागीदार बनें।\n\n";
+        $msg .= "कृपया समय पर सहयोग राशि जमा करवाकर समाज सेवा में भागीदार बनें।\n\n";
         $msg .= "सम्पर्क: " . SocietySetting::getVal('phone', '+91 98290 12345');
 
         $encodedMsg = urlencode($msg);

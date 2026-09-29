@@ -703,7 +703,7 @@ class MarriageEventController extends Controller
             $msgLines[] = "सहयोग गणना: [इस माह का सहयोग: कुल कार्यक्रम × सदस्य दर] + [पिछला बकाया] = [कुल देय]";
         } else {
             $msgLines[] = "इस माह में अभी कोई पंजीकृत विवाह कार्यक्रम नहीं है।";
-            $msgLines[] = "मासिक सहयोग दर: सदस्य स्लैब नियमानुसार";
+            $msgLines[] = "सहयोग दर: सदस्य स्लैब नियमानुसार (प्रति कार्यक्रम)";
         }
 
         $msgLines[] = "------------------------------------";
@@ -750,7 +750,7 @@ class MarriageEventController extends Controller
                 $personalLines[] = "कुल कार्यक्रम: {$eventsCount}";
                 $personalLines[] = "आपकी निर्धारित दर: ₹" . number_format($rate, 0) . "/कार्यक्रम";
             } else {
-                $personalLines[] = "मासिक सहयोग दर: ₹" . number_format($rate, 0);
+                $personalLines[] = "सहयोग दर: ₹" . number_format($rate, 0) . "/कार्यक्रम";
             }
 
             $personalLines[] = "------------------------------------";

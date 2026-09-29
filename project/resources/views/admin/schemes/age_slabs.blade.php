@@ -7,7 +7,7 @@
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
                 <div>
                     <h4 class="fw-bold mb-1" style="font-family: 'Hind', sans-serif;">आयु वर्ग विन्यास (Age Slabs Master)</h4>
-                    <p class="text-muted mb-0">Configure dynamic age limits, initial joining fees, and monthly support amounts per scheme with full add, edit, and status controls.</p>
+                    <p class="text-muted mb-0">Configure dynamic age limits, initial joining fees, and per-event support amounts per scheme with full add, edit, and status controls.</p>
                 </div>
                 <div class="d-flex gap-2">
                     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSlabModal">
@@ -35,7 +35,7 @@
                         <th>Scheme</th>
                         <th>Age Range</th>
                         <th>Joining Amount</th>
-                        <th>Monthly Support</th>
+                        <th>Support Per Event (प्रति कार्यक्रम)</th>
                         <th>Status (Enum)</th>
                         <th>Effective Period</th>
                         <th class="text-center">Actions</th>
@@ -53,7 +53,7 @@
                         </td>
                         <td><span class="badge bg-label-info fs-6">{{ $slab->min_age }} – {{ $slab->max_age }} Years</span></td>
                         <td><strong class="text-success">₹{{ number_format($slab->joining_amount) }}</strong></td>
-                        <td><strong class="text-primary">₹{{ number_format($slab->support_amount) }}/mo</strong></td>
+                        <td><strong class="text-primary">₹{{ number_format($slab->support_amount) }}/कार्यक्रम</strong></td>
                         <td>
                             <span class="badge {{ $slab->status == 'Active' ? 'bg-success' : 'bg-danger' }}">
                                 {{ $slab->status }}
@@ -129,7 +129,7 @@
                             <input type="number" name="joining_amount" class="form-control" placeholder="e.g. 1100" min="0" required>
                         </div>
                         <div class="col-6">
-                            <label class="form-label fw-semibold">Monthly Support (₹) <span class="text-danger">*</span></label>
+                            <label class="form-label fw-semibold">Support Per Event (प्रति कार्यक्रम ₹) <span class="text-danger">*</span></label>
                             <input type="number" name="support_amount" class="form-control" placeholder="e.g. 200" min="0" required>
                         </div>
                     </div>
@@ -191,7 +191,7 @@
                             <input type="number" name="joining_amount" id="edit_slab_joining_amount" class="form-control" min="0" required>
                         </div>
                         <div class="col-6">
-                            <label class="form-label fw-semibold">Monthly Support (₹) <span class="text-danger">*</span></label>
+                            <label class="form-label fw-semibold">Support Per Event (प्रति कार्यक्रम ₹) <span class="text-danger">*</span></label>
                             <input type="number" name="support_amount" id="edit_slab_support_amount" class="form-control" min="0" required>
                         </div>
                     </div>

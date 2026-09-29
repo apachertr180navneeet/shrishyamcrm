@@ -64,7 +64,7 @@
                         <th>Scheme</th>
                         <th>Age / DOB</th>
                         <th>Agent</th>
-                        <th>Monthly Support</th>
+                        <th>सहयोग दर (प्रति कार्यक्रम)</th>
                         <th>Status</th>
                         <th class="text-center">Actions</th>
                     </tr>
@@ -102,7 +102,7 @@
                             <small class="d-block text-muted">{{ $m->agent ? $m->agent->district : '' }}</small>
                         </td>
                         <td>
-                            <strong class="text-success">₹{{ number_format($m->monthly_support_amount) }}/mo</strong>
+                            <strong class="text-success">₹{{ number_format($m->monthly_support_amount) }}/कार्यक्रम</strong>
                             @if($m->pending_amount > 0)
                                 <small class="d-block text-danger"><i class="fas fa-exclamation-circle me-1"></i>Due: ₹{{ number_format($m->pending_amount) }}</small>
                             @endif

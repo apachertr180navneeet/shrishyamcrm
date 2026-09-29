@@ -241,7 +241,7 @@
                                     <option value="">-- Select Age Slab --</option>
                                     @foreach($ageSlabs as $slab)
                                     <option value="{{ $slab->id }}" data-scheme="{{ $slab->scheme_id }}" data-joining="{{ $slab->joining_amount }}" data-support="{{ $slab->support_amount }}" {{ old('age_slab_id', $member->age_slab_id) == $slab->id ? 'selected' : '' }}>
-                                        {{ $slab->slab_name ?? ($slab->min_age . '-' . $slab->max_age . ' Yrs') }} (₹{{ number_format($slab->support_amount) }}/mo)
+                                        {{ $slab->slab_name ?? ($slab->min_age . '-' . $slab->max_age . ' Yrs') }} (₹{{ number_format($slab->support_amount) }}/कार्यक्रम)
                                     </option>
                                     @endforeach
                                 </select>
@@ -251,11 +251,11 @@
 
                         <div class="row g-3 mb-3">
                             <div class="col-md-4 col-12">
-                                <label class="form-label fw-semibold">Monthly Support (मासिक सहयोग)</label>
+                                <label class="form-label fw-semibold">अंशदान दर (प्रति कार्यक्रम सहयोग) / Support Per Event</label>
                                 <div class="input-group">
                                     <span class="input-group-text">₹</span>
                                     <input type="number" name="monthly_support_amount" id="monthlySupportInput" class="form-control @error('monthly_support_amount') is-invalid @enderror" value="{{ old('monthly_support_amount', $member->monthly_support_amount) }}" step="1" required>
-                                    <span class="input-group-text">/mo</span>
+                                    <span class="input-group-text">/कार्यक्रम</span>
                                 </div>
                                 @error('monthly_support_amount') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                             </div>

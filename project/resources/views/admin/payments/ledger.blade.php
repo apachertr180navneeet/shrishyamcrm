@@ -121,7 +121,7 @@
             <div class="mt-3 p-3 bg-white rounded border d-flex align-items-center justify-content-between flex-wrap gap-3">
                 <div>
                     <h6 class="fw-bold mb-1 text-heading"><i class="fas fa-calculator text-primary me-1"></i> चालू माह एवं बकाया गणना (Monthly Dues Calculation: {{ date('M Y') }})</h6>
-                    <small class="text-muted">मासिक सहयोग/कार्यक्रम + पूर्व माह बकाया = कुल देय राशि</small>
+                    <small class="text-muted">कुल कार्यक्रम सहयोग राशि + पिछला बकाया = कुल देय राशि</small>
                 </div>
                 <div class="d-flex align-items-center gap-2 flex-wrap">
                     <div class="px-3 py-2 bg-light rounded text-center border">

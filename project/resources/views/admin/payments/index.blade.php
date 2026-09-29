@@ -30,7 +30,7 @@
                 <div class="col-lg-3 col-md-6 col-12">
                     <select name="payment_type" class="form-select" onchange="this.form.submit()">
                         <option value="">All Payment Types</option>
-                        <option value="Monthly Support" {{ request('payment_type') == 'Monthly Support' ? 'selected' : '' }}>Monthly Support (मासिक सहयोग)</option>
+                        <option value="Monthly Support" {{ request('payment_type') == 'Monthly Support' ? 'selected' : '' }}>Event Support (सहयोग राशि - प्रति कार्यक्रम)</option>
                         <option value="Joining Fee" {{ request('payment_type') == 'Joining Fee' ? 'selected' : '' }}>Joining Fee (प्रवेश शुल्क)</option>
                         <option value="Event Contribution" {{ request('payment_type') == 'Event Contribution' ? 'selected' : '' }}>Event Contribution (विवाह सहयोग)</option>
                     </select>

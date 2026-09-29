@@ -79,7 +79,7 @@
                         <th>Age</th>
                         <th>District</th>
                         <th>Agent</th>
-                        <th>Monthly Support</th>
+                        <th>सहयोग दर (प्रति कार्यक्रम)</th>
                         <th>Status</th>
                     </tr>
                 </thead>
@@ -93,7 +93,7 @@
                         <td>{{ $m->age }} Yrs</td>
                         <td>{{ $m->district }}</td>
                         <td>{{ $m->agent ? $m->agent->name : 'HQ' }}</td>
-                        <td><strong class="text-success">₹{{ number_format($m->monthly_support_amount) }}</strong></td>
+                        <td><strong class="text-success">₹{{ number_format($m->monthly_support_amount) }}/कार्यक्रम</strong></td>
                         <td><span class="badge bg-success">{{ $m->status }}</span></td>
                     </tr>
                     @endforeach

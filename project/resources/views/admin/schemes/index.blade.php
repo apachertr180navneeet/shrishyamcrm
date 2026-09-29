@@ -206,7 +206,7 @@
                                     <tr>
                                         <th>Age Bracket</th>
                                         <th>Joining Fee</th>
-                                        <th>Support Amt</th>
+                                        <th>Support/Event (प्रति कार्यक्रम)</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -214,7 +214,7 @@
                                     <tr>
                                         <td>{{ $sl->min_age }} – {{ $sl->max_age }} Years</td>
                                         <td>₹{{ number_format($sl->joining_amount) }}</td>
-                                        <td>₹{{ number_format($sl->support_amount) }}/mo</td>
+                                        <td>₹{{ number_format($sl->support_amount) }}/कार्यक्रम</td>
                                     </tr>
                                     @empty
                                     <tr>

@@ -103,8 +103,8 @@
                     </div>
                     <div class="col-lg-4 col-12">
                         <div class="card bg-lighter border p-3">
-                            <small class="text-muted d-block">Monthly Support Amount</small>
-                            <h4 class="fw-bold text-success mb-0">₹{{ number_format($member->monthly_support_amount) }}/mo</h4>
+                            <small class="text-muted d-block">अंशदान दर (प्रति कार्यक्रम) / Support Per Event</small>
+                            <h4 class="fw-bold text-success mb-0">₹{{ number_format($member->monthly_support_amount) }}/कार्यक्रम</h4>
                         </div>
                     </div>
                     <div class="col-lg-4 col-12">

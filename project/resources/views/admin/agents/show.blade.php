@@ -143,7 +143,7 @@
                         <th>Member Name</th>
                         <th>Mobile</th>
                         <th>Scheme</th>
-                        <th>Monthly Support</th>
+                        <th>सहयोग दर (प्रति कार्यक्रम)</th>
                         <th>Status</th>
                         <th class="text-center">Action</th>
                     </tr>
@@ -155,7 +155,7 @@
                         <td><strong>{{ $m->full_name }}</strong></td>
                         <td>{{ $m->mobile }}</td>
                         <td><span class="badge bg-label-primary">{{ $m->scheme ? $m->scheme->name_hindi : 'N/A' }}</span></td>
-                        <td><strong class="text-success">₹{{ number_format($m->monthly_support_amount) }}/mo</strong></td>
+                        <td><strong class="text-success">₹{{ number_format($m->monthly_support_amount) }}/कार्यक्रम</strong></td>
                         <td><span class="badge bg-success">{{ $m->status }}</span></td>
                         <td class="text-center">
                             <a href="{{ route('admin.members.show', $m->id) }}" class="btn btn-sm btn-outline-primary">View</a>

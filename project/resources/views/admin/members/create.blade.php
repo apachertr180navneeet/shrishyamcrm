@@ -294,8 +294,8 @@
                                         </div>
                                         <div class="col-md-4 col-12">
                                             <div class="bg-white p-3 rounded border">
-                                                <small class="text-muted d-block">Monthly Support Amount</small>
-                                                <span class="fs-4 fw-bold text-primary" id="supportAmountDisplay">₹0 / mo</span>
+                                                <small class="text-muted d-block">अंशदान दर (प्रति कार्यक्रम) / Support Per Event</small>
+                                                <span class="fs-4 fw-bold text-primary" id="supportAmountDisplay">₹0 / कार्यक्रम</span>
                                             </div>
                                         </div>
                                     </div>
@@ -410,8 +410,8 @@
                                              <strong class="text-success" id="summaryJoining">₹0</strong>
                                         </li>
                                         <li class="d-flex justify-content-between py-1 border-bottom">
-                                             <span class="text-muted">Monthly Recurring Support:</span>
-                                             <strong class="text-primary" id="summarySupport">₹0 / mo</strong>
+                                             <span class="text-muted">Support Per Event (प्रति कार्यक्रम अंशदान):</span>
+                                             <strong class="text-primary" id="summarySupport">₹0 / कार्यक्रम</strong>
                                         </li>
                                         <li class="d-flex justify-content-between py-1 border-bottom">
                                              <span class="text-muted">Official Society Receipt:</span>
@@ -639,23 +639,23 @@ function onAgeSlabChange() {
 
     document.getElementById('slabLabel').innerText = slabText;
     document.getElementById('joiningAmountDisplay').innerText = '₹' + joining.toLocaleString('en-IN');
-    document.getElementById('supportAmountDisplay').innerText = '₹' + support.toLocaleString('en-IN') + ' / mo';
+    document.getElementById('supportAmountDisplay').innerText = '₹' + support.toLocaleString('en-IN') + ' / कार्यक्रम';
 
     document.getElementById('joiningAmountInput').value = joining;
     document.getElementById('supportAmountInput').value = support;
 
     document.getElementById('summaryJoining').innerText = '₹' + joining.toLocaleString('en-IN');
-    document.getElementById('summarySupport').innerText = '₹' + support.toLocaleString('en-IN') + ' / mo';
+    document.getElementById('summarySupport').innerText = '₹' + support.toLocaleString('en-IN') + ' / कार्यक्रम';
 }
 
 function resetSlabDisplay() {
     document.getElementById('slabLabel').innerText = '--';
     document.getElementById('joiningAmountDisplay').innerText = '₹0';
-    document.getElementById('supportAmountDisplay').innerText = '₹0 / mo';
+    document.getElementById('supportAmountDisplay').innerText = '₹0 / कार्यक्रम';
     document.getElementById('joiningAmountInput').value = '';
     document.getElementById('supportAmountInput').value = '';
     document.getElementById('summaryJoining').innerText = '₹0';
-    document.getElementById('summarySupport').innerText = '₹0 / mo';
+    document.getElementById('summarySupport').innerText = '₹0 / कार्यक्रम';
 }
 
 document.addEventListener("DOMContentLoaded", function () {
