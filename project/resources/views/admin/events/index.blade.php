@@ -187,8 +187,9 @@
                         </div>
 
                         <div class="col-md-6 col-12">
-                            <label class="form-label fw-semibold">Rate per Event (₹)</label>
-                            <input type="number" name="rate_per_event" class="form-control" value="200" step="0.01">
+                            <label class="form-label fw-semibold">Contribution Rate (अंशदान दर)</label>
+                            <input type="text" class="form-control bg-light text-primary fw-semibold" value="प्रत्येक सदस्य के आयु वर्ग / सहयोग अनुसार" readonly>
+                            <small class="text-muted"><i class="fas fa-calculator text-primary me-1"></i> प्रत्येक सदस्य के आयु स्लैब अनुसार अंशदान कटेगा (200/- फिक्स नहीं)।</small>
                         </div>
 
                         <div class="col-12">
@@ -287,8 +288,9 @@
                         </div>
 
                         <div class="col-md-6 col-12">
-                            <label class="form-label fw-semibold">Rate per Event (₹)</label>
-                            <input type="number" name="rate_per_event" id="editEventRatePerEvent" class="form-control" step="0.01">
+                            <label class="form-label fw-semibold">Contribution Rate (अंशदान दर)</label>
+                            <input type="text" class="form-control bg-light text-primary fw-semibold" value="प्रत्येक सदस्य के आयु वर्ग / सहयोग अनुसार" readonly>
+                            <small class="text-muted"><i class="fas fa-calculator text-primary me-1"></i> अंशदान सदस्य के आयु-स्लैब के अनुसार लागू होता है।</small>
                         </div>
 
                         <div class="col-12">

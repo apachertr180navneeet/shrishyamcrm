@@ -112,7 +112,7 @@ class MarriageEventController extends Controller
             'target_amount' => $targetAmount ?: 0,
             'collected_amount' => 0,
             'beneficiary_payout_amount' => $targetAmount ?: 0,
-            'rate_per_event' => $request->rate_per_event ?? 200.00,
+            'rate_per_event' => $request->filled('rate_per_event') ? (float)$request->rate_per_event : 0.00,
             'status' => 'Upcoming',
             'description' => $request->description,
         ]);

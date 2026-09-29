@@ -201,6 +201,7 @@ class MarriageEventCreationTest extends TestCase
 
     public function test_can_create_event_without_scheme_and_generates_contributions_for_all_active_members()
     {
+        $this->withoutExceptionHandling();
         $admin = User::where('role', 'admin')->first() ?? User::create([
             'first_name' => 'Admin',
             'last_name' => 'User',
