@@ -315,69 +315,174 @@
 
 <!-- Monthly All-Events Common Message Modal ("All Event ka ek saath data jayega") -->
 <div class="modal fade" id="monthlyBroadcastModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
+        <div class="modal-content border-0 shadow-lg">
             <form action="{{ route('admin.events.broadcast-send') }}" method="POST">
                 @csrf
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title text-white fw-bold">
-                        <i class="fab fa-whatsapp me-2"></i>माह के सभी कार्यक्रमों का साझा संदेश (Monthly Common Message)
-                    </h5>
+                <div class="modal-header bg-success text-white py-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fab fa-whatsapp fs-3"></i>
+                        <div>
+                            <h5 class="modal-title text-white fw-bold mb-0">माह के सभी कार्यक्रमों का साझा संदेश (Monthly Common Message & Member Dispatch)</h5>
+                            <small class="text-white-50">माह के सभी कार्यक्रमों की सूची + प्रत्येक सदस्य का (इस माह शुल्क + पिछला बकाया = कुल देय) विवरण</small>
+                        </div>
+                    </div>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body p-4">
-                    <p class="text-muted small mb-3">
-                        इस माह के सभी विवाह कार्यक्रमों का संपूर्ण डेटा एक साथ एकत्रित करके सदस्यों को एक ही संदेश में भेजा जाएगा।
-                    </p>
-
-                    <!-- Month Picker -->
-                    <div class="row g-3 mb-3 align-items-center">
-                        <div class="col-md-6 col-12">
-                            <label class="form-label fw-semibold">
-                                <i class="fas fa-calendar-alt text-primary me-1"></i> Month (माह चुनें) <span class="text-danger">*</span>
-                            </label>
-                            <input type="month" name="month" id="broadcastMonthInput" class="form-control form-control-lg" value="{{ date('Y-m') }}" onchange="fetchMonthEventsData(this.value)" required>
-                        </div>
-                        <div class="col-md-6 col-12 text-md-end">
-                            <div class="p-3 bg-light rounded border text-start text-md-end">
-                                <span class="badge bg-primary fs-6 mb-1" id="broadcastEventsBadge">Loading events...</span>
-                                <div class="text-success fw-bold fs-6" id="broadcastTotalRate">प्रति सदस्य देय: ₹--</div>
+                <div class="modal-body p-4 bg-light">
+                    <!-- Top Filter & Stats Bar -->
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-body p-3">
+                            <div class="row g-3 align-items-center">
+                                <div class="col-lg-4 col-md-5 col-12">
+                                    <label class="form-label fw-bold text-dark mb-1">
+                                        <i class="fas fa-calendar-alt text-primary me-1"></i> माह चुनें (Billing / Event Month) <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="month" name="month" id="broadcastMonthInput" class="form-control form-control-lg fw-bold" value="{{ date('Y-m') }}" onchange="fetchMonthEventsData(this.value)" required>
+                                        <button type="button" class="btn btn-outline-primary" onclick="fetchMonthEventsData(document.getElementById('broadcastMonthInput').value)">
+                                            <i class="fas fa-sync-alt me-1"></i> Refresh
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-lg-8 col-md-7 col-12">
+                                    <div class="row g-2 text-center">
+                                        <div class="col-3">
+                                            <div class="p-2 bg-white rounded border shadow-xs">
+                                                <small class="text-muted d-block" style="font-size: 0.75rem;">कुल कार्यक्रम</small>
+                                                <strong class="fs-6 text-primary" id="statEventsCount">0</strong>
+                                            </div>
+                                        </div>
+                                        <div class="col-3">
+                                            <div class="p-2 bg-white rounded border shadow-xs">
+                                                <small class="text-muted d-block" style="font-size: 0.75rem;">इस माह का सहयोग</small>
+                                                <strong class="fs-6 text-dark" id="statThisMonthTotal">₹0</strong>
+                                            </div>
+                                        </div>
+                                        <div class="col-3">
+                                            <div class="p-2 bg-white rounded border shadow-xs">
+                                                <small class="text-muted d-block" style="font-size: 0.75rem;">पिछला बकाया</small>
+                                                <strong class="fs-6 text-danger" id="statPrevDueTotal">₹0</strong>
+                                            </div>
+                                        </div>
+                                        <div class="col-3">
+                                            <div class="p-2 bg-white rounded border shadow-xs">
+                                                <small class="text-muted d-block" style="font-size: 0.75rem;">कुल देय राशि</small>
+                                                <strong class="fs-6 text-success fw-bold" id="statGrandTotal">₹0</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Live Events Preview list -->
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">इस माह के पंजीकृत कार्यक्रम (Scheduled Events in Month):</label>
-                        <div id="eventsListContainer" class="p-3 bg-light rounded border" style="max-height: 140px; overflow-y: auto;">
-                            <div class="text-muted small"><i class="fas fa-spinner fa-spin me-1"></i> Fetching events...</div>
-                        </div>
-                    </div>
-
-                    <!-- Message Textarea -->
-                    <div class="mb-4">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <label class="form-label fw-semibold mb-0">
-                                <i class="fas fa-comment-dots text-success me-1"></i> Common Message to Users (साझा संदेश) <span class="text-danger">*</span>
-                            </label>
-                            <button type="button" class="btn btn-sm btn-link text-decoration-none p-0" onclick="fetchMonthEventsData(document.getElementById('broadcastMonthInput').value)">
-                                <i class="fas fa-sync-alt me-1"></i> Reset to Default Template
+                    <!-- Navigation Tabs -->
+                    <ul class="nav nav-pills nav-fill mb-3 bg-white p-1 rounded border shadow-sm" role="tablist">
+                        <li class="nav-item">
+                            <button type="button" class="nav-link active fw-bold py-2" data-bs-toggle="tab" data-bs-target="#tab-common-broadcast">
+                                <i class="fas fa-bullhorn me-1 text-primary"></i> साझा संदेश टेम्पलेट (Common Broadcast Template)
                             </button>
-                        </div>
-                        <textarea name="message" id="broadcastMessageBody" class="form-control font-monospace" rows="9" required placeholder="Message content will appear here..."></textarea>
-                    </div>
+                        </li>
+                        <li class="nav-item">
+                            <button type="button" class="nav-link fw-bold py-2" data-bs-toggle="tab" data-bs-target="#tab-member-dispatch">
+                                <i class="fab fa-whatsapp me-1 text-success"></i> सदस्यवार देय राशि व व्हाट्सएप प्रेषण (<span id="tabMembersCountBadge">0</span> Members)
+                            </button>
+                        </li>
+                    </ul>
 
-                    <div class="alert alert-info py-2 px-3 small d-flex align-items-center mb-0">
-                        <i class="fas fa-info-circle me-2 fs-5"></i>
-                        <div>
-                            "Send" बटन दबाने पर यह साझा संदेश सभी सक्रिय सदस्यों के व्हाट्सएप लॉग में दर्ज हो जाएगा और व्हाट्सएप वेब के जरिए प्रेषित किया जा सकेगा।
+                    <div class="tab-content">
+                        <!-- TAB 1: Common Broadcast & Events -->
+                        <div class="tab-pane fade show active" id="tab-common-broadcast" role="tabpanel">
+                            <div class="row g-3">
+                                <!-- Scheduled Events in Month -->
+                                <div class="col-lg-5 col-12">
+                                    <div class="card border-0 shadow-sm h-100">
+                                        <div class="card-header bg-white border-bottom py-2">
+                                            <h6 class="card-title fw-bold mb-0 text-dark">
+                                                <i class="fas fa-list-check text-primary me-1"></i> इस माह के पंजीकृत विवाह कार्यक्रम:
+                                            </h6>
+                                        </div>
+                                        <div class="card-body p-3">
+                                            <div id="eventsListContainer" style="max-height: 320px; overflow-y: auto;">
+                                                <div class="text-muted small"><i class="fas fa-spinner fa-spin me-1"></i> Loading events...</div>
+                                            </div>
+                                            <div class="alert alert-light border small mt-3 mb-0 p-2 text-muted">
+                                                <i class="fas fa-info-circle text-primary me-1"></i>
+                                                सदस्यों को भेजे जाने वाले व्यक्तिगत संदेश में यह सभी कार्यक्रम और सदस्य का <strong>[इस माह का सहयोग + पिछला बकाया = कुल देय]</strong> स्वतः जुड़ जाएगा।
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Common Broadcast Template -->
+                                <div class="col-lg-7 col-12">
+                                    <div class="card border-0 shadow-sm h-100">
+                                        <div class="card-header bg-white border-bottom py-2 d-flex justify-content-between align-items-center">
+                                            <h6 class="card-title fw-bold mb-0 text-dark">
+                                                <i class="fas fa-comment-dots text-success me-1"></i> साझा संदेश (Common Message Body):
+                                            </h6>
+                                            <button type="button" class="btn btn-sm btn-link text-decoration-none p-0" onclick="fetchMonthEventsData(document.getElementById('broadcastMonthInput').value)">
+                                                <i class="fas fa-sync-alt me-1"></i> Reset Template
+                                            </button>
+                                        </div>
+                                        <div class="card-body p-3">
+                                            <textarea name="message" id="broadcastMessageBody" class="form-control font-monospace" rows="12" required placeholder="Message content will appear here..."></textarea>
+                                            <div class="small text-muted mt-2">
+                                                उपलब्ध टैग्स: <code>@{{member_name}}</code>, <code>@{{membership_no}}</code>, <code>@{{this_month}}</code>, <code>@{{previous_due}}</code>, <code>@{{total_due}}</code>, <code>@{{rate}}</code>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 2: Member-wise Breakdown & Individual WhatsApp Links -->
+                        <div class="tab-pane fade" id="tab-member-dispatch" role="tabpanel">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-header bg-white border-bottom py-3">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                        <div>
+                                            <h6 class="card-title fw-bold mb-0 text-dark">
+                                                <i class="fas fa-users-cog text-primary me-1"></i> प्रत्येक सदस्य की गणना एवं 1-क्लिक व्हाट्सएप प्रेषण
+                                            </h6>
+                                            <small class="text-muted">Formula: [इस माह का शुल्क (कार्यक्रम × स्लैब दर)] + [पिछला बकाया] = [कुल देय]</small>
+                                        </div>
+                                        <div style="min-width: 260px;">
+                                            <input type="text" id="memberSearchFilter" class="form-control form-control-sm" placeholder="🔍 Search member name, no, mobile..." oninput="filterMembersTable()">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="table-responsive" style="max-height: 420px; overflow-y: auto;">
+                                    <table class="table table-hover align-middle mb-0" id="membersDispatchTable">
+                                        <thead class="table-light sticky-top">
+                                            <tr style="font-size: 0.82rem;">
+                                                <th>सदस्य (Member)</th>
+                                                <th>योजना (Scheme)</th>
+                                                <th class="text-center">दर (Rate)</th>
+                                                <th class="text-end">इस माह (This Month)</th>
+                                                <th class="text-end">पिछला बकाया (Due)</th>
+                                                <th class="text-end">कुल देय (Total)</th>
+                                                <th class="text-center">व्हाट्सएप (Direct Send)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="membersTableBody">
+                                            <tr>
+                                                <td colspan="7" class="text-center py-4 text-muted">
+                                                    <i class="fas fa-spinner fa-spin me-1"></i> Loading member records...
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <div class="modal-footer bg-white border-top py-3">
+                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Close</button>
                     <button type="submit" class="btn btn-success btn-lg px-4 shadow">
-                        <i class="fab fa-whatsapp me-2"></i> Send (भेजें)
+                        <i class="fab fa-whatsapp me-2"></i> सभी सदस्यों के लिए साझा संदेश लॉग व सेंड करें (Bulk Dispatch)
                     </button>
                 </div>
             </form>
@@ -387,58 +492,97 @@
 
 <!-- Event Billing Modal -->
 <div class="modal fade" id="eventBillingModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg">
             <form action="{{ route('admin.events.billing') }}" method="POST">
                 @csrf
                 <div class="modal-header" style="background: #1B365D; color: #fff;">
-                    <h5 class="modal-title fw-bold text-white"><i class="fas fa-calculator me-2"></i>Consolidated Monthly Event Billing</h5>
+                    <h5 class="modal-title fw-bold text-white"><i class="fas fa-calculator me-2"></i>Consolidated Monthly Event Billing (मासिक कार्यक्रम बिलिंग)</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-                    <p class="text-muted small mb-3">
-                        Automatically posts consolidated event charges to member financial ledgers with duplicate protection.
-                    </p>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Billing Month <span class="text-danger">*</span></label>
-                        <input type="month" name="billing_month" class="form-control" value="{{ date('Y-m') }}" required>
+                <div class="modal-body p-4">
+                    <div class="alert alert-info py-2 px-3 small mb-3">
+                        <i class="fas fa-info-circle me-1"></i>
+                        यह प्रक्रिया सभी सक्रिय सदस्यों के वित्तीय लेजर (Financial Ledger) में चयनित माह के सभी कार्यक्रमों का बिल स्वचालित रूप से दर्ज करती है तथा डुप्लीकेट बिलिंग से सुरक्षा प्रदान करती है।
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Applicable Event (Optional)</label>
-                        <select name="event_id" class="form-select">
-                            <option value="">-- Consolidated Pool / All Events --</option>
-                            @foreach($events as $ev)
-                            <option value="{{ $ev->id }}">{{ $ev->event_code }} - {{ $ev->title }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Target Scheme (Optional)</label>
-                        <select name="scheme_id" class="form-select">
-                            <option value="">-- All Active Members Across Schemes --</option>
-                            @foreach($schemes as $sch)
-                            <option value="{{ $sch->id }}">{{ $sch->name_hindi }} ({{ $sch->name }})</option>
-                            @endforeach
-                        </select>
-                    </div>
+
                     <div class="row g-3 mb-3">
-                        <div class="col-6">
-                            <label class="form-label fw-semibold">Number of Events</label>
-                            <input type="number" name="events_count" class="form-control" value="1" min="1" required id="billingEventsCount" oninput="updateTotalCharge()">
+                        <div class="col-md-6 col-12">
+                            <label class="form-label fw-bold">Billing Month (बिलिंग माह) <span class="text-danger">*</span></label>
+                            <input type="month" name="billing_month" id="billingMonthInput" class="form-control form-control-lg fw-bold" value="{{ date('Y-m') }}" required onchange="onBillingMonthChange(this.value)">
                         </div>
-                        <div class="col-6">
-                            <label class="form-label fw-semibold">Rate per Event (₹)</label>
-                            <input type="number" name="rate_per_event" class="form-control" value="200" min="1" required id="billingRatePerEvent" oninput="updateTotalCharge()">
+                        <div class="col-md-6 col-12">
+                            <label class="form-label fw-bold">Target Scheme (योजना चयन - Optional)</label>
+                            <select name="scheme_id" class="form-select form-select-lg">
+                                <option value="">-- All Active Members Across Schemes (सभी योजनाएं) --</option>
+                                @foreach($schemes as $sch)
+                                <option value="{{ $sch->id }}">{{ $sch->name_hindi }} ({{ $sch->name }})</option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>
+
+                    <!-- Rate Type Selection -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark">
+                            <i class="fas fa-tags text-primary me-1"></i> दर निर्धारण प्रकार (Rate Calculation Method) <span class="text-danger">*</span>
+                        </label>
+                        <div class="row g-2">
+                            <div class="col-md-6 col-12">
+                                <div class="form-check card p-3 border m-0 h-100 cursor-pointer shadow-xs bg-light" id="cardMemberSlab" onclick="selectRateType('member_slab')">
+                                    <input class="form-check-input ms-0 me-2" type="radio" name="rate_type" id="rateTypeMemberSlab" value="member_slab" checked onchange="onRateTypeChange()">
+                                    <label class="form-check-label fw-bold text-dark cursor-pointer d-block" for="rateTypeMemberSlab">
+                                        <i class="fas fa-user-check text-success me-1"></i> प्रत्येक सदस्य की स्लैब दर (Member Slab Rate)
+                                    </label>
+                                    <small class="text-muted d-block mt-1">
+                                        प्रत्येक सदस्य की निर्धारित आयु स्लैब / मासिक सहयोग दर (₹200, ₹300, ₹500 आदि) अनुसार बिल बनेगा। <strong>(Recommended)</strong>
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-12">
+                                <div class="form-check card p-3 border m-0 h-100 cursor-pointer shadow-xs" id="cardFixedRate" onclick="selectRateType('fixed_rate')">
+                                    <input class="form-check-input ms-0 me-2" type="radio" name="rate_type" id="rateTypeFixed" value="fixed_rate" onchange="onRateTypeChange()">
+                                    <label class="form-check-label fw-bold text-dark cursor-pointer d-block" for="rateTypeFixed">
+                                        <i class="fas fa-equals text-primary me-1"></i> एक समान निश्चित दर (Fixed Flat Rate)
+                                    </label>
+                                    <small class="text-muted d-block mt-1">
+                                        सभी सदस्यों पर एक समान निश्चित दर प्रति कार्यक्रम लागू होगी।
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6 col-12">
+                            <label class="form-label fw-semibold">Number of Events in Month (माह के कुल कार्यक्रम)</label>
+                            <input type="number" name="events_count" class="form-control form-control-lg fw-bold" value="1" min="1" required id="billingEventsCount" oninput="updateTotalCharge()">
+                            <small class="text-muted" id="billingMonthEventsHint">माह के पंजीकृत कार्यक्रमों की संख्या</small>
+                        </div>
+                        <div class="col-md-6 col-12">
+                            <label class="form-label fw-semibold" id="billingRateLabel">Fallback / Backup Rate (₹/कार्यक्रम)</label>
+                            <input type="number" name="rate_per_event" class="form-control form-control-lg fw-bold" value="200" min="1" required id="billingRatePerEvent" oninput="updateTotalCharge()">
+                            <small class="text-muted" id="billingRateHint">यदि सदस्य का स्लैब न हो तो यह दर लागू होगी</small>
+                        </div>
+                    </div>
+
                     <div class="p-3 bg-light rounded border text-center">
-                        <small class="text-muted d-block">Total Debit Per Member</small>
-                        <h4 class="text-primary fw-bold mb-0" id="totalDebitPerMember">₹200.00</h4>
+                        <div id="billingDynamicNotice" class="text-muted small mb-1">
+                            गणना: <strong>[कुल कार्यक्रम] × [सदस्य की निर्धारित स्लैब दर]</strong> = सदस्य के लेजर में डेबिट
+                        </div>
+                        <div class="d-flex justify-content-center align-items-center gap-3">
+                            <div>
+                                <small class="text-muted d-block">औसत दर (Estimated Rate)</small>
+                                <h4 class="text-primary fw-bold mb-0" id="totalDebitPerMember">₹200.00 / सदस्य</h4>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary" style="background: #1B365D;">Process Consolidated Billing</button>
+                <div class="modal-footer bg-white border-top">
+                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold" style="background: #1B365D;">
+                        <i class="fas fa-check-circle me-1"></i> Process Consolidated Billing (बिल जनरेट करें)
+                    </button>
                 </div>
             </form>
         </div>
@@ -448,11 +592,66 @@
 
 @section('script')
 <script>
+let allMembersCache = [];
+
+function selectRateType(type) {
+    if (type === 'member_slab') {
+        document.getElementById('rateTypeMemberSlab').checked = true;
+    } else {
+        document.getElementById('rateTypeFixed').checked = true;
+    }
+    onRateTypeChange();
+}
+
+function onRateTypeChange() {
+    const isMemberSlab = document.getElementById('rateTypeMemberSlab').checked;
+    const rateLabel = document.getElementById('billingRateLabel');
+    const rateHint = document.getElementById('billingRateHint');
+    const cardSlab = document.getElementById('cardMemberSlab');
+    const cardFixed = document.getElementById('cardFixedRate');
+    const notice = document.getElementById('billingDynamicNotice');
+
+    if (isMemberSlab) {
+        cardSlab.classList.add('bg-light', 'border-primary');
+        cardFixed.classList.remove('bg-light', 'border-primary');
+        rateLabel.innerText = 'Fallback / Backup Rate (₹/कार्यक्रम)';
+        rateHint.innerText = 'यदि किसी सदस्य का आयु स्लैब निर्धारित न हो तो यह डिफ़ॉल्ट दर लागू होगी।';
+        notice.innerHTML = '✨ <strong>सदस्य स्लैब अनुसार:</strong> प्रत्येक सदस्य की निर्धारित योजना/आयु स्लैब दर × कुल कार्यक्रमों के आधार पर बिल बनेगा।';
+    } else {
+        cardFixed.classList.add('bg-light', 'border-primary');
+        cardSlab.classList.remove('bg-light', 'border-primary');
+        rateLabel.innerText = 'Fixed Rate for All Members (₹/कार्यक्रम)';
+        rateHint.innerText = 'सभी सदस्यों से यह निश्चित दर प्रति कार्यक्रम ली जाएगी।';
+        notice.innerHTML = '✨ <strong>निश्चित दर:</strong> सभी सक्रिय सदस्यों से निश्चित दर × कार्यक्रमों की संख्या के हिसाब से डेबिट होगा।';
+    }
+    updateTotalCharge();
+}
+
 function updateTotalCharge() {
     const count = parseFloat(document.getElementById('billingEventsCount').value) || 0;
     const rate = parseFloat(document.getElementById('billingRatePerEvent').value) || 0;
     const total = count * rate;
-    document.getElementById('totalDebitPerMember').innerText = '₹' + total.toFixed(2);
+    const isMemberSlab = document.getElementById('rateTypeMemberSlab').checked;
+    if (isMemberSlab) {
+        document.getElementById('totalDebitPerMember').innerText = `₹${total.toFixed(2)} (बेस दर पर)`;
+    } else {
+        document.getElementById('totalDebitPerMember').innerText = `₹${total.toFixed(2)} / सदस्य`;
+    }
+}
+
+function onBillingMonthChange(monthStr) {
+    if (!monthStr) return;
+    fetch('{{ route("admin.api.events-by-month") }}?month=' + encodeURIComponent(monthStr))
+        .then(res => res.json())
+        .then(data => {
+            if (data.events_count !== undefined) {
+                const countInput = document.getElementById('billingEventsCount');
+                countInput.value = data.events_count > 0 ? data.events_count : 1;
+                document.getElementById('billingMonthEventsHint').innerText = `${data.events_count} कार्यक्रम पंजीकृत हैं (${data.month_name})`;
+                updateTotalCharge();
+            }
+        })
+        .catch(err => console.error(err));
 }
 
 function onBeneficiaryManualTyping() {
@@ -510,7 +709,6 @@ function openEditEventModal(event) {
     document.getElementById('editEventVenueField').value = event.venue || '';
     document.getElementById('editEventDescriptionField').value = event.description || '';
 
-    // Match member dropdown if member_id matches
     const select = document.getElementById('editBeneficiaryDropdownSelect');
     if (select) {
         select.value = '';
@@ -559,40 +757,115 @@ function onEditBeneficiarySelectChange(select) {
 function fetchMonthEventsData(monthStr) {
     if (!monthStr) return;
     const container = document.getElementById('eventsListContainer');
-    const badge = document.getElementById('broadcastEventsBadge');
-    const rateEl = document.getElementById('broadcastTotalRate');
     const msgArea = document.getElementById('broadcastMessageBody');
+    const statEvents = document.getElementById('statEventsCount');
+    const statThisMonth = document.getElementById('statThisMonthTotal');
+    const statPrevDue = document.getElementById('statPrevDueTotal');
+    const statGrand = document.getElementById('statGrandTotal');
+    const membersBadge = document.getElementById('tabMembersCountBadge');
+    const tableBody = document.getElementById('membersTableBody');
 
     container.innerHTML = '<div class="text-muted small"><i class="fas fa-spinner fa-spin me-1"></i> Loading events for ' + monthStr + '...</div>';
+    tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted"><i class="fas fa-spinner fa-spin me-1"></i> Calculating member dues and personalized messages...</td></tr>';
 
     fetch('{{ route("admin.api.events-by-month") }}?month=' + encodeURIComponent(monthStr))
         .then(res => res.json())
         .then(data => {
-            badge.innerText = data.events_count + ' Event(s) Found';
-            rateEl.innerText = 'प्रति सदस्य कुल देय: ₹' + (data.total_rate || 0);
+            statEvents.innerText = data.events_count || 0;
+            statThisMonth.innerText = '₹' + (data.grand_this_month_total || 0).toLocaleString('en-IN');
+            statPrevDue.innerText = '₹' + (data.grand_previous_due_total || 0).toLocaleString('en-IN');
+            statGrand.innerText = '₹' + (data.grand_total_due || 0).toLocaleString('en-IN');
+            membersBadge.innerText = data.total_members_count || 0;
             msgArea.value = data.default_message || '';
 
+            // Render Events list
             if (data.events && data.events.length > 0) {
                 let html = '<div class="list-group list-group-flush">';
                 data.events.forEach((ev, idx) => {
-                    html += `<div class="list-group-item px-0 py-1 border-0 d-flex justify-content-between align-items-center">
-                        <div>
-                            <strong class="text-primary">${idx + 1}. ${ev.girl_name}</strong>
-                            ${ev.father_name ? `<small class="text-muted"> (पिता: ${ev.father_name})</small>` : ''}
-                            <small class="text-muted d-block">दिनांक: ${ev.event_date.split('T')[0]} | स्थल: ${ev.venue || 'N/A'}</small>
+                    html += `<div class="list-group-item px-0 py-2 border-bottom">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <strong class="text-primary">${idx + 1}. ${ev.girl_name}</strong>
+                                ${ev.father_name ? `<small class="text-muted"> (पिता: ${ev.father_name})</small>` : ''}
+                                <div class="text-muted small mt-1">
+                                    <i class="fas fa-calendar-alt text-danger me-1"></i> ${ev.event_date.split('T')[0]} | 
+                                    <i class="fas fa-map-marker-alt text-muted me-1"></i> ${ev.venue || 'श्री श्याम धर्मशाला, लोहीकी'}
+                                </div>
+                            </div>
+                            <span class="badge bg-label-success">₹${parseFloat(ev.rate_per_event || 200).toFixed(0)}</span>
                         </div>
-                        <span class="badge bg-success">सहयोग: ₹${parseFloat(ev.rate_per_event || 200).toFixed(0)}</span>
                     </div>`;
                 });
                 html += '</div>';
                 container.innerHTML = html;
             } else {
-                container.innerHTML = '<div class="text-muted small py-2">इस माह (' + monthStr + ') में कोई पंजीकृत विवाह कार्यक्रम नहीं है। सामान्य मासिक सहयोग लागू होगा।</div>';
+                container.innerHTML = '<div class="text-muted small py-3"><i class="fas fa-info-circle me-1"></i> इस माह (' + monthStr + ') में कोई पंजीकृत विवाह कार्यक्रम नहीं है। सामान्य मासिक सहयोग लागू होगा।</div>';
             }
+
+            // Store and Render Members preview table
+            allMembersCache = data.members_preview || [];
+            renderMembersTable(allMembersCache);
         })
         .catch(err => {
             container.innerHTML = '<div class="text-danger small">Error loading events: ' + err.message + '</div>';
+            tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-danger">Error: ' + err.message + '</td></tr>';
         });
+}
+
+function renderMembersTable(members) {
+    const tbody = document.getElementById('membersTableBody');
+    if (!members || members.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">कोई सक्रिय सदस्य नहीं मिला।</td></tr>';
+        return;
+    }
+
+    let rowsHtml = '';
+    members.forEach(m => {
+        const hasMobile = m.mobile && m.mobile.trim().length > 0;
+        rowsHtml += `<tr>
+            <td>
+                <div class="fw-bold text-dark">${m.name}</div>
+                <small class="text-muted">${m.membership_no} ${hasMobile ? '| ' + m.mobile : ''}</small>
+            </td>
+            <td>
+                <span class="badge bg-label-info">${m.scheme_name}</span>
+                <small class="text-muted d-block" style="font-size: 0.72rem;">${m.agent_name}</small>
+            </td>
+            <td class="text-center font-monospace">₹${m.rate}</td>
+            <td class="text-end font-monospace text-dark">₹${m.this_month.toLocaleString('en-IN')}</td>
+            <td class="text-end font-monospace text-danger">₹${m.previous_due.toLocaleString('en-IN')}</td>
+            <td class="text-end font-monospace">
+                <span class="badge bg-label-success fw-bold fs-6">₹${m.total_due.toLocaleString('en-IN')}</span>
+            </td>
+            <td class="text-center">
+                ${hasMobile ? `
+                    <a href="${m.whatsapp_url}" target="_blank" class="btn btn-sm btn-success shadow-xs px-2 py-1" title="Send WhatsApp to ${m.name}">
+                        <i class="fab fa-whatsapp me-1"></i> Send
+                    </a>
+                ` : `
+                    <span class="badge bg-label-secondary">No Mobile</span>
+                `}
+            </td>
+        </tr>`;
+    });
+
+    tbody.innerHTML = rowsHtml;
+}
+
+function filterMembersTable() {
+    const q = (document.getElementById('memberSearchFilter').value || '').toLowerCase().trim();
+    if (!q) {
+        renderMembersTable(allMembersCache);
+        return;
+    }
+    const filtered = allMembersCache.filter(m => {
+        return (m.name && m.name.toLowerCase().includes(q)) ||
+               (m.membership_no && m.membership_no.toLowerCase().includes(q)) ||
+               (m.mobile && m.mobile.toLowerCase().includes(q)) ||
+               (m.scheme_name && m.scheme_name.toLowerCase().includes(q)) ||
+               (m.agent_name && m.agent_name.toLowerCase().includes(q));
+    });
+    renderMembersTable(filtered);
 }
 
 // Pre-load on modal open
@@ -602,7 +875,7 @@ document.addEventListener('DOMContentLoaded', function() {
     @endif
 
     if (window.location.hash === '#createEventModal' || window.location.hash === '#createEvent') {
-        const addModal = document.getElementById('createEventModal');
+        const addModal = document.getElementById('addEventModal');
         if (addModal) {
             new bootstrap.Modal(addModal).show();
         }
@@ -615,6 +888,12 @@ document.addEventListener('DOMContentLoaded', function() {
             fetchMonthEventsData(currentMonth);
         });
     }
+
+    const billingMonthInput = document.getElementById('billingMonthInput');
+    if (billingMonthInput) {
+        onBillingMonthChange(billingMonthInput.value);
+    }
 });
 </script>
 @endsection
+

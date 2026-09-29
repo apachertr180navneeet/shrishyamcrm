@@ -354,16 +354,18 @@ class MarriageEventController extends Controller
         $request->validate([
             'event_id' => 'nullable|exists:marriage_events,id',
             'billing_month' => 'required|string',
-            'events_count' => 'required|integer|min:1',
-            'rate_per_event' => 'required|numeric|min:1',
+            'rate_type' => 'nullable|string|in:member_slab,fixed_rate',
+            'events_count' => 'nullable|integer|min:1',
+            'rate_per_event' => 'nullable|numeric|min:0',
+            'scheme_id' => 'nullable|exists:schemes,id',
         ]);
 
         try {
             $billing = EventBillingService::processConsolidatedBilling($request->only([
-                'event_id', 'billing_month', 'events_count', 'rate_per_event',
+                'event_id', 'billing_month', 'rate_type', 'events_count', 'rate_per_event', 'scheme_id', 'billing_date'
             ]));
 
-            return back()->with('success', "Consolidated billing for {$billing->month_name} applied successfully to {$billing->billed_members_count} active members. Total: ₹" . number_format($billing->total_billing_amount, 2));
+            return back()->with('success', "Consolidated billing for {$billing->month_name} generated successfully for {$billing->billed_members_count} active members based on member rates. Total billed: ₹" . number_format($billing->total_billing_amount, 2));
         } catch (\Exception $e) {
             return back()->with('error', 'Error processing consolidated event billing: ' . $e->getMessage());
         }
@@ -408,18 +410,18 @@ class MarriageEventController extends Controller
                 $father = $ev->father_name ? " (पिता: {$ev->father_name})" : '';
                 $msgLines[] = "{$i}. कन्या: {$ev->girl_name}{$father}";
                 $msgLines[] = "   दिनांक: {$evDate} | स्थल: {$ev->venue}";
-                $msgLines[] = "   सहयोग: ₹" . number_format($ev->rate_per_event, 0);
+                $msgLines[] = "   सहयोग दर: योजना/स्लैब नियमानुसार";
                 $i++;
             }
             $msgLines[] = "------------------------------------";
             $msgLines[] = "कुल कार्यक्रम: {$eventsCount}";
-            $msgLines[] = "प्रति सदस्य कुल सहयोग राशि: ₹" . number_format($totalRate, 0);
+            $msgLines[] = "सहयोग गणना: [इस माह का सहयोग: कुल कार्यक्रम × सदस्य दर] + [पिछला बकाया] = [कुल देय]";
         } else {
             $msgLines[] = "इस माह में अभी कोई पंजीकृत विवाह कार्यक्रम नहीं है।";
-            $msgLines[] = "मासिक सहयोग राशि: ₹200";
+            $msgLines[] = "मासिक सहयोग दर: सदस्य स्लैब नियमानुसार";
         }
 
-        $msgLines[] = "";
+        $msgLines[] = "------------------------------------";
         $msgLines[] = "सभी सम्मानित सदस्यों से विनम्र निवेदन है कि अपनी सहयोग राशि समय पर अधिकृत प्रतिनिधि (एजेंट) के पास अथवा सीधे सोसायटी खाते में जमा करवाकर रसीद अवश्य प्राप्त करें।";
         $msgLines[] = "";
         $msgLines[] = "भवदीय,";
@@ -428,6 +430,79 @@ class MarriageEventController extends Controller
 
         $defaultMessage = implode("\n", $msgLines);
 
+        // Compute Per-Member breakdown for dispatch preview
+        $activeMembers = Member::with(['scheme', 'ageSlab', 'agent'])->where('status', 'Active')->orderBy('full_name')->get();
+        $membersPreview = [];
+        $grandThisMonthTotal = 0;
+        $grandPreviousDueTotal = 0;
+
+        foreach ($activeMembers as $m) {
+            $rate = (float)($m->monthly_support_amount ?: ($m->ageSlab ? $m->ageSlab->support_amount : 200.0));
+            $thisMonthAmt = $eventsCount * $rate;
+            $prevDue = (float)$m->pending_amount;
+            $totalDue = $thisMonthAmt + $prevDue;
+
+            $grandThisMonthTotal += $thisMonthAmt;
+            $grandPreviousDueTotal += $prevDue;
+
+            $personalLines = [];
+            $personalLines[] = "जय श्री श्याम 🙏";
+            $personalLines[] = "श्री श्याम वेलफेयर सोसायटी, लोहीकी";
+            $personalLines[] = "प्रिय सदस्य: श्री " . $m->full_name . " (" . $m->membership_no . ")";
+            $personalLines[] = "📢 माह " . $formattedMonth . " के कन्या विवाह कार्यक्रम";
+            $personalLines[] = "------------------------------------";
+
+            if ($eventsCount > 0) {
+                $i = 1;
+                foreach ($events as $ev) {
+                    $evDate = $ev->event_date ? $ev->event_date->format('d/m/Y') : 'N/A';
+                    $father = $ev->father_name ? " (पिता: {$ev->father_name})" : '';
+                    $personalLines[] = "{$i}. कन्या: {$ev->girl_name}{$father}";
+                    $personalLines[] = "   दिनांक: {$evDate} | स्थल: {$ev->venue}";
+                    $i++;
+                }
+                $personalLines[] = "------------------------------------";
+                $personalLines[] = "कुल कार्यक्रम: {$eventsCount}";
+                $personalLines[] = "आपकी निर्धारित दर: ₹" . number_format($rate, 0) . "/कार्यक्रम";
+            } else {
+                $personalLines[] = "मासिक सहयोग दर: ₹" . number_format($rate, 0);
+            }
+
+            $personalLines[] = "------------------------------------";
+            $personalLines[] = "📊 देय राशि विवरण:";
+            $personalLines[] = "• इस माह का सहयोग: ₹" . number_format($thisMonthAmt, 0);
+            $personalLines[] = "• पिछला बकाया (Due): ₹" . number_format($prevDue, 0);
+            $personalLines[] = "💰 कुल देय राशि (Total Due): ₹" . number_format($totalDue, 0);
+            $personalLines[] = "------------------------------------";
+            if ($m->agent) {
+                $personalLines[] = "अधिकृत कार्यकर्ता: " . $m->agent->name . " (मो. " . $m->agent->mobile . ")";
+            }
+            $personalLines[] = "कृपया अपनी सहयोग राशि समय पर जमा करवाकर रसीद प्राप्त करें।";
+            $personalLines[] = "जय श्री श्याम 🙏";
+
+            $personalMsg = implode("\n", $personalLines);
+            $cleanMobile = preg_replace('/[^0-9]/', '', $m->mobile ?? '');
+            if (strlen($cleanMobile) === 10) {
+                $cleanMobile = '91' . $cleanMobile;
+            }
+            $waUrl = $cleanMobile ? "https://api.whatsapp.com/send?phone={$cleanMobile}&text=" . urlencode($personalMsg) : '#';
+
+            $membersPreview[] = [
+                'id' => $m->id,
+                'name' => $m->full_name,
+                'membership_no' => $m->membership_no,
+                'mobile' => $m->mobile,
+                'scheme_name' => $m->scheme ? $m->scheme->name_hindi : 'N/A',
+                'rate' => $rate,
+                'this_month' => $thisMonthAmt,
+                'previous_due' => $prevDue,
+                'total_due' => $totalDue,
+                'agent_name' => $m->agent ? $m->agent->name : 'HQ Direct',
+                'whatsapp_url' => $waUrl,
+                'personal_message' => $personalMsg,
+            ];
+        }
+
         return response()->json([
             'month' => $monthStr,
             'month_name' => $formattedMonth,
@@ -435,6 +510,11 @@ class MarriageEventController extends Controller
             'total_rate' => $totalRate,
             'events' => $events,
             'default_message' => $defaultMessage,
+            'members_preview' => $membersPreview,
+            'total_members_count' => count($membersPreview),
+            'grand_this_month_total' => $grandThisMonthTotal,
+            'grand_previous_due_total' => $grandPreviousDueTotal,
+            'grand_total_due' => $grandThisMonthTotal + $grandPreviousDueTotal,
         ]);
     }
 
@@ -442,22 +522,40 @@ class MarriageEventController extends Controller
     {
         $request->validate([
             'month' => 'required|string',
-            'message' => 'required|string|min:5',
+            'message' => 'nullable|string',
         ]);
 
-        $members = Member::where('status', 'Active')->whereNotNull('mobile')->get();
+        $monthStr = $request->month;
+        [$year, $month] = explode('-', $monthStr);
+        $events = MarriageEvent::whereYear('event_date', $year)->whereMonth('event_date', $month)->get();
+        $eventsCount = $events->count();
+
+        $members = Member::with(['scheme', 'ageSlab', 'agent'])->where('status', 'Active')->whereNotNull('mobile')->get();
         if ($members->isEmpty()) {
             return back()->with('error', 'No active members with phone numbers found.');
         }
 
         $sentCount = 0;
         foreach ($members as $m) {
+            $rate = (float)($m->monthly_support_amount ?: ($m->ageSlab ? $m->ageSlab->support_amount : 200.0));
+            $thisMonthAmt = $eventsCount * $rate;
+            $prevDue = (float)$m->pending_amount;
+            $totalDue = $thisMonthAmt + $prevDue;
+
+            // If custom message text passed without placeholders, use it or personalize
+            $body = $request->filled('message') ? $request->message : '';
+            $body = str_replace(
+                ['{{member_name}}', '{{membership_no}}', '{{this_month}}', '{{previous_due}}', '{{total_due}}', '{{rate}}'],
+                [$m->full_name, $m->membership_no, '₹' . number_format($thisMonthAmt, 0), '₹' . number_format($prevDue, 0), '₹' . number_format($totalDue, 0), '₹' . number_format($rate, 0)],
+                $body
+            );
+
             \App\Models\WhatsAppLog::create([
                 'member_id' => $m->id,
                 'recipient_name' => $m->full_name,
                 'mobile' => $m->mobile,
                 'message_type' => 'Monthly Events Broadcast (' . $request->month . ')',
-                'message_body' => $request->message,
+                'message_body' => $body ?: "माह {$monthStr} के {$eventsCount} कार्यक्रमों का देय: ₹" . number_format($thisMonthAmt, 0) . " + पिछला बकाया: ₹" . number_format($prevDue, 0) . " = कुल ₹" . number_format($totalDue, 0),
                 'status' => 'Queued',
                 'sent_at' => now(),
             ]);
@@ -469,17 +567,11 @@ class MarriageEventController extends Controller
             'month' => $request->month,
         ]);
 
-        // Provide direct WhatsApp web link for first member or general share
-        $encodedMsg = urlencode($request->message);
-        $firstMember = $members->first();
-        $cleanPhone = preg_replace('/[^0-9]/', '', $firstMember->mobile);
-        if (strlen($cleanPhone) === 10) {
-            $cleanPhone = '91' . $cleanPhone;
-        }
+        $encodedMsg = urlencode($request->message ?? "माह {$request->month} के कार्यक्रम सूचना");
         $whatsappUrl = "https://api.whatsapp.com/send?text={$encodedMsg}";
 
         return back()->with([
-            'success' => "माह {$request->month} का साझा संदेश {$sentCount} सक्रिय सदस्यों के लिए सफलतापूर्वक तैयार और लॉग कर दिया गया है!",
+            'success' => "माह {$request->month} के सभी {$sentCount} सदस्यों का व्यक्तिगत बिल संदेश तैयार और लॉग कर दिया गया है!",
             'whatsapp_broadcast_url' => $whatsappUrl,
         ]);
     }

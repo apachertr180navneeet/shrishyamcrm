@@ -8,26 +8,46 @@
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
                 <div>
                     <h4 class="fw-bold mb-1" style="font-family: 'Hind', sans-serif;">व्हाट्सएप सेवा केंद्र (WhatsApp Messaging Center)</h4>
-                    <p class="text-muted mb-0">Dispatch official payment receipts, event wedding reminders, and dues alerts directly via WhatsApp Web & Mobile.</p>
+                    <p class="text-muted mb-0">Dispatch official payment receipts, monthly events shared broadcast, and member-wise dues breakdown via WhatsApp.</p>
                 </div>
             </div>
         </div>
     </div>
 
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <div class="d-flex align-items-center justify-content-between">
+                <div><i class="fas fa-check-circle me-2"></i> {{ session('success') }}</div>
+                @if(session('whatsapp_broadcast_url'))
+                    <a href="{{ session('whatsapp_broadcast_url') }}" target="_blank" class="btn btn-sm btn-success ms-3 shadow-sm">
+                        <i class="fab fa-whatsapp me-1"></i> Open WhatsApp Web Broadcast
+                    </a>
+                @endif
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i> {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
     <div class="row g-4">
         <!-- Message Dispatch Form / Tabs -->
-        <div class="col-lg-6 col-12">
+        <div class="col-lg-7 col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-header border-bottom p-0">
                     <ul class="nav nav-tabs nav-fill" role="tablist">
                         <li class="nav-item">
-                            <button type="button" class="nav-link active py-3 fw-semibold" role="tab" data-bs-toggle="tab" data-bs-target="#tab-monthly-broadcast">
-                                <i class="fas fa-bullhorn text-success me-2"></i> सभी कार्यक्रमों का साझा संदेश (Common Message)
+                            <button type="button" class="nav-link active py-3 fw-bold" role="tab" data-bs-toggle="tab" data-bs-target="#tab-monthly-broadcast">
+                                <i class="fas fa-bullhorn text-success me-2"></i> माह के सभी कार्यक्रमों का साझा संदेश (Common Message)
                             </button>
                         </li>
                         <li class="nav-item">
-                            <button type="button" class="nav-link py-3 fw-semibold" role="tab" data-bs-toggle="tab" data-bs-target="#tab-single-message">
-                                <i class="fas fa-user me-2 text-primary"></i> व्यक्तिगत संदेश
+                            <button type="button" class="nav-link py-3 fw-bold" role="tab" data-bs-toggle="tab" data-bs-target="#tab-single-message">
+                                <i class="fas fa-user me-2 text-primary"></i> व्यक्तिगत संदेश (Single Message)
                             </button>
                         </li>
                     </ul>
@@ -38,38 +58,89 @@
                         <div class="tab-pane fade show active" id="tab-monthly-broadcast" role="tabpanel">
                             <form action="{{ route('admin.events.broadcast-send') }}" method="POST">
                                 @csrf
-                                <div class="mb-3">
-                                    <label class="form-label fw-semibold">
-                                        <i class="fas fa-calendar-alt text-primary me-1"></i> Month (माह चुनें) <span class="text-danger">*</span>
-                                    </label>
-                                    <div class="input-group">
-                                        <input type="month" name="month" id="waBroadcastMonth" class="form-control" value="{{ date('Y-m') }}" onchange="fetchWaMonthEvents(this.value)" required>
-                                        <button type="button" class="btn btn-outline-primary" onclick="fetchWaMonthEvents(document.getElementById('waBroadcastMonth').value)">
-                                            <i class="fas fa-sync-alt me-1"></i> Load Events
-                                        </button>
+                                <div class="row g-3 mb-3 align-items-center">
+                                    <div class="col-md-6 col-12">
+                                        <label class="form-label fw-bold text-dark">
+                                            <i class="fas fa-calendar-alt text-primary me-1"></i> माह चुनें (Month) <span class="text-danger">*</span>
+                                        </label>
+                                        <div class="input-group">
+                                            <input type="month" name="month" id="waBroadcastMonth" class="form-control form-control-lg fw-bold" value="{{ date('Y-m') }}" onchange="fetchWaMonthEvents(this.value)" required>
+                                            <button type="button" class="btn btn-outline-primary" onclick="fetchWaMonthEvents(document.getElementById('waBroadcastMonth').value)">
+                                                <i class="fas fa-sync-alt"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 col-12">
+                                        <div class="p-2 bg-light rounded border text-center">
+                                            <div class="d-flex justify-content-around">
+                                                <div>
+                                                    <small class="text-muted d-block" style="font-size: 0.72rem;">कार्यक्रम</small>
+                                                    <strong class="text-primary fs-6" id="waEventsCountBadge">0</strong>
+                                                </div>
+                                                <div>
+                                                    <small class="text-muted d-block" style="font-size: 0.72rem;">इस माह</small>
+                                                    <strong class="text-dark fs-6" id="waStatThisMonth">₹0</strong>
+                                                </div>
+                                                <div>
+                                                    <small class="text-muted d-block" style="font-size: 0.72rem;">कुल देय</small>
+                                                    <strong class="text-success fs-6" id="waStatTotalDue">₹0</strong>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
                                 <div class="mb-3">
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <span class="small fw-semibold text-muted">इस माह के कार्यक्रम (Month Events):</span>
-                                        <span class="badge bg-primary" id="waEventsBadge">Checking...</span>
-                                    </div>
+                                    <label class="form-label fw-semibold text-muted small mb-1">इस माह के पंजीकृत विवाह कार्यक्रम (Month Events):</label>
                                     <div id="waEventsList" class="p-2 bg-light rounded border small" style="max-height: 120px; overflow-y: auto;">
                                         Loading events...
                                     </div>
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label fw-semibold">
-                                        <i class="fas fa-comment-alt text-success me-1"></i> Common Message to Users (साझा संदेश) <span class="text-danger">*</span>
-                                    </label>
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <label class="form-label fw-semibold mb-0">
+                                            <i class="fas fa-comment-alt text-success me-1"></i> Common Message Body (साझा संदेश) <span class="text-danger">*</span>
+                                        </label>
+                                        <button type="button" class="btn btn-sm btn-link text-decoration-none p-0" onclick="fetchWaMonthEvents(document.getElementById('waBroadcastMonth').value)">
+                                            <i class="fas fa-sync-alt me-1"></i> Reset Template
+                                        </button>
+                                    </div>
                                     <textarea name="message" id="waBroadcastMessage" class="form-control font-monospace" rows="8" required placeholder="Generating common message..."></textarea>
                                 </div>
 
-                                <button type="submit" class="btn btn-success btn-lg w-100 shadow">
-                                    <i class="fab fa-whatsapp me-2"></i> Send Common Message to All Members (भेजें)
+                                <button type="submit" class="btn btn-success btn-lg w-100 shadow mb-4">
+                                    <i class="fab fa-whatsapp me-2"></i> सभी सदस्यों के लिए साझा संदेश लॉग व सेंड करें (Bulk Send)
                                 </button>
+
+                                <!-- Member-wise personalized dispatch table -->
+                                <div class="border-top pt-3">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                                        <h6 class="fw-bold mb-0 text-dark">
+                                            <i class="fas fa-users text-primary me-1"></i> सदस्यवार देय राशि व 1-क्लिक व्हाट्सएप
+                                        </h6>
+                                        <input type="text" id="waMemberSearch" class="form-control form-control-sm" style="max-width: 200px;" placeholder="🔍 Search member..." oninput="filterWaMembersTable()">
+                                    </div>
+                                    <div class="table-responsive" style="max-height: 280px; overflow-y: auto;">
+                                        <table class="table table-sm table-hover align-middle mb-0">
+                                            <thead class="table-light sticky-top">
+                                                <tr style="font-size: 0.78rem;">
+                                                    <th>सदस्य (Member)</th>
+                                                    <th class="text-center">दर</th>
+                                                    <th class="text-end">इस माह</th>
+                                                    <th class="text-end">बकाया</th>
+                                                    <th class="text-end">कुल देय</th>
+                                                    <th class="text-center">व्हाट्सएप</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="waMembersTableBody">
+                                                <tr>
+                                                    <td colspan="6" class="text-center py-3 text-muted">Loading members...</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
                             </form>
                         </div>
 
@@ -128,7 +199,7 @@
         </div>
 
         <!-- WhatsApp Sent Logs -->
-        <div class="col-lg-6 col-12">
+        <div class="col-lg-5 col-12">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-header border-bottom py-3">
                     <h5 class="card-title mb-0 fw-semibold">
@@ -175,19 +246,27 @@
 
 @section('script')
 <script>
+let waMembersCache = [];
+
 function fetchWaMonthEvents(monthStr) {
     if (!monthStr) return;
-    const badge = document.getElementById('waEventsBadge');
+    const badge = document.getElementById('waEventsCountBadge');
     const list = document.getElementById('waEventsList');
     const msg = document.getElementById('waBroadcastMessage');
+    const thisMonthEl = document.getElementById('waStatThisMonth');
+    const totalDueEl = document.getElementById('waStatTotalDue');
+    const tbody = document.getElementById('waMembersTableBody');
 
-    badge.innerText = 'Loading...';
+    badge.innerText = '...';
     list.innerHTML = 'Fetching events for ' + monthStr + '...';
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-3 text-muted"><i class="fas fa-spinner fa-spin me-1"></i> Loading member details...</td></tr>';
 
     fetch('{{ route("admin.api.events-by-month") }}?month=' + encodeURIComponent(monthStr))
         .then(res => res.json())
         .then(data => {
-            badge.innerText = (data.events_count || 0) + ' Events | देय: ₹' + (data.total_rate || 0);
+            badge.innerText = (data.events_count || 0) + ' Events';
+            thisMonthEl.innerText = '₹' + (data.grand_this_month_total || 0).toLocaleString('en-IN');
+            totalDueEl.innerText = '₹' + (data.grand_total_due || 0).toLocaleString('en-IN');
             msg.value = data.default_message || '';
 
             if (data.events && data.events.length > 0) {
@@ -200,10 +279,61 @@ function fetchWaMonthEvents(monthStr) {
             } else {
                 list.innerHTML = '<span class="text-muted">इस माह (' + monthStr + ') में कोई विवाह कार्यक्रम पंजीकृत नहीं है।</span>';
             }
+
+            waMembersCache = data.members_preview || [];
+            renderWaMembersTable(waMembersCache);
         })
         .catch(err => {
             list.innerHTML = '<span class="text-danger">Error loading events: ' + err.message + '</span>';
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-3 text-danger">Error: ' + err.message + '</td></tr>';
         });
+}
+
+function renderWaMembersTable(members) {
+    const tbody = document.getElementById('waMembersTableBody');
+    if (!members || members.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-3 text-muted">No members found.</td></tr>';
+        return;
+    }
+
+    let html = '';
+    members.forEach(m => {
+        const hasMobile = m.mobile && m.mobile.trim().length > 0;
+        html += `<tr>
+            <td>
+                <strong class="d-block text-dark">${m.name}</strong>
+                <small class="text-muted">${m.membership_no}</small>
+            </td>
+            <td class="text-center font-monospace small">₹${m.rate}</td>
+            <td class="text-end font-monospace small">₹${m.this_month}</td>
+            <td class="text-end font-monospace small text-danger">₹${m.previous_due}</td>
+            <td class="text-end font-monospace small fw-bold text-success">₹${m.total_due}</td>
+            <td class="text-center">
+                ${hasMobile ? `
+                    <a href="${m.whatsapp_url}" target="_blank" class="btn btn-xs btn-success px-2 py-0" title="Send WhatsApp">
+                        <i class="fab fa-whatsapp"></i>
+                    </a>
+                ` : `
+                    <span class="badge bg-label-secondary" style="font-size:0.65rem;">No No.</span>
+                `}
+            </td>
+        </tr>`;
+    });
+    tbody.innerHTML = html;
+}
+
+function filterWaMembersTable() {
+    const q = (document.getElementById('waMemberSearch').value || '').toLowerCase().trim();
+    if (!q) {
+        renderWaMembersTable(waMembersCache);
+        return;
+    }
+    const filtered = waMembersCache.filter(m => {
+        return (m.name && m.name.toLowerCase().includes(q)) ||
+               (m.membership_no && m.membership_no.toLowerCase().includes(q)) ||
+               (m.mobile && m.mobile.toLowerCase().includes(q));
+    });
+    renderWaMembersTable(filtered);
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -246,3 +376,4 @@ function applyTemplate() {
 }
 </script>
 @endsection
+
