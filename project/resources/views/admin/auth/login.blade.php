@@ -67,33 +67,35 @@
                         <span class="app-brand-text demo text-body fw-bolder">{{ config('app.name') }}</span>
                     </a>
                 </div>
-                <!-- /Logo -->
-                <h4 class="mb-2">Welcome to {{ config('app.name') }}! 👋</h4>
-                <p class="mb-4">Please sign-in to your admin account</p>
+                <h4 class="mb-1 fw-bold text-primary">श्री श्याम वेलफेयर सोसायटी</h4>
+                <p class="mb-4 text-muted">एडमिन एवं कार्यकर्ता पोर्टल लॉगिन (Admin & Agent Portal)</p>
                 <form action="{{ route('admin.login.post') }}" id="" class="mb-3" method="POST">
                     @csrf
                     <div class="mb-3">
-                        <label for="email" class="form-label">मोबाइल नंबर / ईमेल / एजेंट कोड (Login ID)</label>
-                        <input type="text" class="form-control form-control-lg" id="email" name="email" placeholder="10-digit Mobile No., Email or Agent Code" required autofocus />
+                        <label for="email" class="form-label fw-bold">
+                            <i class="fas fa-mobile-alt text-primary me-1"></i> मोबाइल नंबर (Mobile No.) <span class="text-muted fw-normal small">/ ईमेल / एजेंट कोड</span>
+                        </label>
+                        <input type="text" class="form-control form-control-lg fw-semibold" id="email" name="email" placeholder="10-अंकीय मोबाइल नंबर (e.g. 9829012345)" value="{{ old('email') }}" required autofocus autocomplete="username" />
+                        <small class="text-muted d-block mt-1">
+                            <i class="fas fa-shield-alt text-success me-1"></i> कार्यकर्ता अपने पंजीकृत 10-अंकीय मोबाइल नंबर व पासवर्ड से सीधे लॉगिन करें।
+                        </small>
                     </div>
                     <div class="mb-3 form-password-toggle">
                         <div class="d-flex justify-content-between">
-                            <label class="form-label" for="password">Password</label>
+                            <label class="form-label fw-bold" for="password">
+                                <i class="fas fa-lock text-primary me-1"></i> पासवर्ड (Password)
+                            </label>
                             <a href="{{route('admin.forget.password.get')}}"><small>Forgot Password?</small></a>
                         </div>
                         <div class="input-group input-group-merge">
-                            <input type="password" id="password" class="form-control" name="password" placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;" aria-describedby="password" required />
+                            <input type="password" id="password" class="form-control form-control-lg" name="password" placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;" aria-describedby="password" required />
                             <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
                         </div>
                     </div>
-                    <!-- <div class="mb-3">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="remember-me" />
-                            <label class="form-check-label" for="remember-me"> Remember Me </label>
-                        </div>
-                    </div> -->
                     <div class="mb-3">
-                        <button class="btn btn-primary d-grid w-100" type="submit">Sign in</button>
+                        <button class="btn btn-primary btn-lg d-grid w-100 fw-bold shadow-sm" type="submit">
+                            <i class="fas fa-sign-in-alt me-2"></i> लॉगिन करें (Sign In)
+                        </button>
                     </div>
                 </form>
             </div>

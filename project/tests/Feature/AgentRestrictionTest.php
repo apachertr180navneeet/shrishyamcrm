@@ -189,12 +189,24 @@ class AgentRestrictionTest extends TestCase
         $updateResp->assertJson(['status' => 'success']);
         $this->assertStringContainsString('Shyam@9876', $updateResp->json('credentials_message'));
 
-        // 3. Test logging in with Mobile number and new password
+        // 3. Test logging in with 10-digit Mobile number
         $loginResp = $this->post(route('admin.login.post'), [
             'email' => '9812345678',
             'password' => 'Shyam@9876',
         ]);
         $loginResp->assertRedirect(route('admin.dashboard'));
+        $this->assertAuthenticated();
+
+        // Logout
+        $this->post(route('admin.logout'));
+        $this->assertGuest();
+
+        // 4. Test logging in with country code prefix (+91 9812345678)
+        $loginWithCountryCode = $this->post(route('admin.login.post'), [
+            'email' => '+91 9812345678',
+            'password' => 'Shyam@9876',
+        ]);
+        $loginWithCountryCode->assertRedirect(route('admin.dashboard'));
         $this->assertAuthenticated();
     }
 }

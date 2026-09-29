@@ -53,59 +53,117 @@ class AdminAuthController extends Controller
                 "password" => "required|string",
             ]);
 
-            $loginInput = trim($request->email);
-            $password = $request->password;
+            $loginInput = trim($request->input('email') ?? $request->input('username') ?? $request->input('mobile') ?? $request->input('login'));
+            $password = (string)$request->password;
 
-            // Find user by Email, Phone/Mobile, or Agent Code
-            $userQuery = User::where('status', 'active');
+            $user = null;
 
+            // 1. Direct match by Email if valid email format
             if (filter_var($loginInput, FILTER_VALIDATE_EMAIL)) {
-                $userQuery->where('email', $loginInput);
-            } elseif (preg_match('/^[0-9+\s\-]{7,15}$/', $loginInput)) {
+                $user = User::where('status', 'active')
+                    ->where('email', $loginInput)
+                    ->first();
+            }
+
+            // 2. Search by Mobile Number (Phone in users table or mobile in agents table)
+            if (!$user) {
                 $cleanPhone = preg_replace('/[^0-9]/', '', $loginInput);
-                $tenDigit = substr($cleanPhone, -10);
-                $userQuery->where(function($q) use ($loginInput, $cleanPhone, $tenDigit) {
-                    $q->where('phone', $loginInput)
-                      ->orWhere('phone', $cleanPhone)
-                      ->orWhere('phone', $tenDigit)
-                      ->orWhereHas('agent', fn($aq) => $aq->where('mobile', $loginInput)->orWhere('mobile', $cleanPhone)->orWhere('mobile', $tenDigit));
-                });
-            } else {
-                $cleanCode = strtoupper(str_replace(['-', ' '], '', $loginInput));
-                $userQuery->where(function($q) use ($loginInput, $cleanCode) {
-                    $q->where('email', $loginInput)
-                      ->orWhere('slug', $loginInput)
-                      ->orWhereHas('agent', fn($aq) => $aq->where('agent_code', $loginInput)->orWhere('code', $cleanCode));
-                });
-            }
+                if (strlen($cleanPhone) >= 7) {
+                    $tenDigit = substr($cleanPhone, -10);
 
-            $user = $userQuery->first();
+                    // Check users table by phone
+                    $user = User::where('status', 'active')
+                        ->where(function($q) use ($loginInput, $cleanPhone, $tenDigit) {
+                            $q->where('phone', $loginInput)
+                              ->orWhere('phone', $cleanPhone)
+                              ->orWhere('phone', $tenDigit)
+                              ->orWhere('phone', 'like', "%{$tenDigit}");
+                        })
+                        ->first();
 
-            if ($user && Hash::check($password, $user->password)) {
-                if (in_array($user->role, ['admin', 'agent'], true) || (method_exists($user, 'hasRole') && ($user->hasRole('admin') || $user->hasRole('agent')))) {
-                    Auth::login($user, $request->filled('remember'));
-                    return redirect()->route('admin.dashboard')->with('success', 'Welcome to your dashboard.');
+                    // If not found in users table, find from Agent record
+                    if (!$user) {
+                        $agent = \App\Models\Agent::where(function($q) use ($loginInput, $cleanPhone, $tenDigit) {
+                            $q->where('mobile', $loginInput)
+                              ->orWhere('mobile', $cleanPhone)
+                              ->orWhere('mobile', $tenDigit)
+                              ->orWhere('mobile', 'like', "%{$tenDigit}");
+                        })->first();
+
+                        if ($agent) {
+                            if ($agent->user_id) {
+                                $user = User::where('id', $agent->user_id)->where('status', 'active')->first();
+                            }
+                            if (!$user) {
+                                $user = User::where('agent_id', $agent->id)
+                                    ->orWhere('email', $agent->email)
+                                    ->orWhere('phone', $agent->mobile)
+                                    ->where('status', 'active')
+                                    ->first();
+                            }
+                            // Auto-link agent_id if missing
+                            if ($user && !$user->agent_id) {
+                                $user->update(['agent_id' => $agent->id]);
+                            }
+                        }
+                    }
                 }
-                return back()->with('error', 'Unauthorized access.');
             }
 
-            // Fallback attempt with email
+            // 3. Search by Agent Code, Username or Slug
+            if (!$user) {
+                $cleanCode = strtoupper(str_replace(['-', ' '], '', $loginInput));
+                $agent = \App\Models\Agent::where('agent_code', $loginInput)
+                    ->orWhere('code', $cleanCode)
+                    ->first();
+
+                if ($agent) {
+                    if ($agent->user_id) {
+                        $user = User::where('id', $agent->user_id)->where('status', 'active')->first();
+                    }
+                    if (!$user) {
+                        $user = User::where('agent_id', $agent->id)->where('status', 'active')->first();
+                    }
+                }
+
+                if (!$user) {
+                    $user = User::where('status', 'active')
+                        ->where(function($q) use ($loginInput) {
+                            $q->where('slug', $loginInput)
+                              ->orWhere('email', $loginInput);
+                        })
+                        ->first();
+                }
+            }
+
+            // 4. Verify password and authenticate
+            if ($user && Hash::check($password, $user->password)) {
+                if (in_array($user->role, ['admin', 'agent', 'super_admin'], true) || (method_exists($user, 'hasRole') && ($user->hasRole('admin') || $user->hasRole('agent') || $user->hasRole('super_admin')))) {
+                    Auth::login($user, $request->filled('remember'));
+                    $request->session()->regenerate();
+                    return redirect()->route('admin.dashboard')->with('success', "स्वागत है, {$user->full_name}!");
+                }
+                return back()->with('error', 'इस खाते के पास डैशबोर्ड का अधिकार नहीं है (Unauthorized access).');
+            }
+
+            // 5. Standard fallback attempt with email
             if (Auth::attempt([
                 'email' => $request->email,
                 'password' => $request->password,
                 'status' => 'active',
             ], $request->filled('remember'))) {
                 $user = Auth::user();
-                if (in_array($user->role, ['admin', 'agent'], true) || (method_exists($user, 'hasRole') && ($user->hasRole('admin') || $user->hasRole('agent')))) {
-                    return redirect()->route('admin.dashboard')->with('success', 'Welcome to your dashboard.');
+                if (in_array($user->role, ['admin', 'agent', 'super_admin'], true) || (method_exists($user, 'hasRole') && ($user->hasRole('admin') || $user->hasRole('agent') || $user->hasRole('super_admin')))) {
+                    $request->session()->regenerate();
+                    return redirect()->route('admin.dashboard')->with('success', "स्वागत है, {$user->full_name}!");
                 }
                 Auth::logout();
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
-                return back()->with('error', 'Unauthorized access.');
+                return back()->with('error', 'इस खाते के पास डैशबोर्ड का अधिकार नहीं है (Unauthorized access).');
             }
 
-            return back()->with("error", "Invalid login credentials.");
+            return back()->withInput($request->only('email'))->with("error", "मोबाइल नंबर / ईमेल या पासवर्ड अमान्य है (Invalid Mobile Number or Password).");
         }
         catch(Exception $e){
             return back()->with("error", $e->getMessage());

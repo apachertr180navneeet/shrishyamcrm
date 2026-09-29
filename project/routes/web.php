@@ -73,7 +73,7 @@ Route::name('admin.')->prefix('admin')->group(function () {
         // Profile & Account Settings
         Route::get('change-password', [AdminAuthController::class, 'changePassword'])->name('change.password');
         Route::post('update-password', [AdminAuthController::class, 'updatePassword'])->name('update.password');
-        Route::get('logout', [AdminAuthController::class, 'logout'])->name('logout');
+        Route::match(['get', 'post'], 'logout', [AdminAuthController::class, 'logout'])->name('logout');
         Route::get('profile', [AdminAuthController::class, 'adminProfile'])->name('profile');
         Route::post('profile', [AdminAuthController::class, 'updateAdminProfile'])->name('update.profile');
 
