@@ -1,0 +1,19 @@
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    # Prevent direct access to sensitive system files and directories
+    RewriteRule ^(\.env|artisan|composer\.(json|lock)|package\.(json|lock)|phpunit\.xml) - [F,L,NC]
+    RewriteRule ^(app|bootstrap|config|database|lang|resources|routes|storage|tests|vendor)(/|$) - [F,L,NC]
+
+    # 1. If /public/ is explicitly present in the requested URL, redirect to clean URL without /public/
+    RewriteCond %{THE_REQUEST} /public/([^\s?]*) [NC]
+    RewriteRule ^public/(.*)$ %1 [L,NE,R=301]
+
+    # 2. Internally rewrite all other requests to the public/ folder
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
