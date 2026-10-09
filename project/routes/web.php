@@ -235,3 +235,38 @@ Route::name('admin.')->prefix('admin')->group(function () {
         }
     })->name('run-seeders');
 
+    // Browser-accessible storage link generator (helpful on shared hosting / cPanel)
+    Route::get('/storage-link', function () {
+        try {
+            Artisan::call('storage:link');
+            return '<div style="font-family: monospace; padding: 20px; background: #1e1e1e; color: #00ff66; border-radius: 8px;">'
+                . '<h3>Storage Symlink Created Successfully!</h3>'
+                . '<pre>' . e(Artisan::output()) . '</pre>'
+                . '</div>';
+        } catch (\Throwable $e) {
+            return '<div style="font-family: monospace; padding: 20px; background: #1e1e1e; color: #ff5555; border-radius: 8px;">'
+                . '<h3>Storage Link Error:</h3>'
+                . '<pre>' . e($e->getMessage()) . '</pre>'
+                . '</div>';
+        }
+    })->name('storage.link');
+
+// Serve public storage files directly (fallback if web server symlink is missing on shared hosting)
+Route::get('storage/{path}', function (string $path) {
+    $baseStorage = storage_path('app/public');
+    $fullPath = $baseStorage . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $path);
+
+    $realBase = realpath($baseStorage);
+    $realPath = file_exists($fullPath) ? realpath($fullPath) : false;
+
+    if (!$realPath || !$realBase || !str_starts_with($realPath, $realBase) || !is_file($realPath)) {
+        abort(404);
+    }
+
+    $mimeType = mime_content_type($realPath) ?: 'application/octet-stream';
+    return response()->file($realPath, [
+        'Content-Type' => $mimeType,
+        'Cache-Control' => 'public, max-age=86400',
+    ]);
+})->where('path', '.*')->name('storage.file');
+

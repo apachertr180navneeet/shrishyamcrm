@@ -5,15 +5,20 @@
 
     RewriteEngine On
 
-    # Prevent direct access to sensitive system files and directories
+    # Prevent direct access to sensitive system files and directories (storage is allowed for public assets)
     RewriteRule ^(\.env|artisan|composer\.(json|lock)|package\.(json|lock)|phpunit\.xml) - [F,L,NC]
-    RewriteRule ^(app|bootstrap|config|database|lang|resources|routes|storage|tests|vendor)(/|$) - [F,L,NC]
+    RewriteRule ^(app|bootstrap|config|database|lang|resources|routes|tests|vendor)(/|$) - [F,L,NC]
+    RewriteRule ^storage/(framework|logs)(/|$) - [F,L,NC]
 
-    # 1. If /public/ is explicitly present in the requested URL, redirect to clean URL without /public/
+    # 1. Fallback for storage files: if public/storage symlink is missing on server, serve from storage/app/public/
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^storage/(.*)$ storage/app/public/$1 [L]
+
+    # 2. If /public/ is explicitly present in the requested URL, redirect to clean URL without /public/
     RewriteCond %{THE_REQUEST} /public/([^\s?]*) [NC]
     RewriteRule ^public/(.*)$ %1 [L,NE,R=301]
 
-    # 2. Internally rewrite all other requests to the public/ folder
+    # 3. Internally rewrite all other requests to the public/ folder
     RewriteCond %{REQUEST_URI} !^/public/
     RewriteRule ^(.*)$ public/$1 [L]
 </IfModule>
