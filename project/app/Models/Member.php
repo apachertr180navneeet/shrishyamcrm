@@ -21,6 +21,37 @@ class Member extends Model
         'total_paid' => 'decimal:2',
     ];
 
+    /**
+     * Get the displayable photo source (Base64 data URI, storage URL, or fallback document).
+     */
+    public function getPhotoSrcAttribute(): ?string
+    {
+        if (!empty($this->photo)) {
+            if (str_starts_with($this->photo, 'data:image/') || str_starts_with($this->photo, 'http://') || str_starts_with($this->photo, 'https://')) {
+                return $this->photo;
+            }
+            return asset(ltrim($this->photo, '/'));
+        }
+
+        // Fallback to Photo document if relation is loaded
+        if ($this->relationLoaded('documents')) {
+            $photoDoc = $this->documents->firstWhere('document_type', 'Photo');
+            if ($photoDoc && !empty($photoDoc->file_path)) {
+                return asset(ltrim($photoDoc->file_path, '/'));
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Alias for photo_src
+     */
+    public function getPhotoUrlAttribute(): ?string
+    {
+        return $this->photo_src;
+    }
+
     public function scheme()
     {
         return $this->belongsTo(Scheme::class);

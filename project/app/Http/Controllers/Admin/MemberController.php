@@ -89,6 +89,7 @@ class MemberController extends Controller
             'dob' => 'required|date',
             'scheme_id' => 'required|exists:schemes,id',
             'agent_id' => 'required|exists:agents,id',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
 
         try {
@@ -228,7 +229,8 @@ class MemberController extends Controller
             $safeExt = strtolower(pathinfo($file->getClientOriginalName(), PATHINFO_EXTENSION));
             $filename = 'member_' . $member->id . '_photo_' . time() . '_' . random_int(1000, 9999) . '.' . $safeExt;
             $path = $file->storeAs('uploads/documents', $filename, 'public');
-            $memberData['photo'] = '/storage/' . $path;
+            // Store full image URL in database
+            $memberData['photo'] = asset('storage/' . $path);
 
             MemberDocument::create([
                 'member_id' => $member->id,

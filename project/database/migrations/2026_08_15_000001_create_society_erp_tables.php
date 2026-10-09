@@ -76,7 +76,7 @@ return new class extends Migration
             $table->foreignId('agent_id')->nullable()->constrained('agents')->onDelete('set null');
             $table->date('joining_date')->nullable();
             $table->enum('status', ['Active', 'Inactive', 'Suspended'])->default('Active');
-            $table->string('photo')->nullable();
+            $table->text('photo')->nullable();
             $table->decimal('pending_amount', 10, 2)->default(0);
             $table->decimal('total_paid', 10, 2)->default(0);
             $table->timestamps();

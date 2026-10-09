@@ -79,8 +79,12 @@
                         </td>
                         <td>
                             <div class="d-flex align-items-center gap-2">
-                                <div class="avatar avatar-sm bg-label-primary rounded-circle d-flex align-items-center justify-content-center">
-                                    <i class="fas {{ $m->gender == 'Female' ? 'fa-female' : 'fa-user' }}"></i>
+                                <div class="avatar avatar-sm bg-label-primary rounded-circle d-flex align-items-center justify-content-center overflow-hidden" style="width: 38px; height: 38px; flex-shrink: 0;">
+                                    @if(!empty($m->photo_src))
+                                        <img src="{{ $m->photo_src }}" alt="{{ $m->full_name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                    @else
+                                        <i class="fas {{ $m->gender == 'Female' ? 'fa-female' : 'fa-user' }}"></i>
+                                    @endif
                                 </div>
                                 <div>
                                     <strong class="d-block text-heading">{{ $m->full_name }}</strong>

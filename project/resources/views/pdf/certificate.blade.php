@@ -424,7 +424,7 @@
                         <!-- Right Photo Box -->
                         <td style="width: 18%; vertical-align: middle; text-align: center;">
                             <div class="photo-box">
-                                @if($photoPath && file_exists($photoPath))
+                                @if($photoPath && (str_starts_with($photoPath, 'http') || str_starts_with($photoPath, 'data:image/') || file_exists($photoPath)))
                                     <img src="{{ $photoPath }}" alt="Member Photo">
                                 @else
                                     <div class="photo-placeholder">

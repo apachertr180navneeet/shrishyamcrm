@@ -118,6 +118,38 @@
                     <h5 class="fw-bold mb-3 border-bottom pb-2 text-primary">
                         <i class="fas fa-user me-2"></i> Step 1: Member Primary Details (प्राथमिक विवरण)
                     </h5>
+
+                    <!-- Member Photo Upload with Instant Live Preview -->
+                    <div class="card border border-light-subtle bg-light mb-4 shadow-none">
+                        <div class="card-body p-3">
+                            <div class="d-flex align-items-center gap-3 flex-wrap">
+                                <div class="position-relative">
+                                    <div id="member_photo_preview_container" class="rounded-3 border border-2 border-primary-subtle bg-white shadow-sm overflow-hidden d-flex align-items-center justify-content-center" style="width: 105px; height: 105px;">
+                                        <img id="member_photo_preview" src="" alt="Photo Preview" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                                        <div id="member_photo_placeholder" class="text-center text-muted p-2">
+                                            <i class="fas fa-camera fs-3 text-secondary d-block mb-1"></i>
+                                            <span style="font-size: 11px;" class="fw-semibold">पासपोर्ट फोटो</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <label class="form-label fw-bold mb-1">
+                                        <i class="fas fa-camera text-primary me-1"></i> सदस्य की फोटो (Member Passport Photo)
+                                    </label>
+                                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                                        <input type="file" name="photo" id="member_photo_input" class="form-control" accept="image/jpeg,image/png,image/jpg,image/webp" style="max-width: 320px;" onchange="previewMemberPhoto(this)">
+                                        <button type="button" id="btn_clear_photo" class="btn btn-outline-danger btn-sm" style="display: none;" onclick="clearMemberPhoto()">
+                                            <i class="fas fa-trash-alt me-1"></i> हटाएं (Remove)
+                                        </button>
+                                    </div>
+                                    <small class="text-muted d-block mt-1">
+                                        <i class="fas fa-info-circle text-primary me-1"></i> JPG, PNG, WEBP प्रारूप में फोटो अपलोड करें (अधिकतम 5MB)। यह सदस्य पहचान पत्र व लेजर में प्रदर्शित होगी।
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="row g-3">
                         <div class="col-md-4 col-12">
                             <label class="form-label fw-semibold">Auto Membership Number</label>
@@ -201,10 +233,10 @@
                         </div>
                         <div class="col-md-6 col-12">
                             <div class="border border-dashed p-4 text-center rounded bg-lighter">
-                                <i class="fas fa-camera fs-2 text-primary mb-2"></i>
-                                <h6 class="fw-semibold mb-1">Member Passport Photo</h6>
-                                <small class="text-muted d-block mb-2">JPG, PNG up to 2MB</small>
-                                <input type="file" name="photo" class="form-control form-control-sm" accept="image/*">
+                                <i class="fas fa-file-invoice fs-2 text-info mb-2"></i>
+                                <h6 class="fw-semibold mb-1">Address Proof / राशन कार्ड / निवास प्रमाण</h6>
+                                <small class="text-muted d-block mb-2">PDF, JPG up to 5MB</small>
+                                <input type="file" name="address_doc" class="form-control form-control-sm" accept=".pdf,image/*">
                             </div>
                         </div>
                         <div class="col-md-6 col-12">
@@ -646,6 +678,49 @@ function onAgeSlabChange() {
 
     document.getElementById('summaryJoining').innerText = '₹' + joining.toLocaleString('en-IN');
     document.getElementById('summarySupport').innerText = '₹' + support.toLocaleString('en-IN') + ' / कार्यक्रम';
+}
+
+function previewMemberPhoto(input) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        if (file.size > 5 * 1024 * 1024) {
+            alert('फोटो का साइज 5MB से कम होना चाहिए (Photo size must be less than 5MB).');
+            input.value = '';
+            clearMemberPhoto();
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('member_photo_preview');
+            const placeholder = document.getElementById('member_photo_placeholder');
+            const clearBtn = document.getElementById('btn_clear_photo');
+            if (preview) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            }
+            if (placeholder) {
+                placeholder.style.display = 'none';
+            }
+            if (clearBtn) {
+                clearBtn.style.display = 'inline-block';
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function clearMemberPhoto() {
+    const input = document.getElementById('member_photo_input');
+    const preview = document.getElementById('member_photo_preview');
+    const placeholder = document.getElementById('member_photo_placeholder');
+    const clearBtn = document.getElementById('btn_clear_photo');
+    if (input) input.value = '';
+    if (preview) {
+        preview.src = '';
+        preview.style.display = 'none';
+    }
+    if (placeholder) placeholder.style.display = 'block';
+    if (clearBtn) clearBtn.style.display = 'none';
 }
 
 function resetSlabDisplay() {

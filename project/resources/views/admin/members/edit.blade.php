@@ -91,6 +91,50 @@
                         </div>
                     </div>
                     <div class="card-body p-4">
+                        <!-- Member Photo Upload with Instant Live Preview -->
+                        <div class="card border border-light-subtle bg-light mb-4 shadow-none">
+                            <div class="card-body p-3">
+                                <div class="d-flex align-items-center gap-3 flex-wrap">
+                                    <div class="position-relative">
+                                        <div id="edit_photo_preview_container" class="rounded-3 border border-2 border-primary-subtle bg-white shadow-sm overflow-hidden d-flex align-items-center justify-content-center" style="width: 105px; height: 105px;">
+                                            @if($member->photo_src)
+                                                <img id="edit_photo_preview" src="{{ $member->photo_src }}" alt="{{ $member->full_name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                                <div id="edit_photo_placeholder" class="text-center text-muted p-2" style="display: none;">
+                                                    <i class="fas fa-camera fs-3 text-secondary d-block mb-1"></i>
+                                                    <span style="font-size: 11px;">सदस्य फोटो</span>
+                                                </div>
+                                            @else
+                                                <img id="edit_photo_preview" src="" alt="Photo Preview" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                                                <div id="edit_photo_placeholder" class="text-center text-muted p-2">
+                                                    <i class="fas fa-camera fs-3 text-secondary d-block mb-1"></i>
+                                                    <span style="font-size: 11px;">सदस्य फोटो</span>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                            <label class="form-label fw-bold mb-0">
+                                                <i class="fas fa-camera text-primary me-1"></i> Member Profile Photo (सदस्य पासपोर्ट फोटो)
+                                            </label>
+                                            @if($member->photo_src)
+                                                <span class="badge bg-label-success small"><i class="fas fa-check-circle me-1"></i> फोटो संलग्न है</span>
+                                            @endif
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                                            <input type="file" name="photo" id="edit_member_photo" class="form-control" accept="image/jpeg,image/png,image/jpg,image/webp" style="max-width: 320px;" onchange="previewEditMemberPhoto(this)">
+                                            <button type="button" id="btn_clear_edit_photo" class="btn btn-outline-danger btn-sm" style="display: none;" onclick="clearEditMemberPhoto()">
+                                                <i class="fas fa-undo me-1"></i> रीसेट करें (Reset)
+                                            </button>
+                                        </div>
+                                        <small class="text-muted d-block mt-1">
+                                            <i class="fas fa-info-circle text-primary me-1"></i> नई फोटो अपलोड करने के लिए फाइल चुनें (JPG, PNG, WEBP - अधिकतम 5MB)।
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="row g-3 mb-3">
                             <div class="col-md-6 col-12">
                                 <label class="form-label fw-semibold">Member Full Name (सदस्य का पूरा नाम) <span class="text-danger">*</span></label>
@@ -355,34 +399,28 @@
                     </div>
                 </div>
 
-                <!-- 5. Photo & Document Uploads -->
+                <!-- 5. Documents Upload -->
                 <div class="card border-0 shadow-sm mb-4">
                     <div class="card-header bg-white py-3 border-bottom">
                         <span class="form-section-title mb-0 border-0 p-0">
-                            <i class="fas fa-file-upload fs-5"></i> 5. Member Photo & Documents (फोटो एवं दस्तावेज)
+                            <i class="fas fa-file-upload fs-5"></i> 5. Member KYC Documents (सदस्य दस्तावेज संलग्नक)
                         </span>
                     </div>
                     <div class="card-body p-4">
                         <div class="row g-3 mb-3">
-                            <div class="col-md-6 col-12">
-                                <label class="form-label fw-semibold">Update Member Photo (नई फोटो अपलोड करें)</label>
-                                <input type="file" name="photo" class="form-control @error('photo') is-invalid @enderror" accept="image/*">
-                                <small class="text-muted">Accepts JPG, PNG, WEBP (Max 5MB)</small>
-                                @error('photo') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
-                            </div>
-                            <div class="col-md-6 col-12">
-                                <label class="form-label fw-semibold">Attach New KYC / Aadhaar / Document</label>
+                            <div class="col-md-12 col-12">
+                                <label class="form-label fw-semibold">Attach New KYC / Aadhaar / Document (नया दस्तावेज संलग्न करें)</label>
                                 <div class="input-group mb-1">
-                                    <select name="document_type" class="form-select" style="max-width: 140px;">
-                                        <option value="Aadhaar">Aadhaar</option>
-                                        <option value="Photo">Photo</option>
-                                        <option value="Identity">Identity</option>
+                                    <select name="document_type" class="form-select" style="max-width: 160px;">
+                                        <option value="Aadhaar">Aadhaar Card</option>
+                                        <option value="Identity">Identity Proof</option>
+                                        <option value="Address">Address Proof</option>
                                         <option value="Signature">Signature</option>
-                                        <option value="Other">Other</option>
+                                        <option value="Other">Other Document</option>
                                     </select>
                                     <input type="file" name="document_file" class="form-control @error('document_file') is-invalid @enderror" accept=".pdf,.jpg,.jpeg,.png,.webp">
                                 </div>
-                                <small class="text-muted">PDF or Image up to 10MB</small>
+                                <small class="text-muted">PDF or Image up to 10MB (सदस्य का पहचान पत्र / निवास प्रमाण)</small>
                                 @error('document_file') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                             </div>
                         </div>
@@ -433,13 +471,18 @@
                 <!-- Member Profile Card -->
                 <div class="card border-0 shadow-sm mb-4">
                     <div class="card-body p-4 text-center">
-                        <div class="avatar avatar-xl bg-label-primary mx-auto mb-3" style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center;">
-                            @if($member->photo)
-                                <img src="{{ asset($member->photo) }}" alt="{{ $member->full_name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                        <div class="avatar avatar-xl bg-label-primary mx-auto mb-2" style="width: 85px; height: 85px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 3px solid #e2e8f0;">
+                            @if($member->photo_src)
+                                <img id="sidebar_avatar_img" src="{{ $member->photo_src }}" alt="{{ $member->full_name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                <i id="sidebar_avatar_icon" class="fas {{ $member->gender == 'Female' ? 'fa-female' : 'fa-user' }} fs-1" style="display: none;"></i>
                             @else
-                                <i class="fas {{ $member->gender == 'Female' ? 'fa-female' : 'fa-user' }} fs-1"></i>
+                                <img id="sidebar_avatar_img" src="" alt="{{ $member->full_name }}" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                                <i id="sidebar_avatar_icon" class="fas {{ $member->gender == 'Female' ? 'fa-female' : 'fa-user' }} fs-1"></i>
                             @endif
                         </div>
+                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill mb-2 px-3" onclick="document.getElementById('edit_member_photo').click()">
+                            <i class="fas fa-camera me-1"></i> फोटो बदलें (Change Photo)
+                        </button>
                         <h5 class="fw-bold mb-1">{{ $member->full_name }}</h5>
                         <p class="text-muted mb-2"><i class="fas fa-id-card me-1"></i> {{ $member->membership_no }}</p>
                         <div class="d-flex justify-content-center gap-2 mb-3">
@@ -546,6 +589,83 @@ function onSlabChange() {
         if (joining && !document.getElementById('joiningAmountInput').value) {
             document.getElementById('joiningAmountInput').value = joining;
         }
+    }
+}
+
+const originalPhotoSrc = "{{ $member->photo_src ?? '' }}";
+
+function previewEditMemberPhoto(input) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        if (file.size > 5 * 1024 * 1024) {
+            alert('फोटो का साइज 5MB से कम होना चाहिए (Photo size must be less than 5MB).');
+            input.value = '';
+            clearEditMemberPhoto();
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('edit_photo_preview');
+            const placeholder = document.getElementById('edit_photo_placeholder');
+            const clearBtn = document.getElementById('btn_clear_edit_photo');
+            const sidebarImg = document.getElementById('sidebar_avatar_img');
+            const sidebarIcon = document.getElementById('sidebar_avatar_icon');
+
+            if (preview) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            }
+            if (placeholder) {
+                placeholder.style.display = 'none';
+            }
+            if (clearBtn) {
+                clearBtn.style.display = 'inline-block';
+            }
+            if (sidebarImg) {
+                sidebarImg.src = e.target.result;
+                sidebarImg.style.display = 'block';
+            }
+            if (sidebarIcon) {
+                sidebarIcon.style.display = 'none';
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function clearEditMemberPhoto() {
+    const input = document.getElementById('edit_member_photo');
+    const preview = document.getElementById('edit_photo_preview');
+    const placeholder = document.getElementById('edit_photo_placeholder');
+    const clearBtn = document.getElementById('btn_clear_edit_photo');
+    const sidebarImg = document.getElementById('sidebar_avatar_img');
+    const sidebarIcon = document.getElementById('sidebar_avatar_icon');
+
+    if (input) input.value = '';
+    if (clearBtn) clearBtn.style.display = 'none';
+
+    if (originalPhotoSrc) {
+        if (preview) {
+            preview.src = originalPhotoSrc;
+            preview.style.display = 'block';
+        }
+        if (sidebarImg) {
+            sidebarImg.src = originalPhotoSrc;
+            sidebarImg.style.display = 'block';
+        }
+        if (sidebarIcon) sidebarIcon.style.display = 'none';
+        if (placeholder) placeholder.style.display = 'none';
+    } else {
+        if (preview) {
+            preview.src = '';
+            preview.style.display = 'none';
+        }
+        if (sidebarImg) {
+            sidebarImg.src = '';
+            sidebarImg.style.display = 'none';
+        }
+        if (sidebarIcon) sidebarIcon.style.display = 'inline-block';
+        if (placeholder) placeholder.style.display = 'block';
     }
 }
 

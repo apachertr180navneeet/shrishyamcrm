@@ -37,11 +37,27 @@ class CertificateService
 
         $photoDoc = $member->documents->where('document_type', 'Photo')->first();
         $photoPath = null;
-        if ($photoDoc && !empty($photoDoc->file_path)) {
-            $cleaned = ltrim(str_replace('/storage/', 'storage/', $photoDoc->file_path), '/');
-            $abs = public_path($cleaned);
-            if (file_exists($abs)) {
-                $photoPath = str_replace('\\', '/', $abs);
+        $rawPhoto = $member->photo ?: ($photoDoc ? $photoDoc->file_path : null);
+        if (!empty($rawPhoto)) {
+            if (str_starts_with($rawPhoto, 'data:image/')) {
+                $photoPath = $rawPhoto;
+            } else {
+                $pathOnly = parse_url($rawPhoto, PHP_URL_PATH) ?: $rawPhoto;
+                $storageRelative = ltrim(preg_replace('#^/storage/#i', '', $pathOnly), '/');
+
+                $abs = public_path('storage/' . $storageRelative);
+                if (file_exists($abs)) {
+                    $photoPath = str_replace('\\', '/', $abs);
+                } else {
+                    $storageAbs = storage_path('app/public/' . $storageRelative);
+                    if (file_exists($storageAbs)) {
+                        $photoPath = str_replace('\\', '/', $storageAbs);
+                    } elseif (file_exists(public_path(ltrim($pathOnly, '/')))) {
+                        $photoPath = str_replace('\\', '/', public_path(ltrim($pathOnly, '/')));
+                    } else {
+                        $photoPath = $rawPhoto;
+                    }
+                }
             }
         }
 

@@ -7,8 +7,12 @@
         <div class="card-body p-4">
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
                 <div class="d-flex align-items-center gap-3">
-                    <div class="avatar avatar-xl bg-label-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 70px; height: 70px;">
-                        <i class="fas {{ $member->gender == 'Female' ? 'fa-female' : 'fa-user' }} fs-2"></i>
+                    <div class="avatar avatar-xl bg-label-primary rounded-circle d-flex align-items-center justify-content-center overflow-hidden" style="width: 70px; height: 70px;">
+                        @if(!empty($member->photo_src))
+                            <img src="{{ $member->photo_src }}" alt="{{ $member->full_name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                        @else
+                            <i class="fas {{ $member->gender == 'Female' ? 'fa-female' : 'fa-user' }} fs-2"></i>
+                        @endif
                     </div>
                     <div>
                         <div class="d-flex align-items-center gap-2 mb-1">

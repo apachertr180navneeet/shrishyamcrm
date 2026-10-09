@@ -348,8 +348,11 @@
                     <!-- Right Column: Member Photo -->
                     <div class="col-3 text-center">
                         <div class="member-photo-frame">
-                            @if($photoDoc && file_exists(public_path($photoDoc->file_path)))
-                                <img src="{{ asset($photoDoc->file_path) }}" alt="Member Photo">
+                            @php
+                                $photoSrc = $member->photo_src ?: ($photoDoc && !empty($photoDoc->file_path) ? asset($photoDoc->file_path) : null);
+                            @endphp
+                            @if($photoSrc)
+                                <img src="{{ $photoSrc }}" alt="{{ $member->full_name }}" style="width: 100%; height: 100%; object-fit: cover;">
                             @else
                                 <div class="text-muted p-3 text-center">
                                     <i class="fas fa-camera fs-3 text-secondary d-block mb-1"></i>

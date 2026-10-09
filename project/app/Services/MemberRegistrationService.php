@@ -146,11 +146,19 @@ class MemberRegistrationService
                         ]);
 
                         if ($type === 'photo') {
-                            $member->photo = '/storage/' . $path;
+                            $member->photo = asset('storage/' . $path);
                             $member->save();
                         }
                     }
                 }
+            }
+
+            // If photo string was directly provided in $data (e.g. full image URL or custom path)
+            if (empty($member->photo) && !empty($data['photo']) && is_string($data['photo'])) {
+                $member->photo = (str_starts_with($data['photo'], 'http://') || str_starts_with($data['photo'], 'https://') || str_starts_with($data['photo'], 'data:'))
+                    ? $data['photo']
+                    : asset(ltrim($data['photo'], '/'));
+                $member->save();
             }
 
             // 7. Post Joining Fee Due in Ledger
@@ -201,4 +209,65 @@ class MemberRegistrationService
             return $member;
         });
     }
+
+    /**
+     * Convert uploaded image to Base64 Data URI for direct database storage.
+     * Optimizes passport photo if GD is available to keep database queries fast and lightweight.
+     */
+    public static function encodeImageForDb($file): string
+    {
+        $mime = $file->getClientMimeType() ?: 'image/jpeg';
+        $realPath = $file->getRealPath();
+
+        if (extension_loaded('gd') && function_exists('imagecreatefromstring')) {
+            try {
+                $contents = @file_get_contents($realPath);
+                if ($contents !== false) {
+                    $img = @imagecreatefromstring($contents);
+                    if ($img !== false) {
+                        $origWidth = imagesx($img);
+                        $origHeight = imagesy($img);
+                        $maxDim = 800; // Passport/avatar photo max dimension
+
+                        if ($origWidth > $maxDim || $origHeight > $maxDim) {
+                            $ratio = min($maxDim / $origWidth, $maxDim / $origHeight);
+                            $newWidth = (int)round($origWidth * $ratio);
+                            $newHeight = (int)round($origHeight * $ratio);
+
+                            $resized = imagecreatetruecolor($newWidth, $newHeight);
+                            if (in_array($mime, ['image/png', 'image/webp'])) {
+                                imagealphablending($resized, false);
+                                imagesavealpha($resized, true);
+                            }
+                            imagecopyresampled($resized, $img, 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight);
+
+                            ob_start();
+                            if ($mime === 'image/png') {
+                                imagepng($resized, null, 7);
+                            } elseif ($mime === 'image/webp') {
+                                imagewebp($resized, null, 85);
+                            } else {
+                                imagejpeg($resized, null, 85);
+                                $mime = 'image/jpeg';
+                            }
+                            $optimizedData = ob_get_clean();
+                            imagedestroy($resized);
+                            imagedestroy($img);
+
+                            if (!empty($optimizedData)) {
+                                return 'data:' . $mime . ';base64,' . base64_encode($optimizedData);
+                            }
+                        } else {
+                            imagedestroy($img);
+                        }
+                    }
+                }
+            } catch (\Throwable $e) {
+                // Fallback to direct file encoding
+            }
+        }
+
+        return 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($realPath));
+    }
 }
+
