@@ -78,6 +78,11 @@ class User extends Authenticatable
         return $this->hasRole('super_admin') || ($this->roleModel && $this->roleModel->name === 'super_admin');
     }
 
+    public function isAdmin(): bool
+    {
+        return $this->isSuperAdmin() || $this->hasRole('admin') || in_array($this->role, ['admin', 'super_admin'], true);
+    }
+
     public function isAgent(): bool
     {
         return $this->hasRole('agent') || ($this->agent_id !== null && $this->exists);

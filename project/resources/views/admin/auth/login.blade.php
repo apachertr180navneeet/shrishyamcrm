@@ -1,14 +1,65 @@
 @extends('admin.layouts.login_layout') 
+@section('style')
+<style>
+    .role-switcher-container {
+        background: #f1f3f6;
+        border: 1px solid #e2e8f0;
+        border-radius: 50rem;
+        padding: 4px;
+        display: flex;
+        gap: 4px;
+    }
+    .role-pill-btn {
+        flex: 1;
+        border-radius: 50rem;
+        padding: 0.55rem 0.75rem;
+        font-weight: 700;
+        font-size: 0.90rem;
+        transition: all 0.25s ease-in-out;
+        border: none;
+        color: #64748b;
+        background: transparent;
+        text-align: center;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+    .role-pill-btn.active-admin {
+        background: #696cff !important;
+        color: #ffffff !important;
+        box-shadow: 0 4px 14px rgba(105, 108, 255, 0.4);
+    }
+    .role-pill-btn.active-agent {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+        color: #ffffff !important;
+        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+    }
+    .role-pill-btn:hover:not(.active-admin):not(.active-agent) {
+        background: #e2e8f0;
+        color: #1e293b;
+    }
+    .login-card {
+        border-radius: 1rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        border: 1px solid #edf2f7;
+    }
+    .input-group-text.cursor-pointer:hover {
+        background-color: #f8fafc;
+    }
+</style>
+@endsection
+
 @section('content') 
 
 <div class="authentication-wrapper authentication-basic container-p-y">
     <div class="authentication-inner">
         <!-- Register -->
-        <div class="card">
-            <div class="card-body">
+        <div class="card login-card">
+            <div class="card-body p-4">
                 <!-- Logo -->
-                <div class="app-brand justify-content-center">
-                    <a href="index.html" class="app-brand-link gap-2">
+                <div class="app-brand justify-content-center mb-3">
+                    <a href="{{ route('admin.login') }}" class="app-brand-link gap-2">
                         <span class="app-brand-logo demo">
                             <svg
                                 width="25"
@@ -67,41 +118,260 @@
                         <span class="app-brand-text demo text-body fw-bolder">{{ config('app.name') }}</span>
                     </a>
                 </div>
-                <h4 class="mb-1 fw-bold text-primary">श्री श्याम वेलफेयर सोसायटी</h4>
-                <p class="mb-4 text-muted">एडमिन एवं कार्यकर्ता पोर्टल लॉगिन (Admin & Agent Portal)</p>
-                <form action="{{ route('admin.login.post') }}" id="" class="mb-3" method="POST">
+
+                <div class="text-center mb-3">
+                    <h4 class="mb-1 fw-bold text-primary">श्री श्याम वेलफेयर सोसायटी</h4>
+                    <p class="text-muted small mb-0">पोर्टल लॉगिन प्रणाली (Portal Login)</p>
+                </div>
+
+                <!-- Role Switcher: Admin (Email) vs Agent (Mobile) -->
+                <div class="role-switcher-container mb-3">
+                    <button type="button" class="role-pill-btn active-admin" id="btn-tab-admin" onclick="setLoginType('admin')">
+                        <i class="fas fa-user-shield me-1"></i> एडमिन (Admin)
+                    </button>
+                    <button type="button" class="role-pill-btn" id="btn-tab-agent" onclick="setLoginType('agent')">
+                        <i class="fas fa-mobile-alt me-1"></i> कार्यकर्ता (Agent)
+                    </button>
+                </div>
+
+                <!-- Role Info Alert Badge -->
+                <div id="role-info-badge" class="alert alert-primary py-2 px-3 mb-3 d-flex align-items-center small" role="alert">
+                    <i class="fas fa-info-circle fs-5 me-2" id="role-info-icon"></i>
+                    <div>
+                        <span id="role-info-title" class="fw-bold d-block">एडमिन लॉगिन (Email Required)</span>
+                        <span id="role-info-desc" class="text-muted">एडमिन अपने पंजीकृत <strong>ईमेल (Email)</strong> से लॉगिन करें।</span>
+                    </div>
+                </div>
+
+                @if(session('error'))
+                    <div class="alert alert-danger alert-dismissible py-2 px-3 mb-3 small" role="alert">
+                        <i class="fas fa-exclamation-circle me-1"></i> {{ session('error') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+
+                @if($errors->any())
+                    <div class="alert alert-danger alert-dismissible py-2 px-3 mb-3 small" role="alert">
+                        <i class="fas fa-exclamation-circle me-1"></i> {{ $errors->first() }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+
+                <form action="{{ route('admin.login.post') }}" id="loginForm" class="mb-2" method="POST">
                     @csrf
+                    <!-- Hidden field to indicate login type -->
+                    <input type="hidden" name="login_type" id="login_type" value="{{ old('login_type', request('type', 'admin')) }}" />
+
+                    <!-- Primary Identifier Input (Email for Admin, Mobile for Agent) -->
                     <div class="mb-3">
-                        <label for="email" class="form-label fw-bold">
-                            <i class="fas fa-mobile-alt text-primary me-1"></i> मोबाइल नंबर (Mobile No.) <span class="text-muted fw-normal small">/ ईमेल / एजेंट कोड</span>
+                        <label for="login_input" class="form-label fw-bold" id="login_label">
+                            <i class="fas fa-envelope text-primary me-1" id="login_label_icon"></i>
+                            <span id="login_label_text">ईमेल पता (Email Address)</span>
                         </label>
-                        <input type="text" class="form-control form-control-lg fw-semibold" id="email" name="email" placeholder="10-अंकीय मोबाइल नंबर (e.g. 9829012345)" value="{{ old('email') }}" required autofocus autocomplete="username" />
-                        <small class="text-muted d-block mt-1">
-                            <i class="fas fa-shield-alt text-success me-1"></i> कार्यकर्ता अपने पंजीकृत 10-अंकीय मोबाइल नंबर व पासवर्ड से सीधे लॉगिन करें।
+                        <input
+                            type="email"
+                            class="form-control form-control-lg fw-semibold"
+                            id="login_input"
+                            name="email"
+                            placeholder="admin@shrishyam.org"
+                            value="{{ old('email') }}"
+                            required
+                            autofocus
+                            autocomplete="username"
+                        />
+                        <small class="text-muted d-block mt-1" id="login_hint">
+                            <i class="fas fa-shield-alt text-primary me-1" id="login_hint_icon"></i>
+                            <span id="login_hint_text">एडमिन / व्यवस्थापक अपने पंजीकृत ईमेल पते व पासवर्ड से लॉगिन करें।</span>
                         </small>
                     </div>
+
+                    <!-- Password Field -->
                     <div class="mb-3 form-password-toggle">
-                        <div class="d-flex justify-content-between">
-                            <label class="form-label fw-bold" for="password">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label fw-bold mb-0" for="password">
                                 <i class="fas fa-lock text-primary me-1"></i> पासवर्ड (Password)
                             </label>
-                            <a href="{{route('admin.forget.password.get')}}"><small>Forgot Password?</small></a>
+                            <a href="{{ route('admin.forget.password.get') }}" id="forgotPasswordLink">
+                                <small>Forgot Password?</small>
+                            </a>
                         </div>
                         <div class="input-group input-group-merge">
-                            <input type="password" id="password" class="form-control form-control-lg" name="password" placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;" aria-describedby="password" required />
-                            <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
+                            <input
+                                type="password"
+                                id="password"
+                                class="form-control form-control-lg"
+                                name="password"
+                                placeholder="············"
+                                aria-describedby="password"
+                                required
+                                autocomplete="current-password"
+                            />
+                            <span class="input-group-text cursor-pointer" id="passwordToggleBtn"><i class="bx bx-hide"></i></span>
                         </div>
                     </div>
+
                     <div class="mb-3">
-                        <button class="btn btn-primary btn-lg d-grid w-100 fw-bold shadow-sm" type="submit">
-                            <i class="fas fa-sign-in-alt me-2"></i> लॉगिन करें (Sign In)
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="remember-me" name="remember" />
+                            <label class="form-check-label small" for="remember-me"> मुझे याद रखें (Remember Me) </label>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="mb-3">
+                        <button id="btn_submit" class="btn btn-primary btn-lg d-grid w-100 fw-bold shadow-sm" type="submit">
+                            <i class="fas fa-sign-in-alt me-2"></i>
+                            <span id="btn_submit_text">एडमिन लॉगिन करें (Admin Sign In)</span>
                         </button>
                     </div>
                 </form>
+
+                <div class="text-center mt-3 pt-2 border-top">
+                    <small class="text-muted">
+                        <i class="fas fa-headset me-1 text-primary"></i> सहायता हेल्पलाइन: <span class="fw-semibold">9664090906</span>
+                    </small>
+                </div>
             </div>
         </div>
         <!-- /Register -->
     </div>
 </div>
 
+@endsection
+
+@section('script')
+<script>
+    function setLoginType(type) {
+        const btnAdmin = document.getElementById('btn-tab-admin');
+        const btnAgent = document.getElementById('btn-tab-agent');
+        const hiddenType = document.getElementById('login_type');
+
+        const roleBadge = document.getElementById('role-info-badge');
+        const roleIcon = document.getElementById('role-info-icon');
+        const roleTitle = document.getElementById('role-info-title');
+        const roleDesc = document.getElementById('role-info-desc');
+
+        const labelIcon = document.getElementById('login_label_icon');
+        const labelText = document.getElementById('login_label_text');
+        const loginInput = document.getElementById('login_input');
+        const hintIcon = document.getElementById('login_hint_icon');
+        const hintText = document.getElementById('login_hint_text');
+
+        const btnSubmit = document.getElementById('btn_submit');
+        const btnSubmitText = document.getElementById('btn_submit_text');
+
+        if (type === 'agent') {
+            // Tab styling
+            btnAdmin.className = 'role-pill-btn';
+            btnAgent.className = 'role-pill-btn active-agent';
+            hiddenType.value = 'agent';
+
+            // Role Badge styling
+            roleBadge.className = 'alert alert-success py-2 px-3 mb-3 d-flex align-items-center small';
+            roleIcon.className = 'fas fa-mobile-alt fs-5 me-2 text-success';
+            roleTitle.innerText = 'कार्यकर्ता लॉगिन (Mobile No. Required)';
+            roleTitle.className = 'fw-bold d-block text-success';
+            roleDesc.innerHTML = 'कार्यकर्ता अपने पंजीकृत <strong>10-अंकीय मोबाइल नंबर</strong> से लॉगिन करें।';
+
+            // Input field configuration
+            labelIcon.className = 'fas fa-mobile-alt text-success me-1';
+            labelText.innerText = 'मोबाइल नंबर (Mobile No.)';
+            loginInput.type = 'tel';
+            loginInput.placeholder = '10-अंकीय मोबाइल नंबर (e.g. 9829012345)';
+            loginInput.setAttribute('maxlength', '10');
+            loginInput.setAttribute('pattern', '[0-9]{10}');
+            loginInput.setAttribute('autocomplete', 'tel');
+
+            // Hint
+            hintIcon.className = 'fas fa-shield-alt text-success me-1';
+            hintText.innerText = 'कार्यकर्ता अपने पंजीकृत 10-अंकीय मोबाइल नंबर व पासवर्ड से सीधे लॉगिन करें।';
+
+            // Submit Button
+            btnSubmit.className = 'btn btn-success btn-lg d-grid w-100 fw-bold shadow-sm';
+            btnSubmit.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+            btnSubmit.style.borderColor = '#059669';
+            btnSubmitText.innerText = 'कार्यकर्ता लॉगिन करें (Agent Sign In)';
+        } else {
+            // Admin default
+            btnAdmin.className = 'role-pill-btn active-admin';
+            btnAgent.className = 'role-pill-btn';
+            hiddenType.value = 'admin';
+
+            // Role Badge styling
+            roleBadge.className = 'alert alert-primary py-2 px-3 mb-3 d-flex align-items-center small';
+            roleIcon.className = 'fas fa-user-shield fs-5 me-2 text-primary';
+            roleTitle.innerText = 'एडमिन लॉगिन (Email Required)';
+            roleTitle.className = 'fw-bold d-block text-primary';
+            roleDesc.innerHTML = 'एडमिन / व्यवस्थापक अपने पंजीकृत <strong>ईमेल (Email ID)</strong> से लॉगिन करें।';
+
+            // Input field configuration
+            labelIcon.className = 'fas fa-envelope text-primary me-1';
+            labelText.innerText = 'ईमेल पता (Email Address)';
+            loginInput.type = 'email';
+            loginInput.placeholder = 'admin@shrishyam.org';
+            loginInput.removeAttribute('maxlength');
+            loginInput.removeAttribute('pattern');
+            loginInput.setAttribute('autocomplete', 'username');
+
+            // Hint
+            hintIcon.className = 'fas fa-shield-alt text-primary me-1';
+            hintText.innerText = 'एडमिन / व्यवस्थापक अपने पंजीकृत ईमेल पते व पासवर्ड से लॉगिन करें।';
+
+            // Submit Button
+            btnSubmit.className = 'btn btn-primary btn-lg d-grid w-100 fw-bold shadow-sm';
+            btnSubmit.style.background = '';
+            btnSubmit.style.borderColor = '';
+            btnSubmitText.innerText = 'एडमिन लॉगिन करें (Admin Sign In)';
+        }
+
+        loginInput.focus();
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const requestedType = urlParams.get('type');
+        const initialType = "{{ old('login_type') }}" || requestedType || 'admin';
+
+        // Auto-switch to agent if previous input was 10-digits
+        const oldVal = "{{ old('email') }}";
+        if (oldVal && /^\d{10}$/.test(oldVal.trim())) {
+            setLoginType('agent');
+        } else if (initialType === 'agent') {
+            setLoginType('agent');
+        } else {
+            setLoginType('admin');
+        }
+
+        // Restrict Agent mobile input to numbers only
+        const loginInput = document.getElementById('login_input');
+        loginInput.addEventListener('input', function() {
+            const currentType = document.getElementById('login_type').value;
+            if (currentType === 'agent') {
+                this.value = this.value.replace(/[^0-9]/g, '');
+            }
+        });
+
+        // Toggle password visibility
+        const toggleBtn = document.getElementById('passwordToggleBtn');
+        const passwordInput = document.getElementById('password');
+        if (toggleBtn && passwordInput) {
+            toggleBtn.addEventListener('click', function() {
+                const icon = this.querySelector('i');
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    if (icon) {
+                        icon.classList.remove('bx-hide');
+                        icon.classList.add('bx-show');
+                    }
+                } else {
+                    passwordInput.type = 'password';
+                    if (icon) {
+                        icon.classList.remove('bx-show');
+                        icon.classList.add('bx-hide');
+                    }
+                }
+            });
+        }
+    });
+</script>
 @endsection
