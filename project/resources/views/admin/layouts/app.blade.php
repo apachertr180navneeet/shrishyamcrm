@@ -100,6 +100,60 @@
                 border-radius: 12px !important;
                 border: 1px solid #E2E8F0 !important;
             }
+            /* Project-Wide Modern Pagination Styling */
+            .pagination {
+                gap: 5px;
+                margin: 0;
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+            }
+            .pagination .page-item .page-link {
+                color: #334155;
+                border: 1px solid #E2E8F0;
+                background-color: #FFFFFF;
+                border-radius: 8px !important;
+                padding: 6px 14px;
+                font-size: 0.86rem;
+                font-weight: 500;
+                transition: all 0.2s ease-in-out;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-width: 36px;
+                height: 36px;
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+            }
+            .pagination .page-item:hover:not(.disabled):not(.active) .page-link {
+                background-color: #F1F5F9;
+                color: #2563EB;
+                border-color: #CBD5E1;
+                transform: translateY(-1px);
+            }
+            .pagination .page-item.active .page-link {
+                background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%) !important;
+                border-color: #2563EB !important;
+                color: #FFFFFF !important;
+                box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3) !important;
+                font-weight: 600;
+            }
+            .pagination .page-item.disabled .page-link {
+                background-color: #F8FAFC !important;
+                color: #94A3B8 !important;
+                border-color: #E2E8F0 !important;
+                cursor: not-allowed;
+                opacity: 0.7;
+            }
+            /* Prevent any SVG icons from blowing up */
+            .pagination svg,
+            nav[aria-label*="navigation" i] svg,
+            nav[aria-label*="pagination" i] svg {
+                width: 14px !important;
+                height: 14px !important;
+                max-width: 14px !important;
+                max-height: 14px !important;
+                display: inline-block !important;
+            }
         </style>
         
     </head>

@@ -82,7 +82,28 @@ class CertificateController extends Controller
 
         $photoDoc = $member->documents->where('document_type', 'Photo')->first();
 
-        return view('admin.certificates.show', compact('member', 'society', 'nomineeName', 'kishtRate', 'photoDoc'));
+        $rawSchemeName = $member->scheme ? ($member->scheme->name_hindi ?: $member->scheme->name) : 'विवाह योजना';
+        $trimmedScheme = trim($rawSchemeName);
+        if (str_ends_with($trimmedScheme, 'योजना प्रमाण पत्र')) {
+            $schemeHeading = $trimmedScheme;
+        } elseif (str_ends_with($trimmedScheme, 'प्रमाण पत्र')) {
+            $schemeHeading = $trimmedScheme;
+        } elseif (str_ends_with($trimmedScheme, 'योजना')) {
+            $schemeHeading = $trimmedScheme . ' प्रमाण पत्र';
+        } else {
+            $schemeHeading = $trimmedScheme . ' योजना प्रमाण पत्र';
+        }
+
+        $isSeniorScheme = $member->scheme && (
+            str_contains($member->scheme->name_hindi ?? '', 'बुजुर्ग') ||
+            str_contains(strtolower($member->scheme->name ?? ''), 'senior')
+        );
+        $fatherSpouseLabel = $isSeniorScheme ? 'पिता/पति का नाम' : 'पिता का नाम';
+        $policyNote = $isSeniorScheme
+            ? '1–6 माह तक दुर्घटना होने पर 51000रु व 6माह बाद सदस्यानुसार भुगतान किया जायेगा'
+            : '12 माह बाद शादी करने पर ही लाभ मिलेगा (समय अधिक लाभ अधिक)';
+
+        return view('admin.certificates.show', compact('member', 'society', 'nomineeName', 'kishtRate', 'photoDoc', 'schemeHeading', 'policyNote', 'isSeniorScheme', 'fatherSpouseLabel'));
     }
 
     public function downloadPdf($id)

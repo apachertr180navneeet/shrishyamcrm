@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 55" width="160" height="55">
+  <!-- Handwritten Hindi Signature 'लादुराम' in Red Ink with flourish -->
+  <g fill="none" stroke="#D32F2F" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Top shirorekha header bar with natural hand tilt -->
+    <path d="M 22 20 Q 55 18, 125 19" stroke-width="2.6" />
+    
+    <!-- 'ला' (La) -->
+    <!-- vertical stem -->
+    <path d="M 40 20 L 39 42" stroke-width="2.5" />
+    <!-- curve -->
+    <path d="M 25 32 Q 33 33, 39 28" stroke-width="2.4" />
+    <path d="M 25 32 Q 22 38, 29 42 Q 35 44, 40 38" stroke-width="2.3" />
+
+    <!-- 'दु' (Du) -->
+    <!-- short stem -->
+    <path d="M 58 20 L 58 25" stroke-width="2.4" />
+    <!-- loop / body of Da -->
+    <path d="M 58 25 Q 68 25, 68 33 Q 66 40, 56 38" stroke-width="2.4" />
+    <!-- u matra tail curving down and right -->
+    <path d="M 60 38 Q 63 46, 56 48 Q 50 47, 54 41" stroke-width="2.3" />
+
+    <!-- 'रा' (Raa) -->
+    <!-- Ra curve -->
+    <path d="M 80 20 Q 88 23, 84 31 Q 80 35, 74 36 L 86 45" stroke-width="2.4" />
+    <!-- aa matra vertical bar -->
+    <path d="M 97 20 L 96 44" stroke-width="2.5" />
+
+    <!-- 'म' (Ma) -->
+    <!-- left stem, knot, horizontal bar -->
+    <path d="M 108 20 L 107 38 Q 106 43, 112 43 Q 116 43, 126 36" stroke-width="2.4" />
+    <!-- right vertical stem -->
+    <path d="M 124 20 L 123 44" stroke-width="2.5" />
+
+    <!-- Stylish Signature flourish / underline looping back to the left -->
+    <path d="M 124 43 Q 140 45, 120 49 Q 70 53, 20 48" stroke-width="2.2" />
+  </g>
+</svg>

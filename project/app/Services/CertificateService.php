@@ -69,6 +69,30 @@ class CertificateService
         $logoPath = file_exists(public_path('assets/society_logo.png'))
             ? str_replace('\\', '/', public_path('assets/society_logo.png'))
             : (file_exists(public_path('assets/society_logo.jpg')) ? str_replace('\\', '/', public_path('assets/society_logo.jpg')) : null);
+        $signaturePath = file_exists(public_path('assets/signature_laduram.png'))
+            ? str_replace('\\', '/', public_path('assets/signature_laduram.png'))
+            : null;
+
+        $rawSchemeName = $member->scheme ? ($member->scheme->name_hindi ?: $member->scheme->name) : 'विवाह योजना';
+        $trimmedScheme = trim($rawSchemeName);
+        if (str_ends_with($trimmedScheme, 'योजना प्रमाण पत्र')) {
+            $schemeHeading = $trimmedScheme;
+        } elseif (str_ends_with($trimmedScheme, 'प्रमाण पत्र')) {
+            $schemeHeading = $trimmedScheme;
+        } elseif (str_ends_with($trimmedScheme, 'योजना')) {
+            $schemeHeading = $trimmedScheme . ' प्रमाण पत्र';
+        } else {
+            $schemeHeading = $trimmedScheme . ' योजना प्रमाण पत्र';
+        }
+
+        $isSeniorScheme = $member->scheme && (
+            str_contains($member->scheme->name_hindi ?? '', 'बुजुर्ग') ||
+            str_contains(strtolower($member->scheme->name ?? ''), 'senior')
+        );
+        $fatherSpouseLabel = $isSeniorScheme ? 'पिता/पति का नाम' : 'पिता का नाम';
+        $policyNote = $isSeniorScheme
+            ? '1–6 माह तक दुर्घटना होने पर 51000रु व 6माह बाद सदस्यानुसार भुगतान किया जायेगा'
+            : '12 माह बाद शादी करने पर ही लाभ मिलेगा (समय अधिक लाभ अधिक)';
 
         return Pdf::loadView('pdf.certificate', compact(
             'member',
@@ -77,6 +101,11 @@ class CertificateService
             'kishtRate',
             'photoPath',
             'logoPath',
+            'signaturePath',
+            'schemeHeading',
+            'policyNote',
+            'isSeniorScheme',
+            'fatherSpouseLabel',
             'mangalPath',
             'mangalbPath',
             'aparajPath',
