@@ -94,6 +94,11 @@ class CertificateService
             ? '1–6 माह तक दुर्घटना होने पर 51000रु व 6माह बाद सदस्यानुसार भुगतान किया जायेगा'
             : '12 माह बाद शादी करने पर ही लाभ मिलेगा (समय अधिक लाभ अधिक)';
 
+        $bgImageRelative = $isSeniorScheme
+            ? 'assets/certificate_buzurg_bg.jpg'
+            : 'assets/certificate_vivah_bg.jpg';
+        $bgImagePath = str_replace('\\', '/', public_path($bgImageRelative));
+
         return Pdf::loadView('pdf.certificate', compact(
             'member',
             'society',
@@ -106,6 +111,7 @@ class CertificateService
             'policyNote',
             'isSeniorScheme',
             'fatherSpouseLabel',
+            'bgImagePath',
             'mangalPath',
             'mangalbPath',
             'aparajPath',

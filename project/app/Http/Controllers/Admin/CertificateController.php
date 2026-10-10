@@ -103,7 +103,13 @@ class CertificateController extends Controller
             ? '1–6 माह तक दुर्घटना होने पर 51000रु व 6माह बाद सदस्यानुसार भुगतान किया जायेगा'
             : '12 माह बाद शादी करने पर ही लाभ मिलेगा (समय अधिक लाभ अधिक)';
 
-        return view('admin.certificates.show', compact('member', 'society', 'nomineeName', 'kishtRate', 'photoDoc', 'schemeHeading', 'policyNote', 'isSeniorScheme', 'fatherSpouseLabel'));
+        $bgImage = $isSeniorScheme
+            ? 'assets/certificate_buzurg_bg.jpg'
+            : 'assets/certificate_vivah_bg.jpg';
+
+        $photoSrc = $member->photo_src ?: ($photoDoc && !empty($photoDoc->file_path) ? asset($photoDoc->file_path) : null);
+
+        return view('admin.certificates.show', compact('member', 'society', 'nomineeName', 'kishtRate', 'photoDoc', 'photoSrc', 'schemeHeading', 'policyNote', 'isSeniorScheme', 'fatherSpouseLabel', 'bgImage'));
     }
 
     public function downloadPdf($id)
