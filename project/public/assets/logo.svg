@@ -56,7 +56,7 @@
   <path id="textArcTop" d="M 75,250 A 175,175 0 1,1 425,250" fill="none"/>
   <text font-family="'Hind', 'Mukta', 'Arial', sans-serif" font-weight="700" font-size="21" fill="url(#goldGrad)">
     <textPath href="#textArcTop" startOffset="50%" text-anchor="middle">
-      श्री श्याम वेलफेयर सोसायटी लोहीकी
+      श्री श्याम वेलफेयर सोसाइटी, लोहिड़ी
     </textPath>
   </text>
 

@@ -322,7 +322,7 @@
                                 <th>विवरण (Description / Particulars)</th>
                                 <th class="text-end">नामे / देय (Debit ₹)</th>
                                 <th class="text-end">जमा (Credit ₹)</th>
-                                <th class="text-end">शेष बकाया (Balance ₹)</th>
+                                <th class="text-end">बाकी राशि (Balance ₹)</th>
                                 <th class="text-center">रसीद / पावती</th>
                             </tr>
                         </thead>

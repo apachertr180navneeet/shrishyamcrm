@@ -47,8 +47,8 @@ const SSWS = {
             agentViewBanner: "Agent Mode: Showing only members assigned to Agent (Rameshwar Lal Sharma - AGT-001)"
         },
         hi: {
-            appName: "श्री श्याम वेलफेयर सोसायटी ईआरपी",
-            societyTitle: "श्री श्याम वेलफेयर सोसायटी लोहीकी",
+            appName: "श्री श्याम वेलफेयर सोसाइटी ईआरपी",
+            societyTitle: "श्री श्याम वेलफेयर सोसाइटी, लोहिड़ी",
             dashboard: "डैशबोर्ड",
             schemesMaster: "योजनाएं (Schemes)",
             ageSlabs: "आयु वर्ग (Age Slabs)",
@@ -57,7 +57,7 @@ const SSWS = {
             allAgents: "सभी एजेंट (Agents)",
             paymentEntry: "भुगतान प्रविष्टि",
             paymentList: "भुगतान इतिहास",
-            receipts: "सोसायटी रसीदें",
+            receipts: "सोसाइटी रसीदें",
             certificates: "सदस्यता प्रमाण-पत्र",
             events: "विवाह सहायता कार्यक्रम",
             payouts: "सहायता वितरण (Payouts)",
@@ -79,7 +79,7 @@ const SSWS = {
             totalAgents: "कुल एजेंट",
             todayCollection: "आज का संग्रह",
             monthlyCollection: "इस माह का संग्रह",
-            overduePending: "बकाई राशि (Pending)",
+            overduePending: "बाकी राशि (Pending)",
             totalEvents: "कुल विवाह कार्यक्रम",
             adminDashboardTitle: "प्रशासनिक डैशबोर्ड",
             adminSubtitle: "वास्तविक समय प्रशासन, संग्रह आंकड़े, विवाह सहायता बिलिंग एवं लाभांश विवरण",

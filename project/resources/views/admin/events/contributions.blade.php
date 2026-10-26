@@ -146,7 +146,7 @@
                 <div class="card-body p-3">
                     <div class="d-flex align-items-center justify-content-between">
                         <div>
-                            <small class="text-danger d-block fw-bold"><i class="fas fa-clock me-1"></i> शेष बकाया (Pending Due)</small>
+                            <small class="text-danger d-block fw-bold"><i class="fas fa-clock me-1"></i> बाकी राशि (Pending Due)</small>
                             <h3 class="fw-bold mb-0 text-danger">₹{{ number_format($stats['total_pending'], 2) }}</h3>
                             <small class="text-danger fw-semibold">{{ $stats['pending_count'] }} सदस्य शेष ({{ 100 - $stats['collection_percentage'] }}%)</small>
                         </div>
@@ -201,7 +201,7 @@
 
                     <a href="{{ route('admin.events.contributions', array_merge(['id' => $event->id, 'status' => 'Pending'], request()->except('page', 'status'))) }}"
                        class="btn status-tab-btn {{ $currentStatus === 'Pending' ? 'btn-danger active text-white' : 'btn-outline-danger' }}">
-                        <i class="fas fa-clock me-1"></i> शेष बकाया (Pending: {{ $stats['pending_count'] }})
+                        <i class="fas fa-clock me-1"></i> बाकी राशि (Pending: {{ $stats['pending_count'] }})
                         <span class="badge bg-white text-danger ms-1">₹{{ number_format($stats['total_pending'], 0) }}</span>
                     </a>
                 </div>
@@ -272,7 +272,7 @@
                 @if(request('status') === 'Paid')
                     प्राप्त अंशदान सूची (Received Collections List)
                 @elseif(request('status') === 'Pending')
-                    शेष बकाया अंशदान सूची (Pending Dues List)
+                    बाकी राशि अंशदान सूची (Pending Dues List)
                 @else
                     सदस्य अंशदान मास्टर लिस्ट (Complete Member Contribution List)
                 @endif
@@ -305,10 +305,10 @@
                         $agent = $c->agent ?? ($member ? $member->agent : null);
 
                         // Build WhatsApp reminder message for pending member
-                        $waPendingText = "जय श्री श्याम 🙏\nश्री श्याम वेलफेयर सोसायटी, लोहीकी\n\nप्रिय सदस्य: " . $c->member_name . " (" . ($member ? $member->membership_no : 'N/A') . ")\n\n📢 कार्यक्रम सूचना: " . $event->title . " (" . $event->event_code . ")\nदिनांक: " . ($event->event_date ? $event->event_date->format('d/m/Y') : 'N/A') . "\nस्थल: " . $event->venue . "\n\n📊 अंशदान विवरण:\n• निर्धारित सहयोग राशि: ₹" . number_format($c->contribution_amount, 2) . "\n• स्थिति: शेष बकाया (Pending)\n\nकृपया अपनी सहयोग राशि समय पर अधिकृत कार्यकर्ता (" . ($agent ? $agent->name . ' - मो. ' . $agent->mobile : 'सोसायटी कार्यालय') . ") के पास जमा करवाकर रसीद प्राप्त करें।\n\nजय श्री श्याम 🙏";
+                        $waPendingText = "जय श्री श्याम 🙏\nश्री श्याम वेलफेयर सोसाइटी, लोहिड़ी\n\nप्रिय सदस्य: " . $c->member_name . " (" . ($member ? $member->membership_no : 'N/A') . ")\n\n📢 कार्यक्रम सूचना: " . $event->title . " (" . $event->event_code . ")\nदिनांक: " . ($event->event_date ? $event->event_date->format('d/m/Y') : 'N/A') . "\nस्थल: " . $event->venue . "\n\n📊 अंशदान विवरण:\n• निर्धारित सहयोग राशि: ₹" . number_format($c->contribution_amount, 2) . "\n• स्थिति: बाकी राशि (Pending)\n\nकृपया अपनी सहयोग राशि समय पर अधिकृत कार्यकर्ता (" . ($agent ? $agent->name . ' - मो. ' . $agent->mobile : 'सोसाइटी कार्यालय') . ") के पास जमा करवाकर रसीद प्राप्त करें।\n\nजय श्री श्याम 🙏";
 
                         // Build WhatsApp thank you message for paid member
-                        $waPaidText = "जय श्री श्याम 🙏\nश्री श्याम वेलफेयर सोसायटी, लोहीकी\n\nप्रिय सदस्य: " . $c->member_name . " (" . ($member ? $member->membership_no : 'N/A') . ")\n\n✅ कार्यक्रम सहयोग रसीद पुष्टि\nकार्यक्रम: " . $event->title . " (" . $event->event_code . ")\n• जमा राशि: ₹" . number_format($c->contribution_amount, 2) . "\n• रसीद क्र.: " . ($c->receipt_no ?? 'N/A') . "\n• जमा दिनांक: " . ($c->payment_date ? $c->payment_date->format('d/m/Y') : date('d/m/Y')) . "\n\nआपके पुनीत सहयोग के लिए सोसायटी आपका हार्दिक आभार व्यक्त करती है।\nजय श्री श्याम 🙏";
+                        $waPaidText = "जय श्री श्याम 🙏\nश्री श्याम वेलफेयर सोसाइटी, लोहिड़ी\n\nप्रिय सदस्य: " . $c->member_name . " (" . ($member ? $member->membership_no : 'N/A') . ")\n\n✅ कार्यक्रम सहयोग रसीद पुष्टि\nकार्यक्रम: " . $event->title . " (" . $event->event_code . ")\n• जमा राशि: ₹" . number_format($c->contribution_amount, 2) . "\n• रसीद क्र.: " . ($c->receipt_no ?? 'N/A') . "\n• जमा दिनांक: " . ($c->payment_date ? $c->payment_date->format('d/m/Y') : date('d/m/Y')) . "\n\nआपके पुनीत सहयोग के लिए सोसाइटी आपका हार्दिक आभार व्यक्त करती है।\nजय श्री श्याम 🙏";
 
                         $isMemberActive = ($member && $member->status === 'Active');
                         $cleanMobile = ($isMemberActive && $member && $member->mobile) ? preg_replace('/[^0-9]/', '', $member->mobile) : '';

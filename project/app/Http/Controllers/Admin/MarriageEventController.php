@@ -111,7 +111,7 @@ class MarriageEventController extends Controller
             'member_id' => $request->member_id ?: null,
             'scheme_id' => $request->scheme_id ?: null,
             'event_date' => $request->event_date,
-            'venue' => $request->venue ?: 'श्री श्याम धर्मशाला, लोहीकी',
+            'venue' => $request->venue ?: 'श्री श्याम धर्मशाला, लोहिड़ी',
             'target_amount' => $targetAmount ?: 0,
             'collected_amount' => 0,
             'beneficiary_payout_amount' => $targetAmount ?: 0,
@@ -593,7 +593,7 @@ class MarriageEventController extends Controller
             // UTF-8 BOM for Microsoft Excel
             fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
 
-            fputcsv($handle, ['श्री श्याम वेलफेयर सोसायटी, लोहीकी - कार्यक्रम अंशदान मास्टर लिस्ट']);
+            fputcsv($handle, ['श्री श्याम वेलफेयर सोसाइटी, लोहिड़ी - कार्यक्रम अंशदान मास्टर लिस्ट']);
             fputcsv($handle, ['कार्यक्रम कोड (Event Code)', $event->event_code, 'कार्यक्रम शीर्षक (Event Title)', $event->title]);
             fputcsv($handle, ['लाभार्थी / कन्या (Beneficiary)', $event->girl_name, 'दिनांक (Event Date)', $event->event_date ? $event->event_date->format('d/m/Y') : 'N/A']);
             fputcsv($handle, ['स्थल (Venue)', $event->venue, 'योजना (Scheme)', $event->scheme ? $event->scheme->name_hindi : 'All Schemes']);
@@ -695,7 +695,7 @@ class MarriageEventController extends Controller
         // Build default common message
         $msgLines = [];
         $msgLines[] = "जय श्री श्याम 🙏";
-        $msgLines[] = "श्री श्याम वेलफेयर सोसायटी, लोहीकी";
+        $msgLines[] = "श्री श्याम वेलफेयर सोसाइटी, लोहिड़ी";
         $msgLines[] = "📢 आवश्यक सूचना: माह {$formattedMonth} के कन्या विवाह कार्यक्रम";
         $msgLines[] = "------------------------------------";
 
@@ -718,10 +718,10 @@ class MarriageEventController extends Controller
         }
 
         $msgLines[] = "------------------------------------";
-        $msgLines[] = "सभी सम्मानित सदस्यों से विनम्र निवेदन है कि अपनी सहयोग राशि समय पर अधिकृत प्रतिनिधि (एजेंट) के पास अथवा सीधे सोसायटी खाते में जमा करवाकर रसीद अवश्य प्राप्त करें।";
+        $msgLines[] = "सभी सम्मानित सदस्यों से विनम्र निवेदन है कि अपनी सहयोग राशि समय पर अधिकृत प्रतिनिधि (कार्यकर्ता) के पास अथवा सीधे सोसाइटी खाते में जमा करवाकर रसीद अवश्य प्राप्त करें।";
         $msgLines[] = "";
         $msgLines[] = "भवदीय,";
-        $msgLines[] = "श्री श्याम वेलफेयर सोसायटी लोहीकी";
+        $msgLines[] = "श्री श्याम वेलफेयर सोसाइटी, लोहिड़ी";
         $msgLines[] = "जय श्री श्याम 🙏";
 
         $defaultMessage = implode("\n", $msgLines);
@@ -752,7 +752,7 @@ class MarriageEventController extends Controller
 
             $personalLines = [];
             $personalLines[] = "जय श्री श्याम 🙏";
-            $personalLines[] = "श्री श्याम वेलफेयर सोसायटी, लोहीकी";
+            $personalLines[] = "श्री श्याम वेलफेयर सोसाइटी, लोहिड़ी";
             $personalLines[] = "प्रिय सदस्य: श्री " . $m->full_name . " (" . $m->membership_no . ")";
             $personalLines[] = "📢 माह " . $formattedMonth . " के कन्या विवाह कार्यक्रम";
             $personalLines[] = "------------------------------------";

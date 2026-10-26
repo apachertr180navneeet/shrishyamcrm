@@ -97,7 +97,7 @@
                 </div>
                 <div class="col-lg-3 col-sm-6 col-12">
                     <div class="p-3 bg-light rounded border text-center">
-                        <small class="text-muted d-block fw-semibold mb-1">शेष बकाया राशि (Pending Dues)</small>
+                        <small class="text-muted d-block fw-semibold mb-1">बाकी राशि (Pending Dues)</small>
                         <h4 class="{{ $stats['total_pending'] > 0 ? 'text-danger' : 'text-success' }} fw-bold mb-0">
                             ₹{{ number_format($stats['total_pending'], 2) }}
                         </h4>

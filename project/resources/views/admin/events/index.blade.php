@@ -194,7 +194,7 @@
 
                         <div class="col-12">
                             <label class="form-label fw-semibold">Venue (स्थल)</label>
-                            <input type="text" name="venue" class="form-control" value="श्री श्याम धर्मशाला, लोहीकी">
+                            <input type="text" name="venue" class="form-control" value="श्री श्याम धर्मशाला, लोहिड़ी">
                         </div>
 
                         <div class="col-12">
@@ -728,7 +728,7 @@ function fetchMonthEventsData(monthStr) {
                                 ${ev.father_name ? `<small class="text-muted"> (पिता: ${ev.father_name})</small>` : ''}
                                 <div class="text-muted small mt-1">
                                     <i class="fas fa-calendar-alt text-danger me-1"></i> ${ev.event_date.split('T')[0]} | 
-                                    <i class="fas fa-map-marker-alt text-muted me-1"></i> ${ev.venue || 'श्री श्याम धर्मशाला, लोहीकी'}
+                                    <i class="fas fa-map-marker-alt text-muted me-1"></i> ${ev.venue || 'श्री श्याम धर्मशाला, लोहिड़ी'}
                                 </div>
                             </div>
                             <span class="badge bg-label-success">₹${parseFloat(ev.rate_per_event || 200).toFixed(0)}</span>

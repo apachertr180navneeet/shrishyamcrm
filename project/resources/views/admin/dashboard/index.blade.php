@@ -328,7 +328,7 @@
                                         <i class="fas fa-print"></i>
                                     </a>
                                     @if($p->member && $p->member->status === 'Active' && !empty($p->member->mobile))
-                                    <a href="https://api.whatsapp.com/send?phone=91{{ preg_replace('/[^0-9]/', '', $p->member->mobile) }}&text={{ urlencode('श्री श्याम वेलफेयर सोसायटी लोहीकी - रसीद सं: ' . $p->receipt_no . ' राशि: ₹' . $p->amount . ' प्राप्त हुई। धन्यवाद!') }}" class="btn btn-xs btn-outline-success" title="Send WhatsApp" target="_blank">
+                                    <a href="https://api.whatsapp.com/send?phone=91{{ preg_replace('/[^0-9]/', '', $p->member->mobile) }}&text={{ urlencode('श्री श्याम वेलफेयर सोसाइटी, लोहिड़ी - रसीद सं: ' . $p->receipt_no . ' राशि: ₹' . $p->amount . ' प्राप्त हुई। धन्यवाद!') }}" class="btn btn-xs btn-outline-success" title="Send WhatsApp" target="_blank">
                                         <i class="fab fa-whatsapp"></i>
                                     </a>
                                     @else

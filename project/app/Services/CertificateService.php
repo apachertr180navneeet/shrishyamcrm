@@ -17,10 +17,10 @@ class CertificateService
 
         $society = [
             'name' => SocietySetting::getVal('society_name', 'Shri Shyam Welfare Society'),
-            'name_hindi' => SocietySetting::getVal('society_name_hindi', 'श्री श्याम वेलफेयर सोसायटी लोहिड़ी'),
+            'name_hindi' => SocietySetting::getVal('society_name_hindi', 'श्री श्याम वेलफेयर सोसाइटी, लोहिड़ी'),
             'reg_no' => SocietySetting::getVal('reg_no', 'COOP/2025/BALOTARA/500219'),
             'san_code' => $member->san_code ?: SocietySetting::getVal('san_prefix', '0878920000000014'),
-            'address' => SocietySetting::getVal('address', 'ग्रा.पं. लोहिड़ी, पं.स. सिणधरी, जिला बालोतरा (राज.)'),
+            'address' => SocietySetting::getVal('address', 'ग्राम पंचायत लोहिड़ी, पंचायत समिति सिणधरी, जिला बालोतरा (राजस्थान)'),
             'phone' => SocietySetting::getVal('phone', '9664090906, 9549635631, 9783049650'),
             'president' => SocietySetting::getVal('president_name', 'लादूराम'),
             'founder' => SocietySetting::getVal('founder_name', 'लादूराम'),

@@ -91,7 +91,7 @@ class InactiveMemberSafeguardsTest extends TestCase
             'member_id' => $beneficiary->id,
             'scheme_id' => $scheme->id,
             'event_date' => '2026-10-15',
-            'venue' => 'श्री श्याम धर्मशाला, लोहीकी',
+            'venue' => 'श्री श्याम धर्मशाला, लोहिड़ी',
             'target_amount' => 51000,
             'rate_per_event' => 200,
         ]);
@@ -264,7 +264,7 @@ class InactiveMemberSafeguardsTest extends TestCase
             'father_name' => 'मोहन शर्मा',
             'scheme_id' => $scheme->id,
             'event_date' => '2026-10-10',
-            'venue' => 'लोहीकी',
+            'venue' => 'लोहिड़ी',
             'target_amount' => 51000,
             'status' => 'Active',
         ]);

@@ -62,10 +62,10 @@ class CertificateController extends Controller
 
         $society = [
             'name' => \App\Models\SocietySetting::getVal('society_name', 'Shri Shyam Welfare Society'),
-            'name_hindi' => \App\Models\SocietySetting::getVal('society_name_hindi', 'श्री श्याम वेलफेयर सोसायटी लोहिड़ी'),
+            'name_hindi' => \App\Models\SocietySetting::getVal('society_name_hindi', 'श्री श्याम वेलफेयर सोसाइटी, लोहिड़ी'),
             'reg_no' => \App\Models\SocietySetting::getVal('reg_no', 'COOP/2025/BALOTARA/500219'),
             'san_code' => $member->san_code ?: \App\Models\SocietySetting::getVal('san_prefix', '0878920000000014'),
-            'address' => \App\Models\SocietySetting::getVal('address', 'ग्रा.पं. लोहिड़ी, पं.स. सिणधरी, जिला बालोतरा (राज.)'),
+            'address' => \App\Models\SocietySetting::getVal('address', 'ग्राम पंचायत लोहिड़ी, पंचायत समिति सिणधरी, जिला बालोतरा (राजस्थान)'),
             'phone' => \App\Models\SocietySetting::getVal('phone', '9664090906, 9549635631, 9783049650'),
             'president' => \App\Models\SocietySetting::getVal('president_name', 'लादूराम'),
             'founder' => \App\Models\SocietySetting::getVal('founder_name', 'लादूराम'),

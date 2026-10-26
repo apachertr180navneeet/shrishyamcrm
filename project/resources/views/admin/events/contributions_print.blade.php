@@ -234,8 +234,9 @@
     <div class="print-page">
         <!-- Header -->
         <div class="society-header">
-            <h1 class="society-name">श्री श्याम वेलफेयर सोसायटी, लोहीकी</h1>
-            <p class="society-sub">पंजीकरण संख्या: 00812 | प्रधान कार्यालय: लोहीकी (महेन्द्रगढ़, हरियाणा)</p>
+            <h1 class="society-name">श्री श्याम वेलफेयर सोसाइटी, लोहिड़ी</h1>
+            <p class="society-sub">पंजीकरण संख्या: COOP/2025/BALOTARA/500219 | ग्राम पंचायत लोहिड़ी, पंचायत समिति सिणधरी, जिला बालोतरा (राजस्थान)</p>
+            <div style="color: #b91c1c; font-weight: bold; font-size: 14px; margin-top: 3px;">श्री गणेशाय नमः</div>
             <div class="report-title-badge">
                 कार्यक्रम अंशदान मास्टर लिस्ट (Event Collection Master Sheet)
             </div>
@@ -293,7 +294,7 @@
                 <small style="color: #166534;">{{ $stats['paid_count'] }} सदस्य ({{ $stats['collection_percentage'] }}%)</small>
             </div>
             <div class="kpi-card kpi-pending">
-                <small style="color: #991b1b;">शेष बकाया (Pending Due)</small>
+                <small style="color: #991b1b;">बाकी राशि (Pending Due)</small>
                 <div class="amount" style="color: #991b1b;">₹{{ number_format($stats['total_pending'], 2) }}</div>
                 <small style="color: #991b1b;">{{ $stats['pending_count'] }} सदस्य ({{ 100 - $stats['collection_percentage'] }}%)</small>
             </div>
@@ -309,7 +310,7 @@
                     <th>पिता/पति</th>
                     <th>मोबाइल</th>
                     <th>आयु वर्ग</th>
-                    <th>एजेंट</th>
+                    <th>कार्यकर्ता का नाम</th>
                     <th class="text-right" style="width: 75px;">अंशदान ₹</th>
                     <th class="text-center" style="width: 75px;">स्थिति</th>
                     <th class="text-right" style="width: 75px;">प्राप्त ₹</th>
@@ -364,16 +365,16 @@
                     <td class="text-right">₹{{ number_format($stats['total_expected'], 2) }}</td>
                     <td class="text-center">{{ $stats['paid_count'] }} Paid</td>
                     <td class="text-right" style="color: #166534;">₹{{ number_format($stats['total_collected'], 2) }}</td>
-                    <td colspan="3">बकाया: ₹{{ number_format($stats['total_pending'], 2) }}</td>
+                    <td colspan="3">बाकी राशि: ₹{{ number_format($stats['total_pending'], 2) }}</td>
                 </tr>
             </tfoot>
         </table>
 
         <!-- Signatures -->
         <div class="sign-area">
-            <div class="sign-block">तैयारकर्ता (Operator)</div>
+            <div class="sign-block">कार्यकर्ता का नाम / हस्ताक्षर</div>
             <div class="sign-block">कोषाध्यक्ष (Treasurer)</div>
-            <div class="sign-block">सचिव / प्रधान (President)</div>
+            <div class="sign-block">श्री श्याम वेलफेयर सोसाइटी / हस्ताक्षर</div>
         </div>
     </div>
 </body>

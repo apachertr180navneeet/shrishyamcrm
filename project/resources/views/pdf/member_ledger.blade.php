@@ -306,122 +306,42 @@
             <table class="member-info-table">
                 <!-- Row 1: Member Name & Spouse/Father Name -->
                 <tr>
-                    <td style="width: 52%; padding: 1.5px 5px 1.5px 0;">
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <tr>
-                                <td class="field-label">श्री</td>
-                                <td class="field-value">
-                                    {{ $member->full_name }}
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                    <td style="width: 48%; padding: 1.5px 0 1.5px 5px;">
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <tr>
-                                <td class="field-label">पति / पत्नी का नाम</td>
-                                <td class="field-value">
-                                    {{ $member->father_spouse_name ?: '-' }}
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
+                    <td class="field-label" style="width: 8%;">श्री</td>
+                    <td class="field-value" style="width: 44%;">{{ $member->full_name }}</td>
+                    <td class="field-label" style="width: 20%; padding-left: 10px;">पति / पत्नी का नाम</td>
+                    <td class="field-value" style="width: 28%;">{{ $member->father_spouse_name ?: '-' }}</td>
                 </tr>
 
                 <!-- Row 2: Address & Gotra -->
                 <tr>
-                    <td style="width: 65%; padding: 1.5px 5px 1.5px 0;">
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <tr>
-                                <td class="field-label">निवासी</td>
-                                <td class="field-value">
-                                    {{ $member->address ?: ($member->village ? $member->village . ', ' . $member->district : $member->district) }}
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                    <td style="width: 35%; padding: 1.5px 0 1.5px 5px;">
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <tr>
-                                <td class="field-label">गोत्र</td>
-                                <td class="field-value">
-                                    {{ $member->gotra ?? ($member->caste ?? '-') }}
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
+                    <td class="field-label">निवासी</td>
+                    <td class="field-value">{{ $member->address ?: ($member->village ? $member->village . ', ' . $member->district : $member->district) }}</td>
+                    <td class="field-label" style="padding-left: 10px;">गोत्र</td>
+                    <td class="field-value">{{ $member->gotra ?? ($member->caste ?? '-') }}</td>
                 </tr>
 
                 <!-- Row 3: Mobile Number & Kisht Amount -->
                 <tr>
-                    <td style="width: 60%; padding: 1.5px 5px 1.5px 0;">
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <tr>
-                                <td class="field-label">मोबाइल नंबर</td>
-                                <td class="field-value">
-                                    {{ $member->mobile }}
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                    <td style="width: 40%; padding: 1.5px 0 1.5px 5px;">
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <tr>
-                                <td class="field-label">किस्त</td>
-                                <td class="field-value">
-                                    {{ number_format($kishtRate, 0) }}
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
+                    <td class="field-label">मोबाइल नंबर</td>
+                    <td class="field-value">{{ $member->mobile }}</td>
+                    <td class="field-label" style="padding-left: 10px;">किस्त</td>
+                    <td class="field-value">₹{{ number_format($kishtRate, 0) }}</td>
                 </tr>
 
                 <!-- Row 4: Agent Name & Agent Mobile -->
                 <tr>
-                    <td style="width: 55%; padding: 1.5px 5px 1.5px 0;">
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <tr>
-                                <td class="field-label">कार्यकर्ता का नाम</td>
-                                <td class="field-value">
-                                    {{ $member->agent ? $member->agent->name : ($member->agent_name ?? '-') }}
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                    <td style="width: 45%; padding: 1.5px 0 1.5px 5px;">
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <tr>
-                                <td class="field-label">मो.</td>
-                                <td class="field-value">
-                                    {{ $member->agent ? $member->agent->mobile : ($society['phone'] ? explode(',', $society['phone'])[0] : '') }}
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
+                    <td class="field-label">कार्यकर्ता का नाम</td>
+                    <td class="field-value">{{ $member->agent ? $member->agent->name : ($member->agent_name ?? '-') }}</td>
+                    <td class="field-label" style="padding-left: 10px;">मो.</td>
+                    <td class="field-value">{{ $member->agent ? $member->agent->mobile : ($society['phone'] ? explode(',', $society['phone'])[0] : '') }}</td>
                 </tr>
 
                 <!-- Row 5: Nominee Name & Joining Date -->
                 <tr>
-                    <td style="width: 58%; padding: 1.5px 5px 1.5px 0;">
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <tr>
-                                <td class="field-label">वारिसदार का नाम</td>
-                                <td class="field-value">
-                                    {{ $nomineeName }}
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                    <td style="width: 42%; padding: 1.5px 0 1.5px 5px;">
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <tr>
-                                <td class="field-label">जुड़ने की तिथि</td>
-                                <td class="field-value">
-                                    {{ $member->joining_date ? $member->joining_date->format('d.m.Y') : ($member->created_at ? $member->created_at->format('d.m.Y') : '-') }}
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
+                    <td class="field-label">वारिसदार का नाम</td>
+                    <td class="field-value">{{ $nomineeName }}</td>
+                    <td class="field-label" style="padding-left: 10px;">जुड़ने की तिथि</td>
+                    <td class="field-value">{{ $member->joining_date ? $member->joining_date->format('d.m.Y') : ($member->created_at ? $member->created_at->format('d.m.Y') : '-') }}</td>
                 </tr>
             </table>
 

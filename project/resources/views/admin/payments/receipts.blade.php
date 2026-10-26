@@ -6,7 +6,7 @@
         <div class="card-body p-4">
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
                 <div>
-                    <h4 class="fw-bold mb-1" style="font-family: 'Hind', sans-serif;">सोसायटी रसीदें (Official Society Receipts)</h4>
+                    <h4 class="fw-bold mb-1" style="font-family: 'Hind', sans-serif;">सोसाइटी रसीदें (Official Society Receipts)</h4>
                     <p class="text-muted mb-0">Browse and print official society financial receipts with SAN verification codes and QR stamps.</p>
                 </div>
                 <a href="{{ route('admin.payments.create') }}" class="btn btn-primary">

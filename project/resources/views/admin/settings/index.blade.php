@@ -33,21 +33,21 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label fw-bold">Society Name (Hindi)</label>
-                                <input type="text" name="society_name_hindi" class="form-control" value="{{ $settings['society_name_hindi'] ?? 'श्री श्याम वेलफेयर सोसायटी लोहीकी' }}">
+                                <input type="text" name="society_name_hindi" class="form-control" value="{{ $settings['society_name_hindi'] ?? 'श्री श्याम वेलफेयर सोसाइटी, लोहिड़ी' }}">
                             </div>
                             <div class="row mb-3">
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold">Registration No</label>
-                                    <input type="text" name="reg_no" class="form-control" value="{{ $settings['reg_no'] ?? 'HR/019/2021/04582' }}">
+                                    <input type="text" name="reg_no" class="form-control" value="{{ $settings['reg_no'] ?? 'COOP/2025/BALOTARA/500219' }}">
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold">SAN Prefix</label>
-                                    <input type="text" name="san_prefix" class="form-control" value="{{ $settings['san_prefix'] ?? 'SAN-LOH' }}">
+                                    <input type="text" name="san_prefix" class="form-control" value="{{ $settings['san_prefix'] ?? '0878920000000014' }}">
                                 </div>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label fw-bold">Official Address</label>
-                                <textarea name="address" class="form-control" rows="2">{{ $settings['address'] ?? 'Main Bazar, Lohki, District Mahendragarh, Haryana - 123001' }}</textarea>
+                                <textarea name="address" class="form-control" rows="2">{{ $settings['address'] ?? 'ग्राम पंचायत लोहिड़ी, पंचायत समिति सिणधरी, जिला बालोतरा (राजस्थान)' }}</textarea>
                             </div>
                             <div class="row">
                                 <div class="col-md-6 mb-3">

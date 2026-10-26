@@ -103,8 +103,8 @@
                 
                 <!-- Logo & Brand Header -->
                 <div class="text-center mb-3">
-                    <img src="{{ asset('assets/logo.svg') }}" alt="श्री श्याम वेलफेयर सोसायटी" style="width: 60px; height: 60px; object-fit: contain;" class="mb-2 drop-shadow">
-                    <h4 class="mb-1 fw-bold" style="color: #1e3a8a; letter-spacing: -0.3px;">श्री श्याम वेलफेयर सोसायटी</h4>
+                    <img src="{{ asset('assets/logo.svg') }}" alt="श्री श्याम वेलफेयर सोसाइटी" style="width: 60px; height: 60px; object-fit: contain;" class="mb-2 drop-shadow">
+                    <h4 class="mb-1 fw-bold" style="color: #1e3a8a; letter-spacing: -0.3px;">श्री श्याम वेलफेयर सोसाइटी</h4>
                     <p class="text-muted small mb-0">एडमिन एवं कार्यकर्ता पोर्टल लॉगिन (ERP Login)</p>
                 </div>
 

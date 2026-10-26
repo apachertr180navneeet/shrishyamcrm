@@ -59,7 +59,7 @@ class MarriageEventCreationTest extends TestCase
             'member_id' => $member->id,
             'scheme_id' => $scheme->id,
             'event_date' => '2026-10-22',
-            'venue' => 'श्री श्याम धर्मशाला, लोहीकी',
+            'venue' => 'श्री श्याम धर्मशाला, लोहिड़ी',
             'target_amount' => 51000,
             'rate_per_event' => 200,
         ]);
