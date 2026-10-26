@@ -4,15 +4,16 @@ namespace App\Services;
 
 use App\Models\Payment;
 use App\Models\SocietySetting;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Http\Response;
+use Mpdf\Mpdf;
+use Mpdf\Config\ConfigVariables;
+use Mpdf\Config\FontVariables;
 
 class ReceiptService
 {
     /**
-     * Generate printable / downloadable PDF receipt
+     * Generate printable / downloadable PDF receipt with native Devanagari complex text shaping
      */
-    public static function generatePdf(int $paymentId): \Barryvdh\DomPDF\PDF
+    public static function generatePdf(int $paymentId): MpdfReceipt
     {
         $payment = Payment::with(['member.scheme', 'member.agent', 'member.nominees', 'agent', 'event'])->findOrFail($paymentId);
 
@@ -29,10 +30,6 @@ class ReceiptService
         ];
 
         MemberLedgerCardService::ensureFontsExist();
-        $mangalPath = str_replace('\\', '/', public_path('fonts/mangal.ttf'));
-        $mangalbPath = str_replace('\\', '/', public_path('fonts/mangalb.ttf'));
-        $aparajPath = str_replace('\\', '/', public_path('fonts/aparaj.ttf'));
-        $aparajbPath = str_replace('\\', '/', public_path('fonts/aparajb.ttf'));
         $logoPath = str_replace('\\', '/', public_path('assets/society_logo.jpg'));
         if (!file_exists($logoPath)) {
             $logoPath = str_replace('\\', '/', public_path('assets/society_logo.png'));
@@ -74,7 +71,7 @@ class ReceiptService
             $description = $payment->payment_type . ($payment->remarks ? ' - ' . $payment->remarks : ($payment->month_year ? ' (' . $payment->month_year . ')' : ''));
         }
 
-        return Pdf::loadView('pdf.receipt', compact(
+        $html = view('pdf.receipt', compact(
             'payment',
             'member',
             'society',
@@ -87,11 +84,49 @@ class ReceiptService
             'eventDate',
             'paymentDate',
             'description',
-            'logoPath',
-            'mangalPath',
-            'mangalbPath',
-            'aparajPath',
-            'aparajbPath'
-        ))->setPaper('a5', 'landscape');
+            'logoPath'
+        ))->render();
+
+        $defaultConfig = (new ConfigVariables())->getDefaults();
+        $fontDirs = $defaultConfig['fontDir'];
+
+        $defaultFontConfig = (new FontVariables())->getDefaults();
+        $fontData = $defaultFontConfig['fontdata'];
+
+        $fontSearchDirs = array_values(array_filter([
+            public_path('fonts'),
+            'C:/Windows/Fonts',
+            '/usr/share/fonts/truetype',
+        ], 'is_dir'));
+
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A5-L',
+            'margin_left' => 6,
+            'margin_right' => 6,
+            'margin_top' => 6,
+            'margin_bottom' => 6,
+            'fontDir' => array_merge($fontDirs, $fontSearchDirs),
+            'fontdata' => $fontData + [
+                'mangal' => [
+                    'R' => 'mangal.ttf',
+                    'B' => 'mangalb.ttf',
+                    'useOTL' => 0xFF,
+                    'useKashida' => 75,
+                ],
+                'aparajita' => [
+                    'R' => 'aparaj.ttf',
+                    'B' => 'aparajb.ttf',
+                    'useOTL' => 0xFF,
+                ],
+            ],
+            'default_font' => 'mangal',
+            'autoScriptToLang' => true,
+            'autoLangToFont' => true,
+        ]);
+
+        $mpdf->WriteHTML($html);
+
+        return new MpdfReceipt($mpdf);
     }
 }

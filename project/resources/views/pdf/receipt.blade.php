@@ -4,40 +4,11 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Receipt - {{ $payment->receipt_no }}</title>
     <style>
-        @page {
-            margin: 8px 10px;
-            size: a5 landscape;
-        }
-        @font-face {
-            font-family: 'Mangal';
-            font-style: normal;
-            font-weight: 400;
-            src: url('{{ $mangalPath }}') format('truetype');
-        }
-        @font-face {
-            font-family: 'Mangal';
-            font-style: normal;
-            font-weight: 700;
-            src: url('{{ $mangalbPath }}') format('truetype');
-        }
-        @font-face {
-            font-family: 'Aparajita';
-            font-style: normal;
-            font-weight: 400;
-            src: url('{{ $aparajPath }}') format('truetype');
-        }
-        @font-face {
-            font-family: 'Aparajita';
-            font-style: normal;
-            font-weight: 700;
-            src: url('{{ $aparajbPath }}') format('truetype');
-        }
-
         * {
             box-sizing: border-box;
         }
         body {
-            font-family: 'Mangal', 'Aparajita', 'DejaVu Sans', sans-serif;
+            font-family: 'mangal', 'aparajita', 'freesans', sans-serif;
             color: #0f172a;
             font-size: 10px;
             line-height: 1.25;
@@ -110,23 +81,24 @@
         .info-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 4px;
-            font-size: 9.5px;
+            margin-bottom: 5px;
+        }
+        .info-table td {
+            padding: 3px 2px;
+            vertical-align: middle;
         }
         .field-label {
             color: #334155;
             font-weight: bold;
             white-space: nowrap;
-            padding-right: 4px;
             font-size: 9.5px;
         }
         .field-value {
             border-bottom: 1.5px dotted #64748b;
-            width: 100%;
-            font-weight: bold;
             color: #0f172a;
+            font-weight: bold;
             font-size: 9.5px;
-            padding: 0 2px;
+            padding: 0 4px;
         }
         .detail-table {
             width: 100%;
@@ -221,106 +193,46 @@
                 </tr>
             </table>
 
-            <!-- Member Info 5-Row Section with Dotted Underline -->
+            <!-- Member Info 5-Row Section with Dotted Underline (Direct 4-Column Table) -->
             <table class="info-table">
                 <!-- Row 1: Member Name & Spouse/Father Name -->
                 <tr>
-                    <td style="width: 52%; padding: 1px 4px 1px 0;">
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <tr>
-                                <td class="field-label">श्री</td>
-                                <td class="field-value">{{ $member ? $member->full_name : '-' }}</td>
-                            </tr>
-                        </table>
-                    </td>
-                    <td style="width: 48%; padding: 1px 0 1px 4px;">
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <tr>
-                                <td class="field-label">पति / पत्नी का नाम</td>
-                                <td class="field-value">{{ $member ? $member->father_spouse_name : '-' }}</td>
-                            </tr>
-                        </table>
-                    </td>
+                    <td class="field-label" style="width: 8%;">श्री</td>
+                    <td class="field-value" style="width: 44%;">{{ $member ? $member->full_name : '-' }}</td>
+                    <td class="field-label" style="width: 20%; padding-left: 10px;">पति / पत्नी का नाम</td>
+                    <td class="field-value" style="width: 28%;">{{ $member ? $member->father_spouse_name : '-' }}</td>
                 </tr>
 
                 <!-- Row 2: Address & Gotra -->
                 <tr>
-                    <td style="width: 65%; padding: 1px 4px 1px 0;">
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <tr>
-                                <td class="field-label">निवासी</td>
-                                <td class="field-value">{{ $member ? ($member->address ?: ($member->village ? $member->village . ', ' . $member->district : $member->district)) : '-' }}</td>
-                            </tr>
-                        </table>
-                    </td>
-                    <td style="width: 35%; padding: 1px 0 1px 4px;">
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <tr>
-                                <td class="field-label">गोत्र</td>
-                                <td class="field-value">{{ $member ? ($member->gotra ?? ($member->caste ?? '-')) : '-' }}</td>
-                            </tr>
-                        </table>
-                    </td>
+                    <td class="field-label">निवासी</td>
+                    <td class="field-value">{{ $member ? ($member->address ?: ($member->village ? $member->village . ', ' . $member->district : $member->district)) : '-' }}</td>
+                    <td class="field-label" style="padding-left: 10px;">गोत्र</td>
+                    <td class="field-value">{{ $member ? ($member->gotra ?? ($member->caste ?? '-')) : '-' }}</td>
                 </tr>
 
                 <!-- Row 3: Mobile Number & Kisht Amount -->
                 <tr>
-                    <td style="width: 60%; padding: 1px 4px 1px 0;">
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <tr>
-                                <td class="field-label">मोबाइल नंबर</td>
-                                <td class="field-value">{{ $member ? $member->mobile : '-' }}</td>
-                            </tr>
-                        </table>
-                    </td>
-                    <td style="width: 40%; padding: 1px 0 1px 4px;">
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <tr>
-                                <td class="field-label">किस्त</td>
-                                <td class="field-value">₹{{ number_format($kishtRate, 0) }}</td>
-                            </tr>
-                        </table>
-                    </td>
+                    <td class="field-label">मोबाइल नंबर</td>
+                    <td class="field-value">{{ $member ? $member->mobile : '-' }}</td>
+                    <td class="field-label" style="padding-left: 10px;">किस्त</td>
+                    <td class="field-value">₹{{ number_format($kishtRate, 0) }}</td>
                 </tr>
 
                 <!-- Row 4: Agent Name & Agent Mobile -->
                 <tr>
-                    <td style="width: 55%; padding: 1px 4px 1px 0;">
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <tr>
-                                <td class="field-label">कार्यकर्ता का नाम</td>
-                                <td class="field-value">{{ $agentName }}</td>
-                            </tr>
-                        </table>
-                    </td>
-                    <td style="width: 45%; padding: 1px 0 1px 4px;">
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <tr>
-                                <td class="field-label">मो.</td>
-                                <td class="field-value">{{ $agentMobile }}</td>
-                            </tr>
-                        </table>
-                    </td>
+                    <td class="field-label">कार्यकर्ता का नाम</td>
+                    <td class="field-value">{{ $agentName }}</td>
+                    <td class="field-label" style="padding-left: 10px;">मो.</td>
+                    <td class="field-value">{{ $agentMobile }}</td>
                 </tr>
 
                 <!-- Row 5: Nominee Name & Joining Date -->
                 <tr>
-                    <td style="width: 58%; padding: 1px 4px 1px 0;">
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <tr>
-                                <td class="field-label">वारिसदार का नाम</td>
-                                <td class="field-value">{{ $nomineeName }}</td>
-                            </tr>
-                        </table>
-                    </td>
-                    <td style="width: 42%; padding: 1px 0 1px 4px;">
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <tr>
-                                <td class="field-label">जुड़ने की तिथि</td>
-                                <td class="field-value">{{ $joiningDate }}</td>
-                            </tr>
-                        </table>
-                    </td>
+                    <td class="field-label">वारिसदार का नाम</td>
+                    <td class="field-value">{{ $nomineeName }}</td>
+                    <td class="field-label" style="padding-left: 10px;">जुड़ने की तिथि</td>
+                    <td class="field-value">{{ $joiningDate }}</td>
                 </tr>
             </table>
 
@@ -357,7 +269,7 @@
                         </td>
                     </tr>
                     <tr>
-                        <td colspan="2" style="font-size: 9px; color: #334155; font-style: italic; padding-top: 2px;">
+                        <td colspan="2" style="font-size: 9px; color: #334155; padding-top: 2px;">
                             <strong>शब्दों में:</strong> {{ $payment->amount_in_words }}
                         </td>
                     </tr>
