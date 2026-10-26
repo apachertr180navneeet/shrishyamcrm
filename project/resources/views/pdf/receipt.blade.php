@@ -4,7 +4,10 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Receipt - {{ $payment->receipt_no }}</title>
     <style>
-        @page { margin: 15px; }
+        @page {
+            margin: 8px 10px;
+            size: a5 landscape;
+        }
         @font-face {
             font-family: 'Mangal';
             font-style: normal;
@@ -29,173 +32,360 @@
             font-weight: 700;
             src: url('{{ $aparajbPath }}') format('truetype');
         }
+
+        * {
+            box-sizing: border-box;
+        }
         body {
             font-family: 'Mangal', 'Aparajita', 'DejaVu Sans', sans-serif;
-            color: #1a1a1a;
-            font-size: 12px;
-            line-height: 1.4;
+            color: #0f172a;
+            font-size: 10px;
+            line-height: 1.25;
             margin: 0;
             padding: 0;
+            background: #ffffff;
         }
-        .receipt-container {
-            border: 2px solid #1B365D;
-            padding: 15px;
-            background: #fff;
-            border-radius: 6px;
+        .receipt-outer-frame {
+            border: 2px solid #1e3a8a;
+            padding: 3px;
+            border-radius: 5px;
+            background: #ffffff;
         }
-        .header {
-            text-align: center;
-            border-bottom: 2px solid #D97706;
-            padding-bottom: 8px;
-            margin-bottom: 10px;
+        .receipt-inner-frame {
+            border: 1px solid #cbd5e1;
+            padding: 6px 8px;
+            border-radius: 4px;
+            background: #ffffff;
+        }
+        .top-meta-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8.5px;
+            margin-bottom: 2px;
+        }
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+            border-bottom: 2px solid #1e3a8a;
+            padding-bottom: 3px;
+            margin-bottom: 3px;
         }
         .society-title {
-            font-size: 18px;
+            font-size: 17px;
             font-weight: bold;
-            color: #1B365D;
+            color: #0f172a;
             margin: 0;
+            line-height: 1.15;
+            letter-spacing: 0.5px;
         }
         .society-subtitle {
-            font-size: 13px;
+            font-size: 9.5px;
             font-weight: bold;
-            color: #D97706;
-            margin: 3px 0;
+            color: #334155;
+            margin-top: 1px;
+            margin-bottom: 0;
         }
-        .society-meta {
-            font-size: 10px;
-            color: #555;
-        }
-        .badge {
-            background: #1B365D;
-            color: #fff;
-            padding: 3px 10px;
-            border-radius: 12px;
+        .ganesh-mantra {
+            font-size: 10.5px;
             font-weight: bold;
-            font-size: 11px;
+            color: #b91c1c;
+            margin-top: 2px;
+            letter-spacing: 0.5px;
+        }
+        .scheme-row-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2px 0 4px 0;
+        }
+        .scheme-pill {
             display: inline-block;
-            margin-top: 5px;
+            border: 1.5px solid #1e3a8a;
+            padding: 2px 16px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            color: #1e3a8a;
+            background: #f8fafc;
         }
         .info-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 12px;
+            margin-bottom: 4px;
+            font-size: 9.5px;
         }
-        .info-table td {
-            padding: 4px 6px;
-            vertical-align: top;
-        }
-        .label {
+        .field-label {
+            color: #334155;
             font-weight: bold;
-            color: #333;
-            width: 25%;
+            white-space: nowrap;
+            padding-right: 4px;
+            font-size: 9.5px;
         }
-        .value {
-            color: #111;
-            border-bottom: 1px dotted #ccc;
+        .field-value {
+            border-bottom: 1.5px dotted #64748b;
+            width: 100%;
+            font-weight: bold;
+            color: #0f172a;
+            font-size: 9.5px;
+            padding: 0 2px;
         }
-        .amount-box {
-            background: #f0f7ff;
-            border: 1px solid #2563EB;
-            padding: 10px;
-            margin: 10px 0;
+        .detail-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 4px;
+        }
+        .detail-table th {
+            background: #1e3a8a;
+            color: #ffffff;
+            font-size: 9px;
+            font-weight: bold;
+            padding: 2.5px 4px;
+            border: 1px solid #1e3a8a;
+            text-align: center;
+        }
+        .detail-table td {
+            border: 1px solid #94a3b8;
+            font-size: 9px;
+            padding: 2.5px 5px;
+            vertical-align: middle;
+        }
+        .amount-summary-box {
+            background: #f8fafc;
+            border: 1.5px solid #1e3a8a;
             border-radius: 4px;
-        }
-        .amount-words {
-            font-size: 11px;
-            color: #1B365D;
-            font-style: italic;
-            margin-top: 4px;
+            padding: 4px 8px;
+            margin-bottom: 4px;
         }
         .footer-table {
             width: 100%;
-            margin-top: 25px;
             border-collapse: collapse;
+            margin-top: 4px;
         }
-        .signature-box {
+        .sig-block {
             text-align: center;
-            font-size: 11px;
-            color: #444;
-            padding-top: 20px;
-            border-top: 1px solid #666;
-            width: 30%;
+            font-size: 9px;
+            font-weight: bold;
+            color: #1e3a8a;
+            border-top: 1.5px dotted #475569;
+            padding-top: 2px;
         }
     </style>
 </head>
 <body>
-    <div class="receipt-container">
-        <div class="header">
-            <h1 class="society-title">श्री श्याम वेलफेयर सोसाइटी, लोहिड़ी</h1>
-            <div class="society-subtitle" style="color: #4b5563; font-weight: 600; font-size: 11px;">ग्राम पंचायत लोहिड़ी, पंचायत समिति सिणधरी, जिला बालोतरा (राजस्थान)</div>
-            <div style="color: #b91c1c; font-weight: bold; font-size: 11px; margin: 2px 0;">श्री गणेशाय नमः</div>
-            <div class="society-meta">
-                Reg No: <strong>{{ $society['reg_no'] }}</strong> | Helpline: {{ $society['phone'] }}
-            </div>
-            <div class="badge">OFFICIAL PAYMENT RECEIPT / भुगतान रसीद</div>
-        </div>
-
-        <table class="info-table">
-            <tr>
-                <td class="label">क्र. सं. (Receipt No):</td>
-                <td class="value"><strong>{{ $payment->receipt_no }}</strong></td>
-                <td class="label">दिनांक (Date):</td>
-                <td class="value"><strong>{{ $payment->payment_date->format('d-M-Y') }}</strong></td>
-            </tr>
-            <tr>
-                <td class="label">SAN Code (एस.ए.एन. कोड):</td>
-                <td class="value">{{ $payment->san_code ?: 'SAN-LOH-'.$payment->member_id }}</td>
-                <td class="label">सदस्यता क्रमांक (Mem. No):</td>
-                <td class="value"><strong>{{ $payment->member->membership_no }}</strong></td>
-            </tr>
-            <tr>
-                <td class="label">श्री (सदस्य का नाम):</td>
-                <td class="value"><strong>{{ $payment->member->full_name }}</strong></td>
-                <td class="label">पति / पत्नी का नाम:</td>
-                <td class="value">{{ $payment->member->father_spouse_name ?: '-' }}</td>
-            </tr>
-            <tr>
-                <td class="label">योजना (Scheme):</td>
-                <td class="value">{{ $payment->member->scheme ? $payment->member->scheme->name_hindi : 'बुजुर्ग सम्मान योजना' }}</td>
-                <td class="label">मोबाइल नंबर:</td>
-                <td class="value">{{ $payment->member->mobile }}</td>
-            </tr>
-            <tr>
-                <td class="label">भुगतान माध्यम (Mode):</td>
-                <td class="value">{{ $payment->payment_mode }} (Ref: {{ $payment->reference_no ?: 'N/A' }})</td>
-                <td class="label">कार्यकर्ता का नाम:</td>
-                <td class="value">{{ $payment->agent ? $payment->agent->name : ($payment->collected_by ?: 'HQ Office') }}</td>
-            </tr>
-        </table>
-
-        <div class="amount-box">
-            <table style="width: 100%;">
+    <div class="receipt-outer-frame">
+        <div class="receipt-inner-frame">
+            <!-- Top Meta Bar: Reg No | SAN -->
+            <table class="top-meta-table">
                 <tr>
-                    <td style="font-size: 14px; font-weight: bold; color: #1B365D;">
-                        प्राप्त राशि (Amount Received): <span style="font-size: 16px; color: #D97706;">₹{{ number_format($payment->amount, 2) }}</span>
+                    <td style="width: 50%; text-align: left; color: #1e3a8a;">
+                        <strong>Reg. No. {{ $society['reg_no'] }}</strong>
                     </td>
-                    <td style="text-align: right; font-size: 12px; font-weight: bold; color: #555;">
-                        बाकी राशि: ₹{{ number_format($payment->member->pending_amount, 2) }}
+                    <td style="width: 50%; text-align: right; color: #1e3a8a;">
+                        <strong>SAN : {{ $sanCode }}</strong>
                     </td>
                 </tr>
             </table>
-            <div class="amount-words">
-                <strong>शब्दों में:</strong> {{ $payment->amount_in_words }}
-            </div>
-        </div>
 
-        <table class="footer-table">
-            <tr>
-                <td class="signature-box">
-                    हस्ताक्षर<br>(सदस्य)
-                </td>
-                <td style="width: 40%; text-align: center; font-size: 9px; color: #777;">
-                    Computer generated receipt valid without physical seal.<br>
-                    ई-रसीद समाज सेवा एवं रिकॉर्ड हेतु मान्य है।
-                </td>
-                <td class="signature-box">
-                    हस्ताक्षर<br>({{ $society['president'] }})
-                </td>
-            </tr>
-        </table>
+            <!-- Header Section with Centered Title & Below Header Ganesh Mantra -->
+            <table class="header-table">
+                <tr>
+                    <td style="width: 55px; vertical-align: middle; text-align: left; padding-bottom: 2px;">
+                        @if(file_exists($logoPath))
+                            <img src="{{ str_replace('\\', '/', $logoPath) }}" width="48" height="48" alt="Logo" style="display: block; border-radius: 24px;"/>
+                        @endif
+                    </td>
+                    <td style="vertical-align: middle; text-align: center; padding-bottom: 2px;">
+                        <div class="society-title">श्री श्याम वेलफेयर सोसाइटी, लोहिड़ी</div>
+                        <div class="society-subtitle">ग्राम पंचायत लोहिड़ी, पंचायत समिति सिणधरी, जिला बालोतरा (राजस्थान)</div>
+                        <div class="ganesh-mantra">श्री गणेशाय नमः</div>
+                    </td>
+                    <td style="width: 55px; vertical-align: middle; text-align: right; font-size: 8.5px; color: #1e3a8a; padding-bottom: 2px;">
+                        <div style="font-weight: bold; line-height: 1.2;">मो.<br>{{ explode(',', $society['phone'])[0] ?? '9664090906' }}</div>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- Scheme Row & Date -->
+            <table class="scheme-row-table">
+                <tr>
+                    <td style="width: 28%; font-size: 9.5px; vertical-align: middle;">
+                        <strong style="color: #334155;">क्र. सं.</strong> <span style="font-weight: bold; color: #0f172a; border-bottom: 1px dotted #475569; padding: 0 4px;">{{ $payment->receipt_no }}</span>
+                    </td>
+                    <td class="text-center" style="width: 44%; vertical-align: middle; text-align: center;">
+                        <div class="scheme-pill">
+                            {{ $member && $member->scheme ? $member->scheme->name_hindi : 'बुजुर्ग सम्मान योजना' }}
+                        </div>
+                    </td>
+                    <td style="width: 28%; font-size: 9.5px; vertical-align: middle; text-align: right;">
+                        <strong style="color: #334155;">दिनांक</strong> <span style="font-weight: bold; color: #0f172a; border-bottom: 1px dotted #475569; padding: 0 4px;">{{ $paymentDate }}</span>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- Member Info 5-Row Section with Dotted Underline -->
+            <table class="info-table">
+                <!-- Row 1: Member Name & Spouse/Father Name -->
+                <tr>
+                    <td style="width: 52%; padding: 1px 4px 1px 0;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td class="field-label">श्री</td>
+                                <td class="field-value">{{ $member ? $member->full_name : '-' }}</td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td style="width: 48%; padding: 1px 0 1px 4px;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td class="field-label">पति / पत्नी का नाम</td>
+                                <td class="field-value">{{ $member ? $member->father_spouse_name : '-' }}</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <!-- Row 2: Address & Gotra -->
+                <tr>
+                    <td style="width: 65%; padding: 1px 4px 1px 0;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td class="field-label">निवासी</td>
+                                <td class="field-value">{{ $member ? ($member->address ?: ($member->village ? $member->village . ', ' . $member->district : $member->district)) : '-' }}</td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td style="width: 35%; padding: 1px 0 1px 4px;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td class="field-label">गोत्र</td>
+                                <td class="field-value">{{ $member ? ($member->gotra ?? ($member->caste ?? '-')) : '-' }}</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <!-- Row 3: Mobile Number & Kisht Amount -->
+                <tr>
+                    <td style="width: 60%; padding: 1px 4px 1px 0;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td class="field-label">मोबाइल नंबर</td>
+                                <td class="field-value">{{ $member ? $member->mobile : '-' }}</td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td style="width: 40%; padding: 1px 0 1px 4px;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td class="field-label">किस्त</td>
+                                <td class="field-value">₹{{ number_format($kishtRate, 0) }}</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <!-- Row 4: Agent Name & Agent Mobile -->
+                <tr>
+                    <td style="width: 55%; padding: 1px 4px 1px 0;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td class="field-label">कार्यकर्ता का नाम</td>
+                                <td class="field-value">{{ $agentName }}</td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td style="width: 45%; padding: 1px 0 1px 4px;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td class="field-label">मो.</td>
+                                <td class="field-value">{{ $agentMobile }}</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <!-- Row 5: Nominee Name & Joining Date -->
+                <tr>
+                    <td style="width: 58%; padding: 1px 4px 1px 0;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td class="field-label">वारिसदार का नाम</td>
+                                <td class="field-value">{{ $nomineeName }}</td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td style="width: 42%; padding: 1px 0 1px 4px;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td class="field-label">जुड़ने की तिथि</td>
+                                <td class="field-value">{{ $joiningDate }}</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- Detail Table: Name / Description | Event Date | Payment Date | Agent -->
+            <table class="detail-table">
+                <thead>
+                    <tr>
+                        <th style="width: 45%;">नाम / विवरण</th>
+                        <th style="width: 18%;">कार्यक्रम की दिनांक</th>
+                        <th style="width: 18%;">भुगतान की तिथि</th>
+                        <th style="width: 19%;">कार्यकर्ता का नाम</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="background: #ffffff;">
+                        <td><strong>{{ $description }}</strong></td>
+                        <td style="text-align: center;">{{ $eventDate }}</td>
+                        <td style="text-align: center; color: #166534; font-weight: bold;">{{ $paymentDate }}</td>
+                        <td style="text-align: center;">{{ $agentName }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Financial Box: Amount Received, In Words & Remaining Dues -->
+            <div class="amount-summary-box">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="font-size: 11px; font-weight: bold; color: #1e3a8a;">
+                            प्राप्त राशि: <span style="font-size: 13px; color: #166534;">₹{{ number_format($payment->amount, 2) }}</span>
+                            <span style="font-size: 9px; color: #475569; font-weight: normal; margin-left: 6px;">({{ $payment->payment_mode }}{{ $payment->reference_no ? ' - Ref: ' . $payment->reference_no : '' }})</span>
+                        </td>
+                        <td style="text-align: right; font-size: 10.5px; font-weight: bold; color: #b91c1c;">
+                            बाकी राशि: ₹{{ number_format($member ? $member->pending_amount : 0, 2) }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="font-size: 9px; color: #334155; font-style: italic; padding-top: 2px;">
+                            <strong>शब्दों में:</strong> {{ $payment->amount_in_words }}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Signatures Table -->
+            <table class="footer-table">
+                <tr>
+                    <td style="width: 32%; text-align: center; vertical-align: bottom;">
+                        <div style="font-size: 8px; color: #64748b; margin-bottom: 1px;">SAN Digital Verification</div>
+                        <div style="border-top: 1.5px dotted #64748b; font-size: 8.5px; font-weight: bold; color: #1e3a8a; padding-top: 2px;">
+                            एस.ए.एन. सत्यापन
+                        </div>
+                    </td>
+                    <td style="width: 36%; text-align: center; vertical-align: bottom;">
+                        <div style="margin-bottom: 12px; font-size: 9px; color: #334155; font-weight: bold;">{{ $agentName }}</div>
+                        <div class="sig-block">कार्यकर्ता का नाम / हस्ताक्षर</div>
+                    </td>
+                    <td style="width: 32%; text-align: right; vertical-align: bottom;">
+                        <div style="display: inline-block; text-align: center; width: 120px;">
+                            <div style="margin-bottom: 12px; font-size: 8.5px; color: #64748b;">श्री श्याम वेलफेयर सोसाइटी</div>
+                            <div class="sig-block">हस्ताक्षर</div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
     </div>
 </body>
 </html>

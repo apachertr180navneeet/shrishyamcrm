@@ -165,7 +165,7 @@ class PaymentController extends Controller
     public function receipt($id)
     {
         $user = auth()->user();
-        $query = Payment::with(['member.scheme', 'member.agent', 'agent', 'event']);
+        $query = Payment::with(['member.scheme', 'member.agent', 'member.nominees', 'agent', 'event']);
         if ($user && $user->isAgent() && $user->agent_id) {
             $query->where('agent_id', $user->agent_id);
         }
