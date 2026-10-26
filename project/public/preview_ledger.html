@@ -5,7 +5,8 @@
     <title>Member Ledger Card - 500219/01</title>
     <style>
         @page {
-            margin: 10px 12px;
+            margin: 8px 10px;
+            size: A4 portrait;
         }
         @font-face {
             font-family: 'Mangal';
@@ -38,29 +39,47 @@
         body {
             font-family: 'Mangal', 'Aparajita', 'DejaVu Sans', sans-serif;
             color: #0f172a;
-            font-size: 10.5px;
-            line-height: 1.25;
+            font-size: 10px;
+            line-height: 1.2;
             margin: 0;
             padding: 0;
             background-color: #ffffff;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        @media print {
+            body {
+                background: #ffffff !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .card-outer-frame {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
         }
         .card-outer-frame {
             border: 2px solid #1e3a8a;
-            padding: 4px;
+            padding: 3px;
             background: #ffffff;
-            border-radius: 6px;
+            border-radius: 5px;
+            page-break-inside: avoid;
+            break-inside: avoid;
         }
         .card-inner-frame {
             border: 1px solid #cbd5e1;
-            padding: 8px 10px;
+            padding: 6px 8px;
             background: #ffffff;
             border-radius: 4px;
         }
         .top-meta-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 9px;
-            margin-bottom: 3px;
+            font-size: 8.5px;
+            margin-bottom: 2px;
         }
         .top-meta-table td {
             padding: 0;
@@ -69,18 +88,18 @@
         .ganesh-mantra {
             color: #b91c1c;
             font-weight: bold;
-            font-size: 9px;
+            font-size: 10.5px;
             letter-spacing: 0.5px;
         }
         .header-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 4px;
+            margin-bottom: 3px;
             border-bottom: 2px solid #1e3a8a;
-            padding-bottom: 4px;
+            padding-bottom: 3px;
         }
         .society-title {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: bold;
             color: #0f172a;
             margin: 0;
@@ -88,10 +107,10 @@
             line-height: 1.15;
         }
         .society-subtitle {
-            font-size: 10.5px;
+            font-size: 10px;
             font-weight: bold;
             color: #334155;
-            margin-top: 2px;
+            margin-top: 1px;
             margin-bottom: 0;
         }
         .society-phones {
@@ -173,31 +192,69 @@
         .footer-summary-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 5px;
+            margin-top: 6px;
         }
-        .total-box-table {
-            border: 1.8px solid #1e3a8a;
-            border-radius: 5px;
+        .summary-box {
+            border: 1.5px solid #1e3a8a;
+            border-radius: 4px;
+            background: #f8fafc;
             border-collapse: separate;
             border-spacing: 0;
-            background: #f8fafc;
             display: inline-table;
+        }
+        .summary-box-header {
+            padding: 2px 6px 1px 6px;
+            text-align: center;
+            font-size: 8.5px;
+            font-weight: bold;
+            border-bottom: 1px solid #cbd5e1;
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+        .summary-box-val {
+            padding: 3px 8px;
+            text-align: center;
+            font-size: 13.5px;
+            font-weight: bold;
+            color: #1e3a8a;
+            line-height: 1.1;
+        }
+        .summary-box-due {
+            border-color: #dc2626;
+        }
+        .summary-box-due .summary-box-header {
+            background: #fee2e2;
+            border-bottom-color: #fecaca;
+            color: #991b1b;
+        }
+        .summary-box-due .summary-box-val {
+            color: #b91c1c;
+        }
+        .summary-box-total {
+            border-color: #1e3a8a;
+            background: #1e3a8a;
+        }
+        .summary-box-total .summary-box-header {
+            background: #1e3a8a;
+            border-bottom: 1px solid #3b82f6;
+            color: #93c5fd;
+        }
+        .summary-box-total .summary-box-val {
+            color: #ffffff;
+            font-size: 14.5px;
         }
     </style>
 </head>
 <body>
     <div class="card-outer-frame">
         <div class="card-inner-frame">
-            <!-- Top Meta Bar: Reg No | Ganesh Inscription | SAN -->
+            <!-- Top Meta Bar: Reg No | SAN -->
             <table class="top-meta-table">
                 <tr>
-                    <td class="text-start" style="width: 38%; color: #1e3a8a;">
+                    <td class="text-start" style="width: 50%; color: #1e3a8a;">
                         <strong>Reg. No. COOP/2025/BALOTARA/500219</strong>
                     </td>
-                    <td class="text-center ganesh-mantra" style="width: 24%;">
-                        ॥ श्री गणेशाय नमः ॥
-                    </td>
-                    <td class="text-end" style="width: 38%; color: #1e3a8a;">
+                    <td class="text-end" style="width: 50%; color: #1e3a8a;">
                         <strong>SAN : 0878920000000014</strong>
                     </td>
                 </tr>
@@ -206,15 +263,17 @@
             <!-- Center Header with Left Logo Emblem -->
             <table class="header-table">
                 <tr>
-                    <td style="width: 60px; vertical-align: middle; text-align: left; padding-bottom: 4px;">
+                    <td style="width: 65px; vertical-align: middle; text-align: left; padding-bottom: 2px;">
                                                                             <img src="C:/laragon/www/laravel_project/shrishyamcrm/project/public/assets/society_logo.jpg" width="55" height="55" alt="Logo" style="display: block; border-radius: 28px;"/>
                                             </td>
-                    <td style="vertical-align: middle; text-align: center; padding-bottom: 4px;">
-                        <div class="society-title">श्री श्याम वेलफेयर सोसायटी लोहिड़ी</div>
-                        <div class="society-subtitle">ग्रा.पं. लोहिड़ी, पं.स. सिणधरी, जिला बालोतरा (राज.)</div>
-                        <div class="society-phones">मो. 9664090906, 9549635631, 9783049650</div>
+                    <td style="vertical-align: middle; text-align: center; padding-bottom: 2px;">
+                        <div class="society-title">श्री श्याम वेलफेयर सोसाइटी, लोहिड़ी</div>
+                        <div class="society-subtitle">ग्राम पंचायत लोहिड़ी, पंचायत समिति सिणधरी, जिला बालोतरा (राजस्थान)</div>
+                        <div class="ganesh-mantra" style="font-size: 11px; font-weight: bold; color: #b91c1c; margin-top: 2px; letter-spacing: 0.5px;">श्री गणेशाय नमः</div>
                     </td>
-                    <td style="width: 60px; padding-bottom: 4px;">&nbsp;</td>
+                    <td style="width: 65px; vertical-align: middle; text-align: right; font-size: 9px; color: #1e3a8a; padding-bottom: 2px;">
+                        <div style="font-weight: bold; line-height: 1.25;">मो.<br>9664090906</div>
+                    </td>
                 </tr>
             </table>
 
@@ -222,39 +281,39 @@
             <table class="scheme-row-table">
                 <tr>
                     <td style="width: 26%; font-size: 10px; vertical-align: middle;">
-                        <strong style="color: #334155;">क्र.सं.</strong> <span style="font-weight: bold; color: #0f172a; border-bottom: 1px dotted #475569; padding: 0 4px;">500219/01</span>
+                        <strong style="color: #334155;">क्र. सं.</strong> <span style="font-weight: bold; color: #0f172a; border-bottom: 1px dotted #475569; padding: 0 4px;">500219/01</span>
                     </td>
                     <td class="text-center" style="width: 48%; vertical-align: middle;">
                         <div class="scheme-pill">
-                            कन्यादान योजना
+                            बुजुर्ग सम्मान योजना
                         </div>
                     </td>
                     <td class="text-end" style="width: 26%; font-size: 10px; vertical-align: middle;">
-                        <strong style="color: #334155;">दिनांक :-</strong> <span style="font-weight: bold; color: #0f172a; border-bottom: 1px dotted #475569; padding: 0 4px;">28.09.2026</span>
+                        <strong style="color: #334155;">दिनांक</strong> <span style="font-weight: bold; color: #0f172a; border-bottom: 1px dotted #475569; padding: 0 4px;">26.10.2026</span>
                     </td>
                 </tr>
             </table>
 
-            <!-- Member Info Section with 4 Complete Dotted Underline Rows -->
+            <!-- Member Info Section with 5 Complete Dotted Underline Rows -->
             <table class="member-info-table">
-                <!-- Row 1: Member Name & Father/Spouse Name -->
+                <!-- Row 1: Member Name & Spouse/Father Name -->
                 <tr>
-                    <td style="width: 54%; padding: 1.5px 5px 1.5px 0;">
+                    <td style="width: 52%; padding: 1.5px 5px 1.5px 0;">
                         <table style="width: 100%; border-collapse: collapse;">
                             <tr>
                                 <td class="field-label">श्री</td>
                                 <td class="field-value">
-                                    पूजा
+                                    चौथी देवी
                                 </td>
                             </tr>
                         </table>
                     </td>
-                    <td style="width: 46%; padding: 1.5px 0 1.5px 5px;">
+                    <td style="width: 48%; padding: 1.5px 0 1.5px 5px;">
                         <table style="width: 100%; border-collapse: collapse;">
                             <tr>
-                                <td class="field-label">पिता/पत्नी/पुत्री</td>
+                                <td class="field-label">पति / पत्नी का नाम</td>
                                 <td class="field-value">
-                                    भंवराराम
+                                    संतराम
                                 </td>
                             </tr>
                         </table>
@@ -268,7 +327,7 @@
                             <tr>
                                 <td class="field-label">निवासी</td>
                                 <td class="field-value">
-                                    मनणावास
+                                    चाडो की ढाणी, लोहिड़ी
                                 </td>
                             </tr>
                         </table>
@@ -276,9 +335,9 @@
                     <td style="width: 35%; padding: 1.5px 0 1.5px 5px;">
                         <table style="width: 100%; border-collapse: collapse;">
                             <tr>
-                                <td class="field-label">गौत्र</td>
+                                <td class="field-label">गोत्र</td>
                                 <td class="field-value">
-                                    रोपिया
+                                    भाटी
                                 </td>
                             </tr>
                         </table>
@@ -290,9 +349,9 @@
                     <td style="width: 60%; padding: 1.5px 5px 1.5px 0;">
                         <table style="width: 100%; border-collapse: collapse;">
                             <tr>
-                                <td class="field-label">मोबाईल नम्बर</td>
+                                <td class="field-label">मोबाइल नंबर</td>
                                 <td class="field-value">
-                                    7568564565
+                                    6375635153
                                 </td>
                             </tr>
                         </table>
@@ -302,7 +361,7 @@
                             <tr>
                                 <td class="field-label">किस्त</td>
                                 <td class="field-value">
-                                    500
+                                    400
                                 </td>
                             </tr>
                         </table>
@@ -316,7 +375,7 @@
                             <tr>
                                 <td class="field-label">कार्यकर्ता का नाम</td>
                                 <td class="field-value">
-                                    वृंशाराम
+                                    बुधराम
                                 </td>
                             </tr>
                         </table>
@@ -326,7 +385,31 @@
                             <tr>
                                 <td class="field-label">मो.</td>
                                 <td class="field-value">
-                                    9662464733
+                                    9783049650
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <!-- Row 5: Nominee Name & Joining Date -->
+                <tr>
+                    <td style="width: 58%; padding: 1.5px 5px 1.5px 0;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td class="field-label">वारिसदार का नाम</td>
+                                <td class="field-value">
+                                    मदनलाल (पुत्र)
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td style="width: 42%; padding: 1.5px 0 1.5px 5px;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td class="field-label">जुड़ने की तिथि</td>
+                                <td class="field-value">
+                                    10.04.2025
                                 </td>
                             </tr>
                         </table>
@@ -338,158 +421,162 @@
             <table class="ledger-table">
                 <thead>
                     <tr>
-                        <th style="width: 6%;">क्र.सं.</th>
+                        <th style="width: 6%;">क्र. सं.</th>
                         <th style="width: 44%;">नाम / विवरण</th>
-                        <th style="width: 16%;">जुड़ने की तिथी</th>
-                        <th style="width: 18%;">भुगतान तिथि</th>
-                        <th style="width: 16%;">कार्यकर्ता नाम</th>
+                        <th style="width: 16%;">कार्यक्रम की दिनांक</th>
+                        <th style="width: 18%;">भुगतान की तिथि</th>
+                        <th style="width: 16%;">कार्यकर्ता का नाम</th>
                     </tr>
                 </thead>
                 <tbody>
-                                                            <tr style="height: 18px; background: #ffffff;">
+                                                            <tr style="height: 17px; background: #ffffff;">
                         <td class="text-center font-weight-bold" style="color: #1e3a8a;">1</td>
                         <td>
-                            <strong style="color: #0f172a;">गंगा / डालुजी बामणी</strong>
+                            <strong style="color: #0f172a;">अगरोजी / हरताजी भाटी चाडों की ढाणी</strong>
                         </td>
-                        <td class="text-center" style="color: #334155;">23.12.25</td>
+                        <td class="text-center" style="color: #334155;">28.01.26</td>
                         <td class="text-center">
-                                                            <span class="paid-text">07.07.26</span>
+                                                            <span class="paid-text">28.01.26</span>
                                                     </td>
-                        <td class="text-center" style="color: #334155;">रामाराम</td>
+                        <td class="text-center" style="color: #334155;">बुधराम</td>
                     </tr>
-                                        <tr style="height: 18px; background: #ffffff;">
+                                        <tr style="height: 17px; background: #ffffff;">
                         <td class="text-center font-weight-bold" style="color: #1e3a8a;">2</td>
                         <td>
-                            <strong style="color: #0f172a;">मुली / राऊजी धोलानाडा</strong>
+                            <strong style="color: #0f172a;">चौथाजी / हेमाजी हो की ढाणी</strong>
                         </td>
-                        <td class="text-center" style="color: #334155;">01.01.26</td>
+                        <td class="text-center" style="color: #334155;">15.02.26</td>
                         <td class="text-center">
-                                                            <span class="paid-text">22.07.26</span>
+                                                            <span class="paid-text">15.02.26</span>
                                                     </td>
-                        <td class="text-center" style="color: #334155;">रामाराम</td>
+                        <td class="text-center" style="color: #334155;">बुधराम</td>
+                    </tr>
+                                        <tr style="height: 17px; background: #ffffff;">
+                        <td class="text-center font-weight-bold" style="color: #1e3a8a;">3</td>
+                        <td>
+                            <strong style="color: #0f172a;">सुगनी देवी / खेताराम सिणधरी</strong>
+                        </td>
+                        <td class="text-center" style="color: #334155;">02.03.26</td>
+                        <td class="text-center">
+                                                            <span class="pending-text">बकाया (Pending)</span>
+                                                    </td>
+                        <td class="text-center" style="color: #334155;">बुधराम</td>
                     </tr>
                     
                     <!-- Blank Fill Rows to form 20-row authentic printed ledger grid -->
-                                        <tr style="height: 18px; background: #ffffff;">
+                                        <tr style="height: 17px; background: #ffffff;">
                         <td class="text-center">&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                     </tr>
-                                        <tr style="height: 18px; background: #ffffff;">
+                                        <tr style="height: 17px; background: #ffffff;">
                         <td class="text-center">&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                     </tr>
-                                        <tr style="height: 18px; background: #ffffff;">
+                                        <tr style="height: 17px; background: #ffffff;">
                         <td class="text-center">&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                     </tr>
-                                        <tr style="height: 18px; background: #ffffff;">
+                                        <tr style="height: 17px; background: #ffffff;">
                         <td class="text-center">&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                     </tr>
-                                        <tr style="height: 18px; background: #ffffff;">
+                                        <tr style="height: 17px; background: #ffffff;">
                         <td class="text-center">&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                     </tr>
-                                        <tr style="height: 18px; background: #ffffff;">
+                                        <tr style="height: 17px; background: #ffffff;">
                         <td class="text-center">&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                     </tr>
-                                        <tr style="height: 18px; background: #ffffff;">
+                                        <tr style="height: 17px; background: #ffffff;">
                         <td class="text-center">&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                     </tr>
-                                        <tr style="height: 18px; background: #ffffff;">
+                                        <tr style="height: 17px; background: #ffffff;">
                         <td class="text-center">&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                     </tr>
-                                        <tr style="height: 18px; background: #ffffff;">
+                                        <tr style="height: 17px; background: #ffffff;">
                         <td class="text-center">&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                     </tr>
-                                        <tr style="height: 18px; background: #ffffff;">
+                                        <tr style="height: 17px; background: #ffffff;">
                         <td class="text-center">&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                     </tr>
-                                        <tr style="height: 18px; background: #ffffff;">
+                                        <tr style="height: 17px; background: #ffffff;">
                         <td class="text-center">&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                     </tr>
-                                        <tr style="height: 18px; background: #ffffff;">
+                                        <tr style="height: 17px; background: #ffffff;">
                         <td class="text-center">&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                     </tr>
-                                        <tr style="height: 18px; background: #ffffff;">
+                                        <tr style="height: 17px; background: #ffffff;">
                         <td class="text-center">&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                     </tr>
-                                        <tr style="height: 18px; background: #ffffff;">
+                                        <tr style="height: 17px; background: #ffffff;">
                         <td class="text-center">&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                     </tr>
-                                        <tr style="height: 18px; background: #ffffff;">
+                                        <tr style="height: 17px; background: #ffffff;">
                         <td class="text-center">&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                     </tr>
-                                        <tr style="height: 18px; background: #ffffff;">
+                                        <tr style="height: 17px; background: #ffffff;">
                         <td class="text-center">&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                     </tr>
-                                        <tr style="height: 18px; background: #ffffff;">
-                        <td class="text-center">&nbsp;</td>
-                        <td>&nbsp;</td>
-                        <td>&nbsp;</td>
-                        <td>&nbsp;</td>
-                        <td>&nbsp;</td>
-                    </tr>
-                                        <tr style="height: 18px; background: #ffffff;">
+                                        <tr style="height: 17px; background: #ffffff;">
                         <td class="text-center">&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
@@ -499,25 +586,68 @@
                                     </tbody>
             </table>
 
-            <!-- Footer Summary Section: Single Total Box & Signature Line -->
+            <!-- Footer Summary Section: 3-Box Formula [This Month] + [Remaining Dues / बाकी राशि] = [Total] & Signature Line -->
             <table class="footer-summary-table">
                 <tr>
-                    <td style="width: 50%; vertical-align: middle;">
-                        <table class="total-box-table">
+                    <td style="width: 72%; vertical-align: middle;">
+                        <table style="border-collapse: separate; border-spacing: 0;">
                             <tr>
-                                <td style="padding: 3px 6px 3px 5px; vertical-align: middle;">
-                                                                                                                <img src="C:/laragon/www/laravel_project/shrishyamcrm/project/public/assets/rupee_icon.png" width="22" height="22" alt="₹" style="display: block; vertical-align: middle;"/>
-                                                                    </td>
-                                <td style="padding: 3px 14px 3px 0; vertical-align: middle; font-size: 16px; font-weight: bold; color: #1e3a8a; line-height: 1;">
-                                    1,000
+                                <!-- Box 1: This Month -->
+                                <td style="vertical-align: middle;">
+                                    <table class="summary-box" style="min-width: 95px;">
+                                        <tr>
+                                            <td class="summary-box-header">इस माह (This m.)</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="summary-box-val">
+                                                ₹400
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+
+                                <td style="padding: 0 6px; font-size: 16px; font-weight: bold; color: #1e3a8a; vertical-align: middle; text-align: center;">
+                                    +
+                                </td>
+
+                                <!-- Box 2: Previous Due / बाकी राशि -->
+                                <td style="vertical-align: middle;">
+                                    <table class="summary-box summary-box-due" style="min-width: 95px;">
+                                        <tr>
+                                            <td class="summary-box-header">बाकी राशि</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="summary-box-val">
+                                                ₹400
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+
+                                <td style="padding: 0 6px; font-size: 16px; font-weight: bold; color: #1e3a8a; vertical-align: middle; text-align: center;">
+                                    =
+                                </td>
+
+                                <!-- Box 3: Total -->
+                                <td style="vertical-align: middle;">
+                                    <table class="summary-box summary-box-total" style="min-width: 105px;">
+                                        <tr>
+                                            <td class="summary-box-header">कुल योग (Total)</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="summary-box-val">
+                                                ₹800
+                                            </td>
+                                        </tr>
+                                    </table>
                                 </td>
                             </tr>
                         </table>
                     </td>
-                    <td style="width: 50%; text-align: right; vertical-align: bottom;">
-                        <div style="display: inline-block; text-align: center; width: 130px;">
-                            <div style="margin-bottom: 22px;"></div>
-                            <div style="border-top: 1.5px dotted #334155; padding-top: 2px; font-size: 10.5px; font-weight: bold; color: #1e3a8a;">
+                    <td style="width: 28%; text-align: right; vertical-align: bottom;">
+                        <div style="display: inline-block; text-align: center; width: 120px;">
+                            <div style="margin-bottom: 20px;"></div>
+                            <div style="border-top: 1.5px dotted #334155; padding-top: 2px; font-size: 9.5px; font-weight: bold; color: #1e3a8a;">
                                 हस्ताक्षर
                             </div>
                         </div>

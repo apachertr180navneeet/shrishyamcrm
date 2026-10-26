@@ -84,11 +84,11 @@ class UserSeeder extends Seeder
         // Initialize default Society Settings
         $settings = [
             'society_name' => 'Shri Shyam Welfare Society',
-            'society_name_hindi' => 'श्री श्याम वेलफेयर सोसायटी लोहीकी',
-            'reg_no' => 'HR/019/2021/04582',
-            'san_prefix' => 'SAN-LOH',
-            'address' => 'Main Bazar, Lohki, District Mahendragarh, Haryana - 123001',
-            'phone' => '+91 98290 12345',
+            'society_name_hindi' => 'श्री श्याम वेलफेयर सोसाइटी, लोहिड़ी',
+            'reg_no' => 'COOP/2025/BALOTARA/500219',
+            'san_prefix' => '0878920000000014',
+            'address' => 'ग्राम पंचायत लोहिड़ी, पंचायत समिति सिणधरी, जिला बालोतरा (राजस्थान)',
+            'phone' => '9664090906, 9549635631, 9783049650',
             'email' => 'info@shrishyamwelfare.org',
             'president_name' => 'Shri Navneet Sharma',
             'secretary_name' => 'Shri Mahesh Garg',

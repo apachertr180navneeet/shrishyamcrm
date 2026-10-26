@@ -5,7 +5,8 @@
     <title>Member Ledger Card - {{ $member->membership_no }}</title>
     <style>
         @page {
-            margin: 10px 12px;
+            margin: 8px 10px;
+            size: A4 portrait;
         }
         @font-face {
             font-family: 'Mangal';
@@ -38,29 +39,47 @@
         body {
             font-family: 'Mangal', 'Aparajita', 'DejaVu Sans', sans-serif;
             color: #0f172a;
-            font-size: 10.5px;
-            line-height: 1.25;
+            font-size: 10px;
+            line-height: 1.2;
             margin: 0;
             padding: 0;
             background-color: #ffffff;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        @media print {
+            body {
+                background: #ffffff !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .card-outer-frame {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
         }
         .card-outer-frame {
             border: 2px solid #1e3a8a;
-            padding: 4px;
+            padding: 3px;
             background: #ffffff;
-            border-radius: 6px;
+            border-radius: 5px;
+            page-break-inside: avoid;
+            break-inside: avoid;
         }
         .card-inner-frame {
             border: 1px solid #cbd5e1;
-            padding: 8px 10px;
+            padding: 6px 8px;
             background: #ffffff;
             border-radius: 4px;
         }
         .top-meta-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 9px;
-            margin-bottom: 3px;
+            font-size: 8.5px;
+            margin-bottom: 2px;
         }
         .top-meta-table td {
             padding: 0;
@@ -69,18 +88,18 @@
         .ganesh-mantra {
             color: #b91c1c;
             font-weight: bold;
-            font-size: 9px;
+            font-size: 10.5px;
             letter-spacing: 0.5px;
         }
         .header-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 4px;
+            margin-bottom: 3px;
             border-bottom: 2px solid #1e3a8a;
-            padding-bottom: 4px;
+            padding-bottom: 3px;
         }
         .society-title {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: bold;
             color: #0f172a;
             margin: 0;
@@ -88,10 +107,10 @@
             line-height: 1.15;
         }
         .society-subtitle {
-            font-size: 10.5px;
+            font-size: 10px;
             font-weight: bold;
             color: #334155;
-            margin-top: 2px;
+            margin-top: 1px;
             margin-bottom: 0;
         }
         .society-phones {
@@ -229,16 +248,13 @@
 <body>
     <div class="card-outer-frame">
         <div class="card-inner-frame">
-            <!-- Top Meta Bar: Reg No | Ganesh Inscription | SAN -->
+            <!-- Top Meta Bar: Reg No | SAN -->
             <table class="top-meta-table">
                 <tr>
-                    <td class="text-start" style="width: 38%; color: #1e3a8a;">
+                    <td class="text-start" style="width: 50%; color: #1e3a8a;">
                         <strong>Reg. No. {{ $society['reg_no'] }}</strong>
                     </td>
-                    <td class="text-center ganesh-mantra" style="width: 24%;">
-                        ॥ श्री गणेशाय नमः ॥
-                    </td>
-                    <td class="text-end" style="width: 38%; color: #1e3a8a;">
+                    <td class="text-end" style="width: 50%; color: #1e3a8a;">
                         <strong>SAN : {{ $sanCode }}</strong>
                     </td>
                 </tr>
@@ -247,7 +263,7 @@
             <!-- Center Header with Left Logo Emblem -->
             <table class="header-table">
                 <tr>
-                    <td style="width: 60px; vertical-align: middle; text-align: left; padding-bottom: 4px;">
+                    <td style="width: 65px; vertical-align: middle; text-align: left; padding-bottom: 2px;">
                         @php
                             $logoImg = $logoPath ?? public_path('assets/society_logo.jpg');
                             if (!file_exists($logoImg)) {
@@ -258,12 +274,14 @@
                             <img src="{{ str_replace('\\', '/', $logoImg) }}" width="55" height="55" alt="Logo" style="display: block; border-radius: 28px;"/>
                         @endif
                     </td>
-                    <td style="vertical-align: middle; text-align: center; padding-bottom: 4px;">
-                        <div class="society-title">{{ $society['name_hindi'] }}</div>
-                        <div class="society-subtitle">{{ $society['address'] }}</div>
-                        <div class="society-phones">मो. {{ $society['phone'] }}</div>
+                    <td style="vertical-align: middle; text-align: center; padding-bottom: 2px;">
+                        <div class="society-title">श्री श्याम वेलफेयर सोसाइटी, लोहिड़ी</div>
+                        <div class="society-subtitle">ग्राम पंचायत लोहिड़ी, पंचायत समिति सिणधरी, जिला बालोतरा (राजस्थान)</div>
+                        <div class="ganesh-mantra" style="font-size: 11px; font-weight: bold; color: #b91c1c; margin-top: 2px; letter-spacing: 0.5px;">श्री गणेशाय नमः</div>
                     </td>
-                    <td style="width: 60px; padding-bottom: 4px;">&nbsp;</td>
+                    <td style="width: 65px; vertical-align: middle; text-align: right; font-size: 9px; color: #1e3a8a; padding-bottom: 2px;">
+                        <div style="font-weight: bold; line-height: 1.25;">मो.<br>{{ explode(',', $society['phone'])[0] ?? '9664090906' }}</div>
+                    </td>
                 </tr>
             </table>
 
@@ -271,24 +289,24 @@
             <table class="scheme-row-table">
                 <tr>
                     <td style="width: 26%; font-size: 10px; vertical-align: middle;">
-                        <strong style="color: #334155;">क्र.सं.</strong> <span style="font-weight: bold; color: #0f172a; border-bottom: 1px dotted #475569; padding: 0 4px;">{{ $member->membership_no }}</span>
+                        <strong style="color: #334155;">क्र. सं.</strong> <span style="font-weight: bold; color: #0f172a; border-bottom: 1px dotted #475569; padding: 0 4px;">{{ $member->membership_no }}</span>
                     </td>
                     <td class="text-center" style="width: 48%; vertical-align: middle;">
                         <div class="scheme-pill">
-                            {{ $member->scheme ? $member->scheme->name_hindi : 'कन्यादान योजना' }}
+                            {{ $member->scheme ? $member->scheme->name_hindi : 'बुजुर्ग सम्मान योजना' }}
                         </div>
                     </td>
                     <td class="text-end" style="width: 26%; font-size: 10px; vertical-align: middle;">
-                        <strong style="color: #334155;">दिनांक :-</strong> <span style="font-weight: bold; color: #0f172a; border-bottom: 1px dotted #475569; padding: 0 4px;">{{ date('d.m.Y') }}</span>
+                        <strong style="color: #334155;">दिनांक</strong> <span style="font-weight: bold; color: #0f172a; border-bottom: 1px dotted #475569; padding: 0 4px;">{{ date('d.m.Y') }}</span>
                     </td>
                 </tr>
             </table>
 
-            <!-- Member Info Section with 4 Complete Dotted Underline Rows -->
+            <!-- Member Info Section with 5 Complete Dotted Underline Rows -->
             <table class="member-info-table">
-                <!-- Row 1: Member Name & Father/Spouse Name -->
+                <!-- Row 1: Member Name & Spouse/Father Name -->
                 <tr>
-                    <td style="width: 54%; padding: 1.5px 5px 1.5px 0;">
+                    <td style="width: 52%; padding: 1.5px 5px 1.5px 0;">
                         <table style="width: 100%; border-collapse: collapse;">
                             <tr>
                                 <td class="field-label">श्री</td>
@@ -298,10 +316,10 @@
                             </tr>
                         </table>
                     </td>
-                    <td style="width: 46%; padding: 1.5px 0 1.5px 5px;">
+                    <td style="width: 48%; padding: 1.5px 0 1.5px 5px;">
                         <table style="width: 100%; border-collapse: collapse;">
                             <tr>
-                                <td class="field-label">पिता/पत्नी/पुत्री</td>
+                                <td class="field-label">पति / पत्नी का नाम</td>
                                 <td class="field-value">
                                     {{ $member->father_spouse_name ?: '-' }}
                                 </td>
@@ -325,7 +343,7 @@
                     <td style="width: 35%; padding: 1.5px 0 1.5px 5px;">
                         <table style="width: 100%; border-collapse: collapse;">
                             <tr>
-                                <td class="field-label">गौत्र</td>
+                                <td class="field-label">गोत्र</td>
                                 <td class="field-value">
                                     {{ $member->gotra ?? ($member->caste ?? '-') }}
                                 </td>
@@ -339,7 +357,7 @@
                     <td style="width: 60%; padding: 1.5px 5px 1.5px 0;">
                         <table style="width: 100%; border-collapse: collapse;">
                             <tr>
-                                <td class="field-label">मोबाईल नम्बर</td>
+                                <td class="field-label">मोबाइल नंबर</td>
                                 <td class="field-value">
                                     {{ $member->mobile }}
                                 </td>
@@ -381,23 +399,47 @@
                         </table>
                     </td>
                 </tr>
+
+                <!-- Row 5: Nominee Name & Joining Date -->
+                <tr>
+                    <td style="width: 58%; padding: 1.5px 5px 1.5px 0;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td class="field-label">वारिसदार का नाम</td>
+                                <td class="field-value">
+                                    {{ $nomineeName }}
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td style="width: 42%; padding: 1.5px 0 1.5px 5px;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td class="field-label">जुड़ने की तिथि</td>
+                                <td class="field-value">
+                                    {{ $member->joining_date ? $member->joining_date->format('d.m.Y') : ($member->created_at ? $member->created_at->format('d.m.Y') : '-') }}
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
             </table>
 
             <!-- Contributions Ledger 20-Row Solid Border Table -->
             <table class="ledger-table">
                 <thead>
                     <tr>
-                        <th style="width: 6%;">क्र.सं.</th>
+                        <th style="width: 6%;">क्र. सं.</th>
                         <th style="width: 44%;">नाम / विवरण</th>
-                        <th style="width: 16%;">कार्यक्रम दिनांक</th>
-                        <th style="width: 18%;">भुगतान तिथि</th>
-                        <th style="width: 16%;">कार्यकर्ता नाम</th>
+                        <th style="width: 16%;">कार्यक्रम की दिनांक</th>
+                        <th style="width: 18%;">भुगतान की तिथि</th>
+                        <th style="width: 16%;">कार्यकर्ता का नाम</th>
                     </tr>
                 </thead>
                 <tbody>
                     @php $sr = 1; @endphp
                     @foreach($tableRows as $row)
-                    <tr style="height: 18px; background: #ffffff;">
+                    <tr style="height: 17px; background: #ffffff;">
                         <td class="text-center font-weight-bold" style="color: #1e3a8a;">{{ $sr++ }}</td>
                         <td>
                             <strong style="color: #0f172a;">{{ $row['description'] }}</strong>
@@ -416,7 +458,7 @@
 
                     <!-- Blank Fill Rows to form 20-row authentic printed ledger grid -->
                     @for($i = 0; $i < $blankRowsCount; $i++)
-                    <tr style="height: 18px; background: #ffffff;">
+                    <tr style="height: 17px; background: #ffffff;">
                         <td class="text-center">&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
@@ -427,7 +469,7 @@
                 </tbody>
             </table>
 
-            <!-- Footer Summary Section: 3-Box Formula [This Month] + [Previous Due] = [Total] & Signature Line -->
+            <!-- Footer Summary Section: 3-Box Formula [This Month] + [Remaining Dues / बाकी राशि] = [Total] & Signature Line -->
             <table class="footer-summary-table">
                 <tr>
                     <td style="width: 72%; vertical-align: middle;">
@@ -451,11 +493,11 @@
                                     +
                                 </td>
 
-                                <!-- Box 2: Previous Due -->
+                                <!-- Box 2: Previous Due / बाकी राशि -->
                                 <td style="vertical-align: middle;">
                                     <table class="summary-box summary-box-due" style="min-width: 95px;">
                                         <tr>
-                                            <td class="summary-box-header">पिछला बकाया (Due)</td>
+                                            <td class="summary-box-header">बाकी राशि</td>
                                         </tr>
                                         <tr>
                                             <td class="summary-box-val">
@@ -487,9 +529,9 @@
                     </td>
                     <td style="width: 28%; text-align: right; vertical-align: bottom;">
                         <div style="display: inline-block; text-align: center; width: 120px;">
-                            <div style="margin-bottom: 24px;"></div>
+                            <div style="margin-bottom: 20px;"></div>
                             <div style="border-top: 1.5px dotted #334155; padding-top: 2px; font-size: 9.5px; font-weight: bold; color: #1e3a8a;">
-                                हस्ताक्षर / Signature
+                                हस्ताक्षर
                             </div>
                         </div>
                     </td>
