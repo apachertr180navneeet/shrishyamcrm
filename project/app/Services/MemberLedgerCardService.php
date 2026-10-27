@@ -4,7 +4,9 @@ namespace App\Services;
 
 use App\Models\Member;
 use App\Models\SocietySetting;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Mpdf\Mpdf;
+use Mpdf\Config\ConfigVariables;
+use Mpdf\Config\FontVariables;
 
 class MemberLedgerCardService
 {
@@ -39,9 +41,9 @@ class MemberLedgerCardService
     }
 
     /**
-     * Generate printable / downloadable Member Ledger & Event Receipt Card PDF
+     * Generate printable / downloadable Member Ledger & Event Receipt Card PDF with native Devanagari complex text shaping
      */
-    public static function generatePdf(int $memberId): \Barryvdh\DomPDF\PDF
+    public static function generatePdf(int $memberId): MpdfReceipt
     {
         static::ensureFontsExist();
 
@@ -208,14 +210,13 @@ class MemberLedgerCardService
 
         $sanCode = $member->san_code ?: $society['san_prefix'];
 
-        $mangalPath = str_replace('\\', '/', public_path('fonts/mangal.ttf'));
-        $mangalbPath = str_replace('\\', '/', public_path('fonts/mangalb.ttf'));
-        $aparajPath = str_replace('\\', '/', public_path('fonts/aparaj.ttf'));
-        $aparajbPath = str_replace('\\', '/', public_path('fonts/aparajb.ttf'));
         $logoPath = str_replace('\\', '/', public_path('assets/society_logo.jpg'));
+        if (!file_exists($logoPath)) {
+            $logoPath = str_replace('\\', '/', public_path('assets/society_logo.png'));
+        }
         $rupeeIconPath = str_replace('\\', '/', public_path('assets/rupee_icon.png'));
 
-        return Pdf::loadView('pdf.member_ledger', compact(
+        $html = view('pdf.member_ledger', compact(
             'member',
             'society',
             'tableRows',
@@ -229,12 +230,46 @@ class MemberLedgerCardService
             'nomineeName',
             'kishtRate',
             'sanCode',
-            'mangalPath',
-            'mangalbPath',
-            'aparajPath',
-            'aparajbPath',
             'logoPath',
             'rupeeIconPath'
-        ))->setPaper('a4', 'portrait');
+        ))->render();
+
+        $defaultConfig = (new ConfigVariables())->getDefaults();
+        $fontDirs = $defaultConfig['fontDir'];
+
+        $defaultFontConfig = (new FontVariables())->getDefaults();
+        $fontData = $defaultFontConfig['fontdata'];
+
+        $fontSearchDirs = [public_path('fonts')];
+
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4',
+            'margin_left' => 6,
+            'margin_right' => 6,
+            'margin_top' => 6,
+            'margin_bottom' => 6,
+            'fontDir' => array_merge($fontDirs, $fontSearchDirs),
+            'fontdata' => $fontData + [
+                'mangal' => [
+                    'R' => 'mangal.ttf',
+                    'B' => 'mangalb.ttf',
+                    'useOTL' => 0xFF,
+                    'useKashida' => 75,
+                ],
+                'aparajita' => [
+                    'R' => 'aparaj.ttf',
+                    'B' => 'aparajb.ttf',
+                    'useOTL' => 0xFF,
+                ],
+            ],
+            'default_font' => 'mangal',
+            'autoScriptToLang' => true,
+            'autoLangToFont' => true,
+        ]);
+
+        $mpdf->WriteHTML($html);
+
+        return new MpdfReceipt($mpdf);
     }
 }

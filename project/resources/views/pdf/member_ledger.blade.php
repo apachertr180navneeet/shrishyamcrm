@@ -4,40 +4,11 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Member Ledger Card - {{ $member->membership_no }}</title>
     <style>
-        @page {
-            margin: 8px 10px;
-            size: A4 portrait;
-        }
-        @font-face {
-            font-family: 'Mangal';
-            font-style: normal;
-            font-weight: 400;
-            src: url('{{ $mangalPath }}') format('truetype');
-        }
-        @font-face {
-            font-family: 'Mangal';
-            font-style: normal;
-            font-weight: 700;
-            src: url('{{ $mangalbPath }}') format('truetype');
-        }
-        @font-face {
-            font-family: 'Aparajita';
-            font-style: normal;
-            font-weight: 400;
-            src: url('{{ $aparajPath }}') format('truetype');
-        }
-        @font-face {
-            font-family: 'Aparajita';
-            font-style: normal;
-            font-weight: 700;
-            src: url('{{ $aparajbPath }}') format('truetype');
-        }
-
         * {
             box-sizing: border-box;
         }
         body {
-            font-family: 'Mangal', 'Aparajita', 'DejaVu Sans', sans-serif;
+            font-family: 'mangal', 'aparajita', 'freesans', sans-serif;
             color: #0f172a;
             font-size: 10px;
             line-height: 1.2;

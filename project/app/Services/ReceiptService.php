@@ -93,11 +93,7 @@ class ReceiptService
         $defaultFontConfig = (new FontVariables())->getDefaults();
         $fontData = $defaultFontConfig['fontdata'];
 
-        $fontSearchDirs = array_values(array_filter([
-            public_path('fonts'),
-            'C:/Windows/Fonts',
-            '/usr/share/fonts/truetype',
-        ], 'is_dir'));
+        $fontSearchDirs = [public_path('fonts')];
 
         $mpdf = new Mpdf([
             'mode' => 'utf-8',
