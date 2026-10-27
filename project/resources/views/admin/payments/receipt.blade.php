@@ -143,16 +143,16 @@
 
     <!-- Printable Receipt Layout -->
     <div class="receipt-container mb-5">
-        <img src="{{ asset('assets/logo.svg') }}" alt="Watermark" class="receipt-watermark">
+        <img src="{{ file_exists(public_path('assets/society_logo.png')) ? asset('assets/society_logo.png') : asset('assets/logo.svg') }}" alt="Watermark" class="receipt-watermark">
 
         <!-- Top Society Header -->
         <div class="text-center border-bottom pb-3 mb-3">
             <div class="d-flex align-items-center justify-content-between mb-2">
-                <img src="{{ asset('assets/logo.svg') }}" alt="Logo" style="width: 60px; height: 60px; object-fit: contain;">
+                <img src="{{ file_exists(public_path('assets/society_logo.png')) ? asset('assets/society_logo.png') : asset('assets/logo.svg') }}" alt="Logo" style="width: 62px; height: 62px; border-radius: 50%; object-fit: contain;">
                 <div class="flex-grow-1 text-center px-2">
+                    <div class="text-danger fw-bold mb-1" style="font-size: 13.5px; letter-spacing: 0.5px;">श्री गणेशाय नमः</div>
                     <h3 class="receipt-header-title mb-1">श्री श्याम वेलफेयर सोसाइटी, लोहिड़ी</h3>
                     <div class="text-secondary fw-semibold small">ग्राम पंचायत लोहिड़ी, पंचायत समिति सिणधरी, जिला बालोतरा (राजस्थान)</div>
-                    <div class="text-danger fw-bold mt-1" style="font-size: 13.5px; letter-spacing: 0.5px;">श्री गणेशाय नमः</div>
                 </div>
                 <div class="text-end" style="min-width: 90px;">
                     <span class="badge bg-primary px-2 py-1 fs-7 mb-1 d-inline-block">OFFICIAL RECEIPT</span>

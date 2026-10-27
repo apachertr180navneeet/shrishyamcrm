@@ -97,11 +97,11 @@ class ReceiptService
 
         $mpdf = new Mpdf([
             'mode' => 'utf-8',
-            'format' => 'A5-L',
-            'margin_left' => 6,
-            'margin_right' => 6,
-            'margin_top' => 6,
-            'margin_bottom' => 6,
+            'format' => 'A4',
+            'margin_left' => 10,
+            'margin_right' => 10,
+            'margin_top' => 10,
+            'margin_bottom' => 10,
             'fontDir' => array_merge($fontDirs, $fontSearchDirs),
             'fontdata' => $fontData + [
                 'mangal' => [
@@ -120,6 +120,11 @@ class ReceiptService
             'autoScriptToLang' => true,
             'autoLangToFont' => true,
         ]);
+
+        if (file_exists($logoPath)) {
+            $mpdf->SetWatermarkImage($logoPath, 0.045, 95);
+            $mpdf->showWatermarkImage = true;
+        }
 
         $mpdf->WriteHTML($html);
 
