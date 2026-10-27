@@ -201,7 +201,7 @@
                 <!-- Row 3: Mobile Number & Kisht Amount -->
                 <tr>
                     <th class="bg-light">मोबाइल नंबर</th>
-                    <td>{{ $member ? $member->mobile : '-' }}</td>
+                    <td class="text-nowrap">{{ $member ? $member->mobile : '-' }}</td>
                     <th class="bg-light">किस्त</th>
                     <td><strong class="text-primary">₹{{ number_format($kishtRate, 0) }}</strong></td>
                 </tr>
@@ -211,7 +211,7 @@
                     <th class="bg-light">कार्यकर्ता का नाम</th>
                     <td>{{ $agentName }}</td>
                     <th class="bg-light">मो.</th>
-                    <td>{{ $agentMobile }}</td>
+                    <td class="text-nowrap">{{ $agentMobile }}</td>
                 </tr>
 
                 <!-- Row 5: Nominee Name & Joining Date -->

@@ -99,9 +99,9 @@
         .scheme-pill {
             display: inline-block;
             border: 1.8px solid #1e3a8a;
-            padding: 2px 20px;
+            padding: 3px 22px;
             border-radius: 14px;
-            font-size: 12px;
+            font-size: 13.5px;
             font-weight: bold;
             text-align: center;
             color: #1e3a8a;
@@ -111,22 +111,24 @@
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 6px;
-            font-size: 10.5px;
+            font-size: 12.5px;
         }
         .field-label {
-            color: #334155;
+            color: #1e293b;
             font-weight: bold;
             white-space: nowrap;
             padding-right: 4px;
-            font-size: 10.5px;
+            font-size: 12.5px;
+            padding-top: 3px;
+            padding-bottom: 3px;
         }
         .field-value {
             border-bottom: 1.5px dotted #475569;
             width: 100%;
             font-weight: bold;
             color: #0f172a;
-            font-size: 10.5px;
-            padding: 0 2px;
+            font-size: 12.5px;
+            padding: 3px 4px;
         }
         .ledger-table {
             width: 100%;
@@ -246,12 +248,12 @@
                         @endif
                     </td>
                     <td style="vertical-align: middle; text-align: center; padding-bottom: 2px;">
+                        <div class="ganesh-mantra" style="font-size: 12px; font-weight: bold; color: #b91c1c; margin-bottom: 2px; letter-spacing: 0.5px;">श्री गणेशाय नमः</div>
                         <div class="society-title">श्री श्याम वेलफेयर सोसाइटी, लोहिड़ी</div>
                         <div class="society-subtitle">ग्राम पंचायत लोहिड़ी, पंचायत समिति सिणधरी, जिला बालोतरा (राजस्थान)</div>
-                        <div class="ganesh-mantra" style="font-size: 11px; font-weight: bold; color: #b91c1c; margin-top: 2px; letter-spacing: 0.5px;">श्री गणेशाय नमः</div>
                     </td>
-                    <td style="width: 65px; vertical-align: middle; text-align: right; font-size: 9px; color: #1e3a8a; padding-bottom: 2px;">
-                        <div style="font-weight: bold; line-height: 1.25;">मो.<br>{{ explode(',', $society['phone'])[0] ?? '9664090906' }}</div>
+                    <td style="width: 140px; vertical-align: middle; text-align: right; padding-bottom: 2px;">
+                        <div style="font-weight: bold; font-size: 11.5px; color: #1e3a8a; white-space: nowrap;">मो. {{ trim(explode(',', $society['phone'])[0] ?? '9664090906') }}</div>
                     </td>
                 </tr>
             </table>
@@ -259,16 +261,16 @@
             <!-- Scheme Row & Date -->
             <table class="scheme-row-table">
                 <tr>
-                    <td style="width: 26%; font-size: 10px; vertical-align: middle;">
-                        <strong style="color: #334155;">क्र. सं.</strong> <span style="font-weight: bold; color: #0f172a; border-bottom: 1px dotted #475569; padding: 0 4px;">{{ $member->membership_no }}</span>
+                    <td style="width: 28%; font-size: 12px; vertical-align: middle;">
+                        <strong style="color: #334155;">क्र. सं.</strong> <span style="font-weight: bold; font-size: 13px; color: #0f172a; border-bottom: 1px dotted #475569; padding: 0 4px;">{{ $member->membership_no }}</span>
                     </td>
-                    <td class="text-center" style="width: 48%; vertical-align: middle;">
+                    <td class="text-center" style="width: 44%; vertical-align: middle;">
                         <div class="scheme-pill">
                             {{ $member->scheme ? $member->scheme->name_hindi : 'बुजुर्ग सम्मान योजना' }}
                         </div>
                     </td>
-                    <td class="text-end" style="width: 26%; font-size: 10px; vertical-align: middle;">
-                        <strong style="color: #334155;">दिनांक</strong> <span style="font-weight: bold; color: #0f172a; border-bottom: 1px dotted #475569; padding: 0 4px;">{{ date('d.m.Y') }}</span>
+                    <td class="text-end" style="width: 28%; font-size: 12px; vertical-align: middle;">
+                        <strong style="color: #334155;">दिनांक</strong> <span style="font-weight: bold; font-size: 13px; color: #0f172a; border-bottom: 1px dotted #475569; padding: 0 4px;">{{ date('d.m.Y') }}</span>
                     </td>
                 </tr>
             </table>
@@ -294,9 +296,9 @@
                 <!-- Row 3: Mobile Number & Kisht Amount -->
                 <tr>
                     <td class="field-label">मोबाइल नंबर</td>
-                    <td class="field-value">{{ $member->mobile }}</td>
+                    <td class="field-value" style="white-space: nowrap;">{{ $member->mobile }}</td>
                     <td class="field-label" style="padding-left: 10px;">किस्त</td>
-                    <td class="field-value">₹{{ number_format($kishtRate, 0) }}</td>
+                    <td class="field-value" style="white-space: nowrap;">₹{{ number_format($kishtRate, 0) }}</td>
                 </tr>
 
                 <!-- Row 4: Agent Name & Agent Mobile -->
@@ -304,7 +306,7 @@
                     <td class="field-label">कार्यकर्ता का नाम</td>
                     <td class="field-value">{{ $member->agent ? $member->agent->name : ($member->agent_name ?? '-') }}</td>
                     <td class="field-label" style="padding-left: 10px;">मो.</td>
-                    <td class="field-value">{{ $member->agent ? $member->agent->mobile : ($society['phone'] ? explode(',', $society['phone'])[0] : '') }}</td>
+                    <td class="field-value" style="white-space: nowrap;">{{ $member->agent ? $member->agent->mobile : ($society['phone'] ? explode(',', $society['phone'])[0] : '') }}</td>
                 </tr>
 
                 <!-- Row 5: Nominee Name & Joining Date -->
@@ -312,7 +314,7 @@
                     <td class="field-label">वारिसदार का नाम</td>
                     <td class="field-value">{{ $nomineeName }}</td>
                     <td class="field-label" style="padding-left: 10px;">जुड़ने की तिथि</td>
-                    <td class="field-value">{{ $member->joining_date ? $member->joining_date->format('d.m.Y') : ($member->created_at ? $member->created_at->format('d.m.Y') : '-') }}</td>
+                    <td class="field-value" style="white-space: nowrap;">{{ $member->joining_date ? $member->joining_date->format('d.m.Y') : ($member->created_at ? $member->created_at->format('d.m.Y') : '-') }}</td>
                 </tr>
             </table>
 
