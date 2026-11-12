@@ -99,9 +99,9 @@
         .scheme-pill {
             display: inline-block;
             border: 1.8px solid #1e3a8a;
-            padding: 3px 22px;
+            padding: 2px 20px;
             border-radius: 14px;
-            font-size: 13.5px;
+            font-size: 13px;
             font-weight: bold;
             text-align: center;
             color: #1e3a8a;
@@ -111,24 +111,22 @@
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 6px;
-            font-size: 12.5px;
+            font-size: 11.5px;
         }
         .field-label {
-            color: #1e293b;
+            color: #334155;
             font-weight: bold;
             white-space: nowrap;
             padding-right: 4px;
-            font-size: 12.5px;
-            padding-top: 3px;
-            padding-bottom: 3px;
+            font-size: 11.5px;
         }
         .field-value {
             border-bottom: 1.5px dotted #475569;
             width: 100%;
             font-weight: bold;
             color: #0f172a;
-            font-size: 12.5px;
-            padding: 3px 4px;
+            font-size: 11.5px;
+            padding: 0 2px;
         }
         .ledger-table {
             width: 100%;
@@ -261,16 +259,16 @@
             <!-- Scheme Row & Date -->
             <table class="scheme-row-table">
                 <tr>
-                    <td style="width: 28%; font-size: 12px; vertical-align: middle;">
-                        <strong style="color: #334155;">क्र. सं.</strong> <span style="font-weight: bold; font-size: 13px; color: #0f172a; border-bottom: 1px dotted #475569; padding: 0 4px;">{{ $member->membership_no }}</span>
+                    <td style="width: 26%; font-size: 11px; vertical-align: middle;">
+                        <strong style="color: #334155;">क्र. सं.</strong> <span style="font-weight: bold; color: #0f172a; border-bottom: 1px dotted #475569; padding: 0 4px; font-size: 11.5px;">{{ $member->membership_no }}</span>
                     </td>
-                    <td class="text-center" style="width: 44%; vertical-align: middle;">
+                    <td class="text-center" style="width: 48%; vertical-align: middle;">
                         <div class="scheme-pill">
                             {{ $member->scheme ? $member->scheme->name_hindi : 'बुजुर्ग सम्मान योजना' }}
                         </div>
                     </td>
-                    <td class="text-end" style="width: 28%; font-size: 12px; vertical-align: middle;">
-                        <strong style="color: #334155;">दिनांक</strong> <span style="font-weight: bold; font-size: 13px; color: #0f172a; border-bottom: 1px dotted #475569; padding: 0 4px;">{{ date('d.m.Y') }}</span>
+                    <td class="text-end" style="width: 26%; font-size: 11px; vertical-align: middle;">
+                        <strong style="color: #334155;">दिनांक</strong> <span style="font-weight: bold; color: #0f172a; border-bottom: 1px dotted #475569; padding: 0 4px; font-size: 11.5px;">{{ date('d.m.Y') }}</span>
                     </td>
                 </tr>
             </table>
@@ -279,8 +277,8 @@
             <table class="member-info-table">
                 <!-- Row 1: Member Name & Spouse/Father Name -->
                 <tr>
-                    <td class="field-label" style="width: 8%;">श्री</td>
-                    <td class="field-value" style="width: 44%;">{{ $member->full_name }}</td>
+                    <td class="field-label" style="width: 16%;">श्री</td>
+                    <td class="field-value" style="width: 36%;">{{ $member->full_name }}</td>
                     <td class="field-label" style="width: 20%; padding-left: 10px;">पति / पत्नी का नाम</td>
                     <td class="field-value" style="width: 28%;">{{ $member->father_spouse_name ?: '-' }}</td>
                 </tr>
