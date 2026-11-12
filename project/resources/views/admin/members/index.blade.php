@@ -56,7 +56,7 @@
                     <select name="scheme_id" class="form-select" onchange="this.form.submit()">
                         <option value="">All Schemes (सभी योजनाएं)</option>
                         @foreach($schemes as $sch)
-                        <option value="{{ $sch->id }}" {{ request('scheme_id') == $sch->id ? 'selected' : '' }}>{{ $sch->name_hindi }}</option>
+                        <option value="{{ $sch->id }}" {{ request('scheme_id') == $sch->id ? 'selected' : '' }}>{{ $sch->name_hindi }} ({{ $sch->code }})</option>
                         @endforeach
                     </select>
                 </div>
