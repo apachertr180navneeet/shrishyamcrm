@@ -53,7 +53,9 @@ Route::name('admin.')->prefix('admin')->group(function () {
 
         // ---- Agent-accessible routes (scoped to agent's own data) ----
 
-        // Member Enrolment
+        // Member Enrolment, Template Download & CSV Import
+        Route::get('members/template/download', [MemberController::class, 'downloadTemplate'])->name('members.template');
+        Route::post('members/import', [MemberController::class, 'import'])->name('members.import');
         Route::resource('members', MemberController::class);
 
         // Collections & Payments (Receipt Entry & History)

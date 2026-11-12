@@ -57,7 +57,9 @@ class MemberController extends Controller
         }
 
         $members = $query->latest('id')->paginate(15)->withQueryString();
-        $schemes = Scheme::where('status', 'Active')->get();
+        $schemes = Scheme::with(['ageSlabs' => fn($q) => $q->where('status', 'Active')->orderBy('min_age')])
+            ->where('status', 'Active')
+            ->get();
         $isAgent = $user && $user->isAgent() && $user->agent_id;
         $agents = $isAgent ? Agent::where('id', $user->agent_id)->get() : Agent::where('status', 'Active')->get();
 
@@ -352,5 +354,588 @@ class MemberController extends Controller
         }
 
         return $pdf->download($fileName);
+    }
+
+    /**
+     * Download CSV Member Import Template customized for selected scheme.
+     */
+    public function downloadTemplate(Request $request)
+    {
+        $schemeId = $request->query('scheme_id');
+        $scheme = null;
+        if (!empty($schemeId)) {
+            $scheme = Scheme::with(['ageSlabs' => fn($q) => $q->where('status', 'Active')->orderBy('min_age')])
+                ->where('status', 'Active')
+                ->find($schemeId);
+        }
+
+        $user = auth()->user();
+        $isAgent = $user && $user->isAgent() && $user->agent_id;
+        $defaultAgent = null;
+        if ($isAgent) {
+            $defaultAgent = Agent::find($user->agent_id);
+        } else {
+            $defaultAgent = Agent::where('status', 'Active')->orderBy('id')->first();
+        }
+        $agentCode = $defaultAgent ? $defaultAgent->agent_code : 'AGT-001';
+
+        $columns = [
+            'Full Name *',
+            'Mobile *',
+            'Date of Birth (YYYY-MM-DD) *',
+            'Age',
+            'Gender (Male/Female)',
+            'Father / Spouse Name',
+            'Mother Name',
+            'Gotra',
+            'Caste',
+            'Address',
+            'District',
+            'State',
+            'Pincode',
+            'Aadhaar No',
+            'Scheme Code',
+            'Agent Code',
+            'Joining Date (YYYY-MM-DD)',
+            'Joining Amount',
+            'Monthly Support Amount',
+            'Initial Paid Amount',
+            'Payment Mode',
+            'Reference No',
+            'Nominee 1 Name',
+            'Nominee 1 Relation',
+            'Nominee 1 Mobile',
+            'Nominee 1 Aadhaar',
+            'Nominee 1 Share %',
+            'Nominee 2 Name',
+            'Nominee 2 Relation',
+            'Nominee 2 Mobile',
+            'Nominee 2 Aadhaar',
+            'Nominee 2 Share %',
+        ];
+
+        $sampleRows = [];
+
+        if ($scheme) {
+            $slabs = $scheme->ageSlabs;
+            if ($slabs->isNotEmpty()) {
+                foreach ($slabs as $idx => $slab) {
+                    $sampleAge = min($slab->max_age, max($slab->min_age, (int)round(($slab->min_age + $slab->max_age) / 2)));
+                    $sampleDob = Carbon::now()->subYears($sampleAge)->format('Y-m-d');
+                    $sampleRows[] = [
+                        $idx === 0 ? 'रमेश कुमार (Ramesh Kumar)' : 'सुनीता देवी (Sunita Devi)',
+                        '9812' . str_pad($idx + 100001, 6, '0', STR_PAD_LEFT),
+                        $sampleDob,
+                        $sampleAge,
+                        $idx === 0 ? 'Male' : 'Female',
+                        $idx === 0 ? 'श्री सोहन लाल' : 'पत्नी श्री रमेश कुमार',
+                        $idx === 0 ? 'श्रीमती शांति देवी' : '',
+                        'कौशिक (Kaushik)',
+                        'General',
+                        'वार्ड नंबर 4, लोहानी',
+                        'Bhiwani',
+                        'Haryana',
+                        '127021',
+                        '1234567890' . ($idx + 10),
+                        $scheme->code,
+                        $agentCode,
+                        Carbon::now()->format('Y-m-d'),
+                        (string)(float)$slab->joining_amount,
+                        (string)(float)$slab->support_amount,
+                        (string)(float)$slab->joining_amount,
+                        'Cash',
+                        'UTR' . time() . ($idx + 1),
+                        $idx === 0 ? 'सुनीता देवी' : 'अमित कुमार',
+                        $idx === 0 ? 'Spouse' : 'Son',
+                        '981299999' . $idx,
+                        '9876543210' . ($idx + 10),
+                        '100',
+                        $idx === 0 ? 'अमित कुमार' : '',
+                        $idx === 0 ? 'Son' : '',
+                        $idx === 0 ? '9812888881' : '',
+                        $idx === 0 ? '5555666677' . ($idx + 10) : '',
+                        $idx === 0 ? '50' : '',
+                    ];
+                }
+            } else {
+                $sampleRows[] = [
+                    'रमेश कुमार (Ramesh Kumar)',
+                    '9812000001',
+                    '1985-05-15',
+                    '41',
+                    'Male',
+                    'श्री सोहन लाल',
+                    'श्रीमती शांति देवी',
+                    'Kaushik',
+                    'General',
+                    'वार्ड नंबर 4, लोहानी',
+                    'Bhiwani',
+                    'Haryana',
+                    '127021',
+                    '123456789012',
+                    $scheme->code,
+                    $agentCode,
+                    Carbon::now()->format('Y-m-d'),
+                    '1100',
+                    '200',
+                    '1100',
+                    'Cash',
+                    'UTR12345678',
+                    'सुनीता देवी',
+                    'Spouse',
+                    '9812999999',
+                    '987654321098',
+                    '100',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                ];
+            }
+            $cleanCode = preg_replace('/[^A-Za-z0-9_\-]/', '_', $scheme->code);
+            $fileName = "Member_Import_Template_{$cleanCode}.csv";
+        } else {
+            // General template with all active schemes
+            $activeSchemes = Scheme::with(['ageSlabs' => fn($q) => $q->where('status', 'Active')->orderBy('min_age')])
+                ->where('status', 'Active')
+                ->get();
+
+            if ($activeSchemes->isEmpty()) {
+                $activeSchemes = Scheme::all();
+            }
+
+            foreach ($activeSchemes as $idx => $sch) {
+                $firstSlab = $sch->ageSlabs->first();
+                $sampleAge = $firstSlab ? (int)round(($firstSlab->min_age + $firstSlab->max_age) / 2) : 40;
+                $sampleDob = Carbon::now()->subYears($sampleAge)->format('Y-m-d');
+                $joiningAmount = $firstSlab ? (string)(float)$firstSlab->joining_amount : '1100';
+                $supportAmount = $firstSlab ? (string)(float)$firstSlab->support_amount : '200';
+
+                $sampleRows[] = [
+                    $idx === 0 ? 'रमेश कुमार (Ramesh Kumar)' : ($idx === 1 ? 'राधा रानी (Radha Rani)' : 'सुरेश शर्मा'),
+                    '9812' . str_pad($idx + 100001, 6, '0', STR_PAD_LEFT),
+                    $sampleDob,
+                    $sampleAge,
+                    $idx % 2 === 0 ? 'Male' : 'Female',
+                    'पिता/पति का नाम',
+                    'माता का नाम',
+                    'Kaushik',
+                    'General',
+                    'वार्ड नंबर 4, लोहानी',
+                    'Bhiwani',
+                    'Haryana',
+                    '127021',
+                    '1234567890' . ($idx + 10),
+                    $sch->code,
+                    $agentCode,
+                    Carbon::now()->format('Y-m-d'),
+                    $joiningAmount,
+                    $supportAmount,
+                    $joiningAmount,
+                    'Cash',
+                    'UTR' . time() . ($idx + 1),
+                    'नॉमिनी 1 का नाम',
+                    'Spouse',
+                    '981299999' . $idx,
+                    '9876543210' . ($idx + 10),
+                    '100',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                ];
+            }
+            $fileName = "Member_Import_Template_General.csv";
+        }
+
+        $callback = function () use ($columns, $sampleRows) {
+            $handle = fopen('php://output', 'w');
+            // Write UTF-8 BOM so Excel opens Hindi characters properly
+            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
+            fputcsv($handle, $columns);
+            foreach ($sampleRows as $row) {
+                fputcsv($handle, $row);
+            }
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$fileName}\"",
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
+        ]);
+    }
+
+    /**
+     * Import Members from uploaded CSV using selected or detected scheme.
+     */
+    public function import(Request $request)
+    {
+        $user = auth()->user();
+        $isAgent = $user && $user->isAgent() && $user->agent_id;
+
+        $request->validate([
+            'csv_file' => 'required|file|max:10240',
+            'scheme_id' => 'nullable|exists:schemes,id',
+            'default_agent_id' => 'nullable|exists:agents,id',
+        ]);
+
+        $file = $request->file('csv_file');
+        $ext = strtolower($file->getClientOriginalExtension());
+        if (!in_array($ext, ['csv', 'txt'])) {
+            return back()->with('error', 'Please upload a valid CSV (.csv) file.');
+        }
+
+        $filePath = $file->getRealPath();
+        $handle = fopen($filePath, 'r');
+        if (!$handle) {
+            return back()->with('error', 'Unable to read the uploaded CSV file.');
+        }
+
+        // Detect and skip UTF-8 BOM
+        $bom = fread($handle, 3);
+        if ($bom !== "\xEF\xBB\xBF") {
+            rewind($handle);
+        }
+
+        // Auto-detect delimiter from first line
+        $firstLine = fgets($handle);
+        $delimiter = ',';
+        if ($firstLine !== false) {
+            $commaCount = substr_count($firstLine, ',');
+            $semicolonCount = substr_count($firstLine, ';');
+            $tabCount = substr_count($firstLine, "\t");
+            if ($semicolonCount > $commaCount && $semicolonCount > $tabCount) {
+                $delimiter = ';';
+            } elseif ($tabCount > $commaCount && $tabCount > $semicolonCount) {
+                $delimiter = "\t";
+            }
+        }
+        rewind($handle);
+        $bom = fread($handle, 3);
+        if ($bom !== "\xEF\xBB\xBF") {
+            rewind($handle);
+        }
+
+        $headerRow = fgetcsv($handle, 0, $delimiter);
+        if (!$headerRow) {
+            fclose($handle);
+            return back()->with('error', 'The uploaded CSV file is empty.');
+        }
+
+        // Map header indices
+        $headerMap = [];
+        foreach ($headerRow as $idx => $headerText) {
+            $raw = trim($headerText);
+            // Remove parenthesized comments e.g. (YYYY-MM-DD), (₹), (Male/Female)
+            $noParens = preg_replace('/\(.*?\)/u', '', $raw);
+            $clean = strtolower(trim($noParens));
+            $clean = preg_replace('/[\*\(\)₹\/\\\]/u', '', $clean);
+            $clean = str_replace([' ', '-'], '_', $clean);
+            $clean = preg_replace('/_+/', '_', trim($clean, '_'));
+
+            $rawClean = strtolower($raw);
+            $rawClean = preg_replace('/[\*\(\)₹\/\\\]/u', '', $rawClean);
+            $rawClean = str_replace([' ', '-'], '_', $rawClean);
+            $rawClean = preg_replace('/_+/', '_', trim($rawClean, '_'));
+
+            if (in_array($clean, ['full_name', 'name', 'member_name', 'member', 'पूरा_नाम', 'नाम']) || str_starts_with($clean, 'full_name')) {
+                $headerMap['full_name'] = $idx;
+            } elseif (in_array($clean, ['mobile', 'phone', 'contact', 'mobile_no', 'phone_no', 'मोबाइल']) || str_starts_with($clean, 'mobile')) {
+                $headerMap['mobile'] = $idx;
+            } elseif (in_array($clean, ['dob', 'date_of_birth', 'birth_date', 'birthdate', 'जन्म_तिथि', 'जन्म_दिनांक']) || str_contains($clean, 'dob') || str_contains($clean, 'birth') || str_contains($rawClean, 'birth') || str_contains($rawClean, 'dob')) {
+                $headerMap['dob'] = $idx;
+            } elseif ($clean === 'age' || in_array($clean, ['उम्र', 'आयु'])) {
+                $headerMap['age'] = $idx;
+            } elseif (in_array($clean, ['gender', 'sex', 'लिंग']) || str_starts_with($clean, 'gender')) {
+                $headerMap['gender'] = $idx;
+            } elseif (in_array($clean, ['father_spouse_name', 'father_name', 'husband_name', 'spouse_name', 'पिता_पति_का_नाम', 'पिता_का_नाम']) || str_contains($clean, 'father') || str_contains($clean, 'spouse') || str_contains($clean, 'husband')) {
+                $headerMap['father_spouse_name'] = $idx;
+            } elseif (in_array($clean, ['mother_name', 'mother', 'माता_का_नाम']) || str_contains($clean, 'mother')) {
+                $headerMap['mother_name'] = $idx;
+            } elseif (str_contains($clean, 'gotra') || str_contains($clean, 'gothra') || str_contains($clean, 'गोत्र')) {
+                $headerMap['gotra'] = $idx;
+            } elseif (str_contains($clean, 'caste') || str_contains($clean, 'category') || str_contains($clean, 'जाति')) {
+                $headerMap['caste'] = $idx;
+            } elseif (str_contains($clean, 'address') || str_contains($clean, 'village') || str_contains($clean, 'पता')) {
+                $headerMap['address'] = $idx;
+            } elseif (str_contains($clean, 'district') || str_contains($clean, 'जिला') || str_contains($clean, 'ज़िला')) {
+                $headerMap['district'] = $idx;
+            } elseif ($clean === 'state' || str_contains($clean, 'राज्य')) {
+                $headerMap['state'] = $idx;
+            } elseif (str_contains($clean, 'pincode') || str_contains($clean, 'pin') || str_contains($clean, 'zip') || str_contains($clean, 'पिनकोड')) {
+                $headerMap['pincode'] = $idx;
+            } elseif (str_contains($clean, 'aadhaar') || str_contains($clean, 'adhaar') || str_contains($clean, 'aadhar') || str_contains($clean, 'आधार')) {
+                if (str_contains($clean, 'nominee') || str_contains($clean, 'नॉमिनी')) {
+                    // Handled in nominee block below
+                } else {
+                    $headerMap['aadhaar_no'] = $idx;
+                }
+            } elseif (str_contains($clean, 'scheme') || str_contains($clean, 'योजना')) {
+                $headerMap['scheme_code'] = $idx;
+            } elseif (str_contains($clean, 'agent') || str_contains($clean, 'एजेंट')) {
+                $headerMap['agent_code'] = $idx;
+            } elseif (str_contains($clean, 'joining_date') || str_contains($clean, 'enrollment_date') || str_contains($clean, 'जुड़ने_की_तिथि')) {
+                $headerMap['joining_date'] = $idx;
+            } elseif (str_contains($clean, 'joining_amount') || str_contains($clean, 'joining_fee') || str_contains($clean, 'पंजीकरण_शुल्क')) {
+                $headerMap['joining_amount'] = $idx;
+            } elseif (str_contains($clean, 'support_amount') || str_contains($clean, 'सहयोग_राशि')) {
+                $headerMap['monthly_support_amount'] = $idx;
+            } elseif (str_contains($clean, 'initial_paid') || str_contains($clean, 'paid_amount') || str_contains($clean, 'जमा_राशि')) {
+                $headerMap['initial_paid_amount'] = $idx;
+            } elseif (str_contains($clean, 'payment_mode') || str_contains($clean, 'भुगतान_माध्यम')) {
+                $headerMap['payment_mode'] = $idx;
+            } elseif (str_contains($clean, 'reference_no') || str_contains($clean, 'utr') || str_contains($clean, 'संदर्भ_संख्या')) {
+                $headerMap['reference_no'] = $idx;
+            } elseif (str_contains($clean, 'nominee') || str_contains($clean, 'नॉमिनी')) {
+                if (str_contains($clean, '2') || str_contains($clean, 'two')) {
+                    if (str_contains($clean, 'relation') || str_contains($clean, 'संबंध')) {
+                        $headerMap['nominee2_relation'] = $idx;
+                    } elseif (str_contains($clean, 'mobile') || str_contains($clean, 'phone') || str_contains($clean, 'मोबाइल')) {
+                        $headerMap['nominee2_mobile'] = $idx;
+                    } elseif (str_contains($clean, 'aadhaar') || str_contains($clean, 'adhaar') || str_contains($clean, 'aadhar') || str_contains($clean, 'आधार')) {
+                        $headerMap['nominee2_aadhaar'] = $idx;
+                    } elseif (str_contains($clean, 'share') || str_contains($clean, 'percent') || str_contains($clean, 'हिस्सा')) {
+                        $headerMap['nominee2_share'] = $idx;
+                    } else {
+                        $headerMap['nominee2_name'] = $idx;
+                    }
+                } else {
+                    if (str_contains($clean, 'relation') || str_contains($clean, 'संबंध')) {
+                        $headerMap['nominee1_relation'] = $idx;
+                    } elseif (str_contains($clean, 'mobile') || str_contains($clean, 'phone') || str_contains($clean, 'मोबाइल')) {
+                        $headerMap['nominee1_mobile'] = $idx;
+                    } elseif (str_contains($clean, 'aadhaar') || str_contains($clean, 'adhaar') || str_contains($clean, 'aadhar') || str_contains($clean, 'आधार')) {
+                        $headerMap['nominee1_aadhaar'] = $idx;
+                    } elseif (str_contains($clean, 'share') || str_contains($clean, 'percent') || str_contains($clean, 'हिस्सा')) {
+                        $headerMap['nominee1_share'] = $idx;
+                    } else {
+                        $headerMap['nominee1_name'] = $idx;
+                    }
+                }
+            }
+        }
+
+        if (!isset($headerMap['full_name']) || !isset($headerMap['mobile'])) {
+            fclose($handle);
+            return back()->with('error', 'CSV must contain at least "Full Name" and "Mobile" columns.');
+        }
+
+        // Cache Schemes and Agents
+        $allSchemes = Scheme::with(['ageSlabs' => fn($q) => $q->where('status', 'Active')])->get();
+        $schemeByCode = [];
+        $schemeById = [];
+        foreach ($allSchemes as $s) {
+            $schemeByCode[strtoupper($s->code)] = $s;
+            $schemeById[$s->id] = $s;
+        }
+
+        $allAgents = Agent::where('status', 'Active')->get();
+        $agentByCode = [];
+        $agentById = [];
+        foreach ($allAgents as $a) {
+            $agentByCode[strtoupper($a->agent_code)] = $a;
+            if ($a->code) {
+                $agentByCode[strtoupper($a->code)] = $a;
+            }
+            $agentById[$a->id] = $a;
+        }
+
+        $selectedScheme = $request->filled('scheme_id') ? ($schemeById[$request->scheme_id] ?? Scheme::find($request->scheme_id)) : null;
+
+        $rowNum = 1;
+        $importedCount = 0;
+        $skippedCount = 0;
+        $errors = [];
+
+        while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
+            $rowNum++;
+
+            // Skip blank row
+            if (empty(array_filter($row, fn($v) => trim((string)$v) !== ''))) {
+                continue;
+            }
+
+            $getValue = function($key, $default = null) use ($row, $headerMap) {
+                if (isset($headerMap[$key]) && isset($row[$headerMap[$key]])) {
+                    $val = trim((string)$row[$headerMap[$key]]);
+                    return $val !== '' ? $val : $default;
+                }
+                return $default;
+            };
+
+            $fullName = $getValue('full_name');
+            if (empty($fullName)) {
+                $skippedCount++;
+                $errors[] = "Row #{$rowNum}: Member full name is missing.";
+                continue;
+            }
+
+            // Skip template sample row if unchanged
+            if (str_contains($fullName, 'Ramesh Kumar') && str_contains($fullName, 'रमेश कुमार')) {
+                continue;
+            }
+
+            $rawMobile = $getValue('mobile', '');
+            $mobile = preg_replace('/[^0-9]/', '', (string)$rawMobile);
+            if (strlen($mobile) < 10) {
+                $skippedCount++;
+                $errors[] = "Row #{$rowNum} ({$fullName}): Mobile number is invalid ('{$rawMobile}'). Must contain at least 10 digits.";
+                continue;
+            }
+
+            // Scheme Resolution
+            $scheme = $selectedScheme;
+            if (!$scheme) {
+                $schemeCodeInput = strtoupper(trim((string)$getValue('scheme_code', '')));
+                if ($schemeCodeInput && isset($schemeByCode[$schemeCodeInput])) {
+                    $scheme = $schemeByCode[$schemeCodeInput];
+                } elseif ($schemeCodeInput && is_numeric($schemeCodeInput) && isset($schemeById[(int)$schemeCodeInput])) {
+                    $scheme = $schemeById[(int)$schemeCodeInput];
+                } else {
+                    $scheme = $allSchemes->firstWhere('status', 'Active') ?: $allSchemes->first();
+                }
+            }
+
+            if (!$scheme) {
+                $skippedCount++;
+                $errors[] = "Row #{$rowNum} ({$fullName}): Scheme could not be determined. Please select or specify a scheme.";
+                continue;
+            }
+
+            // DOB and Age Resolution
+            $dobInput = $getValue('dob');
+            $ageInput = $getValue('age');
+            $dob = null;
+
+            if ($dobInput) {
+                try {
+                    $dob = Carbon::parse(str_replace('/', '-', $dobInput));
+                } catch (\Exception $e) {
+                    $dob = null;
+                }
+            }
+
+            if (!$dob && $ageInput && is_numeric($ageInput) && (int)$ageInput > 0) {
+                $dob = Carbon::now()->subYears((int)$ageInput)->startOfYear();
+            }
+
+            if (!$dob) {
+                $skippedCount++;
+                $errors[] = "Row #{$rowNum} ({$fullName}): Valid Date of Birth (YYYY-MM-DD or DD-MM-YYYY) or Age is required.";
+                continue;
+            }
+
+            // Agent Resolution
+            $agentId = null;
+            if ($isAgent) {
+                $agentId = $user->agent_id;
+            } else {
+                $agentInput = strtoupper(trim((string)$getValue('agent_code', '')));
+                if ($agentInput && isset($agentByCode[$agentInput])) {
+                    $agentId = $agentByCode[$agentInput]->id;
+                } elseif ($agentInput && is_numeric($agentInput) && isset($agentById[(int)$agentInput])) {
+                    $agentId = $agentById[(int)$agentInput]->id;
+                } elseif ($request->filled('default_agent_id')) {
+                    $agentId = $request->default_agent_id;
+                }
+            }
+
+            // Gender Resolution
+            $rawGender = strtolower(trim((string)$getValue('gender', 'Male')));
+            $gender = 'Male';
+            if (str_contains($rawGender, 'fem') || str_contains($rawGender, 'महिला') || $rawGender === 'f') {
+                $gender = 'Female';
+            } elseif (str_contains($rawGender, 'oth') || str_contains($rawGender, 'अन्य')) {
+                $gender = 'Other';
+            }
+
+            // Payment Mode Resolution
+            $rawMode = trim((string)$getValue('payment_mode', 'Cash'));
+            $paymentMode = 'Cash';
+            if (stripos($rawMode, 'upi') !== false) {
+                $paymentMode = 'UPI';
+            } elseif (stripos($rawMode, 'bank') !== false || stripos($rawMode, 'neft') !== false || stripos($rawMode, 'rtgs') !== false) {
+                $paymentMode = 'Bank Transfer';
+            } elseif (stripos($rawMode, 'cheque') !== false || stripos($rawMode, 'check') !== false) {
+                $paymentMode = 'Cheque';
+            }
+
+            // Joining Date
+            $joiningDate = date('Y-m-d');
+            $rawJoiningDate = $getValue('joining_date');
+            if ($rawJoiningDate) {
+                try {
+                    $joiningDate = Carbon::parse(str_replace('/', '-', $rawJoiningDate))->format('Y-m-d');
+                } catch (\Exception $e) {
+                    $joiningDate = date('Y-m-d');
+                }
+            }
+
+            $memberData = [
+                'full_name' => $fullName,
+                'father_spouse_name' => $getValue('father_spouse_name'),
+                'mother_name' => $getValue('mother_name'),
+                'gender' => $gender,
+                'dob' => $dob->format('Y-m-d'),
+                'mobile' => $mobile,
+                'gotra' => $getValue('gotra'),
+                'caste' => $getValue('caste'),
+                'address' => $getValue('address'),
+                'district' => $getValue('district'),
+                'state' => $getValue('state', 'Haryana'),
+                'pincode' => $getValue('pincode'),
+                'aadhaar_no' => $getValue('aadhaar_no'),
+                'scheme_id' => $scheme->id,
+                'agent_id' => $agentId,
+                'joining_date' => $joiningDate,
+                'payment_mode' => $paymentMode,
+                'reference_no' => $getValue('reference_no'),
+                'nominee1_name' => $getValue('nominee1_name'),
+                'nominee1_relation' => $getValue('nominee1_relation', 'Spouse'),
+                'nominee1_mobile' => $getValue('nominee1_mobile'),
+                'nominee1_aadhaar' => $getValue('nominee1_aadhaar'),
+                'nominee1_share' => $getValue('nominee1_share', 100),
+                'nominee2_name' => $getValue('nominee2_name'),
+                'nominee2_relation' => $getValue('nominee2_relation', 'Son'),
+                'nominee2_mobile' => $getValue('nominee2_mobile'),
+                'nominee2_aadhaar' => $getValue('nominee2_aadhaar'),
+                'nominee2_share' => $getValue('nominee2_share', 50),
+            ];
+
+            if ($getValue('joining_amount') !== null && is_numeric($getValue('joining_amount'))) {
+                $memberData['joining_amount'] = (float)$getValue('joining_amount');
+            }
+            if ($getValue('monthly_support_amount') !== null && is_numeric($getValue('monthly_support_amount'))) {
+                $memberData['monthly_support_amount'] = (float)$getValue('monthly_support_amount');
+            }
+            if ($getValue('initial_paid_amount') !== null && is_numeric($getValue('initial_paid_amount'))) {
+                $memberData['initial_paid_amount'] = (float)$getValue('initial_paid_amount');
+            }
+
+            try {
+                MemberRegistrationService::register($memberData);
+                $importedCount++;
+            } catch (\Exception $e) {
+                $skippedCount++;
+                $errors[] = "Row #{$rowNum} ({$fullName}): " . $e->getMessage();
+            }
+        }
+
+        fclose($handle);
+
+        $flashType = $importedCount > 0 ? 'success' : 'error';
+        $summary = "Import Completed: {$importedCount} members successfully imported.";
+        if ($skippedCount > 0) {
+            $summary .= " {$skippedCount} rows were skipped due to errors.";
+        }
+
+        return redirect()->route('admin.members.index')
+            ->with($flashType, $summary)
+            ->with('import_errors', $errors);
     }
 }
