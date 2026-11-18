@@ -45,6 +45,65 @@
         </div>
     @endif
 
+    <!-- Search & Filter Bar -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form action="{{ route('admin.events.index') }}" method="GET" class="row g-3 align-items-center">
+                <div class="col-lg-5 col-md-6 col-12">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white"><i class="fas fa-search text-primary"></i></span>
+                        <input type="text" name="search" class="form-control" placeholder="टाइप करके सर्च करें (Search by Title, Person name, Scheme, Code, Venue...)" value="{{ request('search') }}">
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-3 col-12">
+                    <select name="scheme_id" class="form-select" onchange="this.form.submit()">
+                        <option value="">-- All Schemes (सभी योजनाएं) --</option>
+                        @foreach($schemes as $sch)
+                            <option value="{{ $sch->id }}" {{ request('scheme_id') == $sch->id ? 'selected' : '' }}>
+                                {{ $sch->name_hindi ?: $sch->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-lg-2 col-md-3 col-12">
+                    <select name="status" class="form-select" onchange="this.form.submit()">
+                        <option value="">-- All Status --</option>
+                        <option value="Upcoming" {{ request('status') == 'Upcoming' ? 'selected' : '' }}>Upcoming</option>
+                        <option value="Active" {{ request('status') == 'Active' ? 'selected' : '' }}>Active</option>
+                        <option value="Completed" {{ request('status') == 'Completed' ? 'selected' : '' }}>Completed</option>
+                    </select>
+                </div>
+                <div class="col-lg-2 col-12 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary flex-grow-1"><i class="fas fa-search me-1"></i> Search</button>
+                    @if(request('search') || request('scheme_id') || request('status'))
+                        <a href="{{ route('admin.events.index') }}" class="btn btn-outline-secondary" title="Clear Filters"><i class="fas fa-times"></i></a>
+                    @endif
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if($events->isEmpty())
+        <div class="card border-0 shadow-sm p-5 text-center my-4">
+            <i class="fas fa-calendar-times fs-1 text-muted mb-3"></i>
+            <h5 class="fw-bold">कोई कार्यक्रम नहीं मिला (No Events Found)</h5>
+            <p class="text-muted mb-3">
+                @if(request('search') || request('scheme_id') || request('status'))
+                    आपके द्वारा खोजे गए कीवर्ड से मेल खाता कोई कार्यक्रम उपलब्ध नहीं है।
+                @else
+                    वर्तमान में कोई कल्याण सहायता कार्यक्रम दर्ज नहीं है। नया कार्यक्रम जोड़ने के लिए ऊपर <strong>Create Event</strong> पर क्लिक करें।
+                @endif
+            </p>
+            @if(request('search') || request('scheme_id') || request('status'))
+                <div>
+                    <a href="{{ route('admin.events.index') }}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-sync me-1"></i> सभी कार्यक्रम देखें (View All)
+                    </a>
+                </div>
+            @endif
+        </div>
+    @endif
+
     <!-- Events Cards Grid -->
     <div class="row g-4">
         @foreach($events as $event)
@@ -121,6 +180,12 @@
         </div>
         @endforeach
     </div>
+
+    @if($events->hasPages())
+    <div class="mt-4 d-flex justify-content-center">
+        {{ $events->links() }}
+    </div>
+    @endif
 </div>
 
 <!-- Add Event Modal -->
@@ -149,7 +214,8 @@
                                 <option value="{{ $b['beneficiary_name'] }}"
                                     data-father="{{ $b['father_name'] }}"
                                     data-member-id="{{ $b['member_id'] }}"
-                                    data-member-name="{{ $b['member_name'] }}">
+                                    data-member-name="{{ $b['member_name'] }}"
+                                    data-scheme-id="{{ $b['scheme_id'] }}">
                                     {{ $b['label'] }}
                                 </option>
                                 @endforeach
@@ -174,7 +240,21 @@
                             </select>
                         </div>
 
-                        <div class="col-12">
+                        <div class="col-md-6 col-12">
+                            <label class="form-label fw-semibold">
+                                <i class="fas fa-hand-holding-heart text-primary me-1"></i> Scheme / Yojna (योजना चुनें) <span class="text-danger">*</span>
+                            </label>
+                            <select name="scheme_id" id="eventSchemeSelect" class="form-select" onchange="onSchemeSelectChange(this)">
+                                <option value="">-- Choose Scheme (योजना चुनें) --</option>
+                                @foreach($schemes as $sch)
+                                <option value="{{ $sch->id }}" data-name="{{ $sch->name_hindi ?: $sch->name }}">
+                                    {{ $sch->name_hindi ?: $sch->name }} ({{ $sch->code }})
+                                </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 col-12">
                             <label class="form-label fw-semibold">Event Title (कार्यक्रम शीर्षक)</label>
                             <input type="text" name="title" id="eventTitleField" class="form-control" placeholder="e.g. कल्याण सहायता कार्यक्रम">
                         </div>
@@ -262,7 +342,8 @@
                                 <option value="{{ $b['beneficiary_name'] }}"
                                     data-father="{{ $b['father_name'] }}"
                                     data-member-id="{{ $b['member_id'] }}"
-                                    data-member-name="{{ $b['member_name'] }}">
+                                    data-member-name="{{ $b['member_name'] }}"
+                                    data-scheme-id="{{ $b['scheme_id'] }}">
                                     {{ $b['label'] }}
                                 </option>
                                 @endforeach
@@ -275,6 +356,20 @@
                         <div class="col-md-6 col-12">
                             <label class="form-label fw-semibold">Father / Spouse / Guardian (पिता / अभिभावक)</label>
                             <input type="text" name="father_name" id="editFatherNameField" class="form-control" placeholder="e.g. श्री राधेश्याम शर्मा">
+                        </div>
+
+                        <div class="col-md-6 col-12">
+                            <label class="form-label fw-semibold">
+                                <i class="fas fa-hand-holding-heart text-primary me-1"></i> Scheme / Yojna (योजना चुनें) <span class="text-danger">*</span>
+                            </label>
+                            <select name="scheme_id" id="editEventSchemeSelect" class="form-select" onchange="onEditSchemeSelectChange(this)">
+                                <option value="">-- Choose Scheme (योजना चुनें) --</option>
+                                @foreach($schemes as $sch)
+                                <option value="{{ $sch->id }}" data-name="{{ $sch->name_hindi ?: $sch->name }}">
+                                    {{ $sch->name_hindi ?: $sch->name }} ({{ $sch->code }})
+                                </option>
+                                @endforeach
+                            </select>
                         </div>
 
                         <div class="col-md-6 col-12">
@@ -593,14 +688,40 @@ function updateBillingLiveSummary() {
     document.getElementById('billingSummaryTotalAmount').innerText = '₹' + totalBilling.toLocaleString('en-IN');
 }
 
+function getSelectedSchemeName(schemeSelectId) {
+    const sel = document.getElementById(schemeSelectId);
+    if (!sel || sel.selectedIndex < 0) return '';
+    const opt = sel.options[sel.selectedIndex];
+    return (opt && opt.value) ? opt.getAttribute('data-name') : '';
+}
+
+function onSchemeSelectChange(select) {
+    const titleField = document.getElementById('eventTitleField');
+    const nameField = document.getElementById('beneficiaryNameField');
+    const opt = select.options[select.selectedIndex];
+    const schName = (opt && select.value) ? opt.getAttribute('data-name') : 'कल्याण सहायता कार्यक्रम';
+    const pName = nameField ? nameField.value.trim() : '';
+    titleField.value = schName + (pName ? ' - ' + pName : '');
+}
+
+function onEditSchemeSelectChange(select) {
+    const titleField = document.getElementById('editEventTitleField');
+    const nameField = document.getElementById('editBeneficiaryNameField');
+    const opt = select.options[select.selectedIndex];
+    const schName = (opt && select.value) ? opt.getAttribute('data-name') : 'कल्याण सहायता कार्यक्रम';
+    const pName = nameField ? nameField.value.trim() : '';
+    titleField.value = schName + (pName ? ' - ' + pName : '');
+}
+
 function onBeneficiaryManualTyping() {
     const nameField = document.getElementById('beneficiaryNameField');
     const legacyField = document.getElementById('legacyGirlNameField');
     const titleField = document.getElementById('eventTitleField');
     if (legacyField) legacyField.value = nameField.value;
 
+    const schName = getSelectedSchemeName('eventSchemeSelect') || 'कल्याण सहायता कार्यक्रम';
     if (nameField.value.trim().length > 0) {
-        titleField.value = 'कल्याण सहायता कार्यक्रम - ' + nameField.value.trim();
+        titleField.value = schName + ' - ' + nameField.value.trim();
     }
 }
 
@@ -611,6 +732,7 @@ function onBeneficiarySelectChange(select) {
     const fatherField = document.getElementById('fatherNameField');
     const memberSelect = document.getElementById('linkedMemberSelect');
     const titleField = document.getElementById('eventTitleField');
+    const schemeSelect = document.getElementById('eventSchemeSelect');
 
     if (select.value === '__custom__') {
         nameField.value = '';
@@ -624,11 +746,14 @@ function onBeneficiarySelectChange(select) {
         if (legacyField) legacyField.value = select.value;
         const father = selectedOption.getAttribute('data-father') || '';
         const memberId = selectedOption.getAttribute('data-member-id') || '';
+        const schemeId = selectedOption.getAttribute('data-scheme-id') || '';
 
         if (father) fatherField.value = father;
         if (memberId && memberSelect) memberSelect.value = memberId;
+        if (schemeId && schemeSelect) schemeSelect.value = schemeId;
 
-        titleField.value = 'कल्याण सहायता कार्यक्रम - ' + select.value;
+        const schName = getSelectedSchemeName('eventSchemeSelect') || 'कल्याण सहायता कार्यक्रम';
+        titleField.value = schName + ' - ' + select.value;
     }
 }
 
@@ -642,6 +767,7 @@ function openEditEventModal(event) {
     document.getElementById('editLegacyGirlNameField').value = event.girl_name || event.beneficiary_name || '';
     document.getElementById('editFatherNameField').value = event.father_name || '';
     document.getElementById('editLinkedMemberSelect').value = event.member_id || '';
+    document.getElementById('editEventSchemeSelect').value = event.scheme_id || '';
     document.getElementById('editEventTitleField').value = event.title || '';
     document.getElementById('editEventDateField').value = event.event_date ? event.event_date.split('T')[0] : '';
     document.getElementById('editEventRatePerEvent').value = event.rate_per_event || '200';
@@ -672,6 +798,7 @@ function onEditBeneficiarySelectChange(select) {
     const fatherField = document.getElementById('editFatherNameField');
     const memberSelect = document.getElementById('editLinkedMemberSelect');
     const titleField = document.getElementById('editEventTitleField');
+    const schemeSelect = document.getElementById('editEventSchemeSelect');
 
     if (select.value === '__custom__') {
         nameField.value = '';
@@ -685,11 +812,14 @@ function onEditBeneficiarySelectChange(select) {
         if (legacyField) legacyField.value = select.value;
         const father = selectedOption.getAttribute('data-father') || '';
         const memberId = selectedOption.getAttribute('data-member-id') || '';
+        const schemeId = selectedOption.getAttribute('data-scheme-id') || '';
 
         if (father) fatherField.value = father;
         if (memberId && memberSelect) memberSelect.value = memberId;
+        if (schemeId && schemeSelect) schemeSelect.value = schemeId;
 
-        titleField.value = 'कल्याण सहायता कार्यक्रम - ' + select.value;
+        const schName = getSelectedSchemeName('editEventSchemeSelect') || 'कल्याण सहायता कार्यक्रम';
+        titleField.value = schName + ' - ' + select.value;
     }
 }
 

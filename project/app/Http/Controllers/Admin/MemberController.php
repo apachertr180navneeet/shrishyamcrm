@@ -35,6 +35,7 @@ class MemberController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('full_name', 'like', "%{$search}%")
                   ->orWhere('membership_no', 'like', "%{$search}%")
+                  ->orWhere('memberID', 'like', "%{$search}%")
                   ->orWhere('mobile', 'like', "%{$search}%")
                   ->orWhere('aadhaar_no', 'like', "%{$search}%");
             });
@@ -87,6 +88,7 @@ class MemberController extends Controller
 
         $request->validate([
             'full_name' => 'required|string|max:150',
+            'memberID' => 'nullable|string|max:100|unique:members,memberID',
             'mobile' => 'required|string|max:20',
             'dob' => 'required|date',
             'scheme_id' => 'required|exists:schemes,id',
@@ -103,7 +105,7 @@ class MemberController extends Controller
 
             // Pass only expected member fields (prevent mass assignment injection)
             $memberData = $request->only([
-                'membership_no', 'full_name', 'father_spouse_name', 'mother_name', 'gender',
+                'membership_no', 'memberID', 'full_name', 'father_spouse_name', 'mother_name', 'gender',
                 'dob', 'mobile', 'gotra', 'caste', 'address', 'district', 'state', 'pincode',
                 'aadhaar_no', 'scheme_id', 'age_slab_id', 'joining_amount', 'monthly_support_amount',
                 'agent_id', 'joining_date', 'payment_mode',
@@ -167,6 +169,7 @@ class MemberController extends Controller
 
         $request->validate([
             'full_name' => 'required|string|max:150',
+            'memberID' => 'nullable|string|max:100|unique:members,memberID,' . $member->id,
             'mobile' => 'required|string|max:20',
             'father_spouse_name' => 'nullable|string|max:150',
             'mother_name' => 'nullable|string|max:150',
@@ -194,7 +197,19 @@ class MemberController extends Controller
         $dob = $request->filled('dob') ? Carbon::parse($request->dob) : $member->dob;
         $age = $dob ? $dob->age : ($request->input('age', $member->age));
 
+        $schemeId = $request->scheme_id ?? $member->scheme_id;
+        $ageSlabId = $request->age_slab_id;
+        if (!$ageSlabId && $schemeId) {
+            $matchingSlab = \App\Models\AgeSlab::where('scheme_id', $schemeId)
+                ->where('status', 'Active')
+                ->where('min_age', '<=', $age)
+                ->where('max_age', '>=', $age)
+                ->first();
+            $ageSlabId = $matchingSlab ? $matchingSlab->id : $member->age_slab_id;
+        }
+
         $memberData = [
+            'memberID' => $request->filled('memberID') ? trim($request->memberID) : null,
             'full_name' => $request->full_name,
             'father_spouse_name' => $request->father_spouse_name,
             'mother_name' => $request->mother_name,
@@ -210,8 +225,8 @@ class MemberController extends Controller
             'pincode' => $request->pincode,
             'aadhaar_no' => $request->aadhaar_no,
             'status' => $request->status,
-            'scheme_id' => $request->scheme_id ?? $member->scheme_id,
-            'age_slab_id' => $request->age_slab_id ?? $member->age_slab_id,
+            'scheme_id' => $schemeId,
+            'age_slab_id' => $ageSlabId,
             'agent_id' => $request->agent_id ?? $member->agent_id,
         ];
 

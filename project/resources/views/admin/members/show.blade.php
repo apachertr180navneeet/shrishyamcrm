@@ -24,6 +24,9 @@
                             @else
                                 <span class="badge bg-danger">{{ $member->status }} (निष्क्रिय)</span>
                             @endif
+                            @if($member->memberID)
+                                <span class="badge bg-label-info font-monospace"><i class="fas fa-id-badge me-1"></i>Party ID: {{ $member->memberID }}</span>
+                            @endif
                             <span class="badge bg-label-primary">{{ $member->membership_no }}</span>
                         </div>
                         <p class="text-muted mb-0">
@@ -156,6 +159,14 @@
             <!-- Tab 2: Personal Details -->
             <div class="tab-pane fade" id="tab-personal" role="tabpanel">
                 <div class="row g-3">
+                    <div class="col-md-4 col-12">
+                        <small class="text-muted d-block">Member ID (आवंटित संख्या)</small>
+                        <strong class="fs-6 text-primary">{{ $member->memberID ?: 'N/A' }}</strong>
+                    </div>
+                    <div class="col-md-4 col-12">
+                        <small class="text-muted d-block">Membership Number (सिस्टम संख्या)</small>
+                        <strong class="fs-6">{{ $member->membership_no }}</strong>
+                    </div>
                     <div class="col-md-4 col-12">
                         <small class="text-muted d-block">Father / Spouse Name</small>
                         <strong class="fs-6">{{ $member->father_spouse_name ?? 'N/A' }}</strong>

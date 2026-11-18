@@ -17,9 +17,9 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class MarriageEventController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $events = MarriageEvent::with(['member', 'scheme'])
+        $query = MarriageEvent::with(['member', 'scheme'])
             ->withCount([
                 'contributions',
                 'contributions as paid_count' => function ($q) {
@@ -29,9 +29,40 @@ class MarriageEventController extends Controller
             ->withSum('contributions as expected_sum', 'contribution_amount')
             ->withSum(['contributions as collected_sum' => function ($q) {
                 $q->where('payment_status', 'Paid');
-            }], 'contribution_amount')
-            ->latest('event_date')
-            ->paginate(10);
+            }], 'contribution_amount');
+
+        if ($request->filled('search')) {
+            $search = \App\Helpers\Helper::likeEscape($request->search);
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('event_code', 'like', "%{$search}%")
+                  ->orWhere('girl_name', 'like', "%{$search}%")
+                  ->orWhere('father_name', 'like', "%{$search}%")
+                  ->orWhere('venue', 'like', "%{$search}%")
+                  ->orWhere('event_type', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhereHas('scheme', function ($sq) use ($search) {
+                      $sq->where('name', 'like', "%{$search}%")
+                         ->orWhere('name_hindi', 'like', "%{$search}%")
+                         ->orWhere('code', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('member', function ($mq) use ($search) {
+                      $mq->where('full_name', 'like', "%{$search}%")
+                         ->orWhere('membership_no', 'like', "%{$search}%")
+                         ->orWhere('memberID', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        if ($request->filled('scheme_id')) {
+            $query->where('scheme_id', $request->scheme_id);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $events = $query->latest('event_date')->paginate(10)->withQueryString();
 
         $schemes = Scheme::where('status', 'Active')->get();
         $billings = EventBilling::with(['event', 'creator'])->latest('billing_date')->take(10)->get();
@@ -87,11 +118,12 @@ class MarriageEventController extends Controller
 
         $scheme = $request->scheme_id ? Scheme::find($request->scheme_id) : null;
 
-        // Dynamic title
+        // Dynamic title: include scheme name where available
         if ($request->filled('title')) {
             $title = $request->title;
         } else {
-            $title = "कल्याण सहायता कार्यक्रम - {$beneficiaryName}";
+            $schemePrefix = $scheme ? ($scheme->name_hindi ?: $scheme->name) : 'कल्याण सहायता कार्यक्रम';
+            $title = "{$schemePrefix} - {$beneficiaryName}";
         }
 
         $eventType = $request->filled('event_type')

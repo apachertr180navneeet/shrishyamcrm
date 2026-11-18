@@ -21,42 +21,6 @@ class AgentController extends Controller
             return redirect()->route('admin.agents.show', $user->agent_id);
         }
 
-        // Auto-ensure any user with agent role has an Agent record
-        $agentUsers = User::where(function($q) {
-            $q->where('role', 'agent')
-              ->orWhereHas('roles', fn($rq) => $rq->where('name', 'agent'));
-        })->get();
-
-        foreach ($agentUsers as $au) {
-            if (!$au->agent_id) {
-                $agent = Agent::where('user_id', $au->id)
-                    ->orWhere('email', $au->email)
-                    ->orWhere('mobile', $au->phone)
-                    ->first();
-
-                if (!$agent) {
-                    $agentCode = NumberSeriesService::getNextNumber('AGT', ['prefix' => 'AGT-', 'initial_value' => 1, 'padding' => 3]);
-                    $code = str_replace('-', '', $agentCode);
-                    $agent = Agent::create([
-                        'agent_code' => $agentCode,
-                        'name' => $au->full_name,
-                        'code' => $code,
-                        'mobile' => $au->phone,
-                        'email' => $au->email,
-                        'district' => $au->city ?: 'Mahendragarh',
-                        'address' => $au->address ?: '',
-                        'commission_rate' => 5.0,
-                        'status' => 'Active',
-                        'user_id' => $au->id,
-                    ]);
-                } else {
-                    $agent->update(['user_id' => $au->id]);
-                }
-
-                $au->update(['agent_id' => $agent->id]);
-            }
-        }
-
         $query = Agent::with(['members', 'payments', 'user']);
 
         if ($request->filled('search')) {

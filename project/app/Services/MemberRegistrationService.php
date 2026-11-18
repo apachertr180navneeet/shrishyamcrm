@@ -68,6 +68,7 @@ class MemberRegistrationService
             // 4. Create Member Entity
             $member = Member::create([
                 'membership_no' => $memNo,
+                'memberID' => !empty($data['memberID']) ? trim($data['memberID']) : null,
                 'full_name' => $data['full_name'],
                 'father_spouse_name' => $data['father_spouse_name'] ?? null,
                 'mother_name' => $data['mother_name'] ?? null,

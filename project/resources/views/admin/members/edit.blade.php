@@ -87,7 +87,12 @@
                             <span class="form-section-title mb-0 border-0 p-0">
                                 <i class="fas fa-user-circle fs-5"></i> 1. Personal & KYC Details (व्यक्तिगत एवं पहचान विवरण)
                             </span>
-                            <span class="badge bg-label-primary fs-6">{{ $member->membership_no }}</span>
+                            <div class="d-flex align-items-center gap-2">
+                                @if($member->memberID)
+                                    <span class="badge bg-label-info fs-6">Party ID: {{ $member->memberID }}</span>
+                                @endif
+                                <span class="badge bg-label-primary fs-6">{{ $member->membership_no }}</span>
+                            </div>
                         </div>
                     </div>
                     <div class="card-body p-4">
@@ -132,6 +137,18 @@
                                         </small>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6 col-12">
+                                <label class="form-label fw-semibold">Auto Membership Number</label>
+                                <input type="text" class="form-control bg-light" value="{{ $member->membership_no }}" readonly>
+                            </div>
+                            <div class="col-md-6 col-12">
+                                <label class="form-label fw-semibold">Member ID (आवंटित संख्या) <span class="badge bg-label-primary">Party ID</span></label>
+                                <input type="text" name="memberID" class="form-control @error('memberID') is-invalid @enderror" value="{{ old('memberID', $member->memberID) }}" placeholder="पार्टी द्वारा दिया गया नंबर">
+                                @error('memberID') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                         </div>
 
@@ -484,7 +501,12 @@
                             <i class="fas fa-camera me-1"></i> फोटो बदलें (Change Photo)
                         </button>
                         <h5 class="fw-bold mb-1">{{ $member->full_name }}</h5>
-                        <p class="text-muted mb-2"><i class="fas fa-id-card me-1"></i> {{ $member->membership_no }}</p>
+                        <p class="text-muted mb-2">
+                            <i class="fas fa-id-card me-1"></i> {{ $member->membership_no }}
+                            @if($member->memberID)
+                                <br><span class="badge bg-label-info mt-1">Party ID: {{ $member->memberID }}</span>
+                            @endif
+                        </p>
                         <div class="d-flex justify-content-center gap-2 mb-3">
                             <span class="badge {{ $member->status == 'Active' ? 'bg-success' : 'bg-secondary' }}">{{ $member->status }}</span>
                             <span class="badge bg-label-primary">{{ $member->scheme ? $member->scheme->name_hindi : 'N/A' }}</span>

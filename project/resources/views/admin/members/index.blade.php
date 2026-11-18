@@ -49,7 +49,7 @@
                 <div class="col-lg-4 col-md-6 col-12">
                     <div class="input-group">
                         <span class="input-group-text"><i class="fas fa-search"></i></span>
-                        <input type="text" name="search" class="form-control" placeholder="Search by name, member no, mobile, aadhaar..." value="{{ request('search') }}">
+                        <input type="text" name="search" class="form-control" placeholder="Search by name, memberID, member no, mobile, aadhaar..." value="{{ request('search') }}">
                     </div>
                 </div>
                 <div class="{{ (auth()->check() && auth()->user()->isAgent() && auth()->user()->agent_id) ? 'col-lg-5' : 'col-lg-3' }} col-md-6 col-12">
@@ -101,6 +101,9 @@
                             <a href="{{ route('admin.members.show', $m->id) }}" class="fw-bold text-primary">
                                 {{ $m->membership_no }}
                             </a>
+                            @if($m->memberID)
+                                <div><span class="badge bg-label-info font-monospace py-0 px-1" style="font-size: 11px;">ID: {{ $m->memberID }}</span></div>
+                            @endif
                         </td>
                         <td>
                             <div class="d-flex align-items-center gap-2">

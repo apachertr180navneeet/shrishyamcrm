@@ -242,6 +242,38 @@
             </div>
         </div>
 
+        <!-- Prominent Event Title & Person Name Header Section -->
+        <div style="background: #f1f5f9; border: 2px solid #1B365D; border-radius: 8px; padding: 12px 18px; margin-bottom: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                <div style="flex: 1; min-width: 260px;">
+                    <div style="font-size: 11px; text-transform: uppercase; color: #475569; font-weight: 700; letter-spacing: 0.5px;">
+                        <i class="fas fa-tag"></i> Event Title (कार्यक्रम शीर्षक)
+                    </div>
+                    <div style="font-size: 18px; font-weight: 800; color: #1B365D; margin-top: 3px;">
+                        @php
+                            $schName = $event->scheme ? ($event->scheme->name_hindi ?: $event->scheme->name) : '';
+                            $eventTitleDisplay = $event->title;
+                            if ($schName && !str_contains($eventTitleDisplay, $schName)) {
+                                $eventTitleDisplay = $schName . ' - ' . $eventTitleDisplay;
+                            }
+                        @endphp
+                        {{ $eventTitleDisplay }}
+                    </div>
+                </div>
+                <div style="flex: 1; min-width: 260px; text-align: right;">
+                    <div style="font-size: 11px; text-transform: uppercase; color: #475569; font-weight: 700; letter-spacing: 0.5px;">
+                        <i class="fas fa-user"></i> Person Name (व्यक्ति / लाभार्थी का नाम)
+                    </div>
+                    <div style="font-size: 18px; font-weight: 800; color: #b91c1c; margin-top: 3px;">
+                        {{ $event->girl_name ?: ($event->member ? $event->member->full_name : 'N/A') }}
+                        @if($event->father_name)
+                            <span style="font-size: 14px; font-weight: 600; color: #334155;">(पिता: {{ $event->father_name }})</span>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Event Information Box -->
         <div class="event-info-box">
             <div class="info-group">

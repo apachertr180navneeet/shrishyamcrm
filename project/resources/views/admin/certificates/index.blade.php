@@ -13,6 +13,34 @@
         </div>
     </div>
 
+    <!-- Filters & Search -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form action="{{ route('admin.certificates.index') }}" method="GET" class="row g-3">
+                <div class="col-lg-5 col-md-6 col-12">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                        <input type="text" name="search" class="form-control" placeholder="Search by name, memberID, membership no, mobile..." value="{{ request('search') }}">
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-4 col-12">
+                    <select name="scheme_id" class="form-select" onchange="this.form.submit()">
+                        <option value="">-- All Schemes (सभी योजनाएं) --</option>
+                        @foreach($schemes as $sch)
+                            <option value="{{ $sch->id }}" {{ request('scheme_id') == $sch->id ? 'selected' : '' }}>{{ $sch->name_hindi ?: $sch->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-lg-3 col-md-2 col-12 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-search me-1"></i> Search</button>
+                    @if(request('search') || request('scheme_id'))
+                        <a href="{{ route('admin.certificates.index') }}" class="btn btn-outline-secondary">Reset</a>
+                    @endif
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Table -->
     <div class="card border-0 shadow-sm">
         <div class="table-responsive text-nowrap">
@@ -31,7 +59,12 @@
                 <tbody>
                     @foreach($members as $m)
                     <tr>
-                        <td><strong class="text-primary">{{ $m->membership_no }}</strong></td>
+                        <td>
+                            <strong class="text-primary">{{ $m->membership_no }}</strong>
+                            @if($m->memberID)
+                                <div><span class="badge bg-label-info font-monospace py-0 px-1" style="font-size: 11px;">Party ID: {{ $m->memberID }}</span></div>
+                            @endif
+                        </td>
                         <td><strong>{{ $m->full_name }}</strong></td>
                         <td>{{ $m->mobile }}</td>
                         <td><span class="badge bg-label-primary">{{ $m->scheme ? $m->scheme->name_hindi : 'N/A' }}</span></td>

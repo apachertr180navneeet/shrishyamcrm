@@ -45,6 +45,22 @@ class Member extends Model
     }
 
     /**
+     * Accessor for custom party-allotted memberID
+     */
+    public function getMemberIDAttribute(): ?string
+    {
+        return $this->attributes['memberID'] ?? null;
+    }
+
+    /**
+     * Mutator for custom party-allotted memberID
+     */
+    public function setMemberIDAttribute($value): void
+    {
+        $this->attributes['memberID'] = !empty($value) ? trim($value) : null;
+    }
+
+    /**
      * Alias for photo_src
      */
     public function getPhotoUrlAttribute(): ?string

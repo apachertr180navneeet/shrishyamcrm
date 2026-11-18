@@ -31,4 +31,9 @@ class Scheme extends Model
     {
         return $this->hasMany(EventBilling::class);
     }
+
+    public function events()
+    {
+        return $this->hasMany(MarriageEvent::class, 'scheme_id');
+    }
 }

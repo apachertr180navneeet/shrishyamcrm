@@ -170,7 +170,7 @@
         <img src="{{ $bgImagePath }}" alt="Certificate Background" class="pdf-bg">
 
         <!-- Dynamic Member Overlays -->
-        <div class="pdf-field pf-mem-no">{{ $member->membership_no }}</div>
+        <div class="pdf-field pf-mem-no">{{ $member->memberID ?: $member->membership_no }}</div>
         <div class="pdf-field pf-date">{{ $member->joining_date ? $member->joining_date->format('d/m/Y') : date('d/m/Y') }}</div>
         <div class="pdf-field pf-name">{{ $member->full_name }}</div>
         <div class="pdf-field pf-father">{{ $member->father_spouse_name ?: '-' }}</div>

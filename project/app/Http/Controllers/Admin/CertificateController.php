@@ -36,6 +36,7 @@ class CertificateController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('full_name', 'like', "%{$search}%")
                   ->orWhere('membership_no', 'like', "%{$search}%")
+                  ->orWhere('memberID', 'like', "%{$search}%")
                   ->orWhere('mobile', 'like', "%{$search}%");
             });
         }

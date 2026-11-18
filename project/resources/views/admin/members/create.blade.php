@@ -151,15 +151,20 @@
                     </div>
 
                     <div class="row g-3">
-                        <div class="col-md-4 col-12">
+                        <div class="col-md-3 col-12">
                             <label class="form-label fw-semibold">Auto Membership Number</label>
                             <input type="text" name="membership_no" class="form-control bg-light" value="{{ $nextMemNum }}" readonly>
                         </div>
-                        <div class="col-md-4 col-12">
+                        <div class="col-md-3 col-12">
+                            <label class="form-label fw-semibold">Member ID (आवंटित संख्या) <span class="badge bg-label-primary">Party ID</span></label>
+                            <input type="text" name="memberID" id="memberID" class="form-control @error('memberID') is-invalid @enderror" placeholder="पार्टी द्वारा दिया गया नंबर" value="{{ old('memberID') }}">
+                            @error('memberID') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        </div>
+                        <div class="col-md-3 col-12">
                             <label class="form-label fw-semibold">Full Name (सदस्य का पूरा नाम) <span class="text-danger">*</span></label>
                             <input type="text" name="full_name" id="full_name" class="form-control" placeholder="e.g. Radheshyam Sharma" required>
                         </div>
-                        <div class="col-md-4 col-12">
+                        <div class="col-md-3 col-12">
                             <label class="form-label fw-semibold">Mobile Number (मोबाइल नंबर) <span class="text-danger">*</span></label>
                             <input type="tel" name="mobile" id="mobile" class="form-control" placeholder="10 digit mobile" maxlength="10" value="{{ old('mobile') }}" required>
                         </div>

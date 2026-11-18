@@ -209,7 +209,7 @@
     <div class="cert-screen-wrapper cert-print-area">
         <div class="cert-official-card" style="background-image: url('{{ asset($bgImage) }}?v={{ filemtime(public_path($bgImage)) }}');">
             <!-- Dynamic Values Overlaid onto Authentic Template Background -->
-            <div class="cert-overlay-field ov-mem-no">{{ $member->membership_no }}</div>
+            <div class="cert-overlay-field ov-mem-no">{{ $member->memberID ?: $member->membership_no }}</div>
             <div class="cert-overlay-field ov-date">{{ $member->joining_date ? $member->joining_date->format('d/m/Y') : date('d/m/Y') }}</div>
             <div class="cert-overlay-field ov-name">{{ $member->full_name }}</div>
             <div class="cert-overlay-field ov-father">{{ $member->father_spouse_name ?: '-' }}</div>
