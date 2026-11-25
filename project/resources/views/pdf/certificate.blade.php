@@ -82,14 +82,13 @@
             font-size: 14px;
         }
         .pf-name {
-            top: 86.6mm;
+            top: 88.2mm;
             left: 25.2mm;
-            max-width: 86mm;
-            font-size: 23px;
-            font-weight: 800;
+            max-width: 75mm;
+            font-size: 14px;
+            font-weight: 700;
             color: #700D18;
-            line-height: 1.35;
-            letter-spacing: 0.3px;
+            line-height: 1.4;
         }
         .pf-father {
             top: 88.2mm;
@@ -183,10 +182,6 @@
         <div class="pdf-field pf-mobile">{{ $member->mobile ?: '-' }}</div>
         <div class="pdf-field pf-agent">{{ $member->agent ? $member->agent->name . ($member->agent->mobile ? ' (' . $member->agent->mobile . ')' : '') : 'HQ Direct' }}</div>
         <div class="pdf-field pf-kisht">{{ number_format($kishtRate, 0) }}/-</div>
-
-        @if(empty($isSeniorScheme) && $schemeHeading !== 'विवाह योजना प्रमाण पत्र')
-            <div class="pdf-field pf-scheme-title">{{ $schemeHeading }}</div>
-        @endif
 
         <!-- Member Photo -->
         <div class="pdf-photo-box">

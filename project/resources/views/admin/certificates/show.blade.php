@@ -101,18 +101,15 @@
         color: #111827;
         font-size: clamp(12px, 1.4vw, 15px);
     }
-    /* Member Name - Prominently enlarged & bold with ample breathing room */
+    /* Member Name - Same font size and consistent alignment with other fields */
     .ov-name {
-        top: 41.2%;
+        top: 42.0%;
         left: 8.5%;
-        max-width: 32%;
+        max-width: 28%;
         color: #700D18;
-        font-size: clamp(19.5px, 2.4vw, 26px);
-        font-weight: 900;
-        letter-spacing: 0.4px;
-        line-height: 1.35;
-        overflow: visible !important;
-        text-shadow: 0 0.5px 1px rgba(112, 13, 24, 0.12);
+        font-size: clamp(12.5px, 1.5vw, 16.5px);
+        font-weight: 700;
+        letter-spacing: 0.2px;
     }
     .ov-father {
         top: 42.0%;
@@ -236,10 +233,6 @@
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
         }
-        .ov-name {
-            font-size: 24px !important;
-            font-weight: 900 !important;
-        }
         .no-print {
             display: none !important;
         }
@@ -284,10 +277,6 @@
             <div class="cert-overlay-field ov-mobile">{{ $member->mobile ?: '-' }}</div>
             <div class="cert-overlay-field ov-agent" title="{{ $member->agent ? $member->agent->name : '' }}">{{ $member->agent ? $member->agent->name . ($member->agent->mobile ? ' (' . $member->agent->mobile . ')' : '') : 'HQ Direct' }}</div>
             <div class="cert-overlay-field ov-kisht">{{ number_format($kishtRate, 0) }}/-</div>
-
-            @if(empty($isSeniorScheme) && $schemeHeading !== 'विवाह योजना प्रमाण पत्र')
-                <div class="cert-overlay-field ov-scheme-title">{{ $schemeHeading }}</div>
-            @endif
 
             <!-- Member Photo Overlay (Inside the exact photo frame) -->
             <div class="ov-photo-box">
