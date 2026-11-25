@@ -142,6 +142,18 @@
         max-width: 20%;
         color: #111827;
     }
+    .ov-district {
+        top: 56.8%;
+        left: 35.0%;
+        max-width: 17%;
+        color: #111827;
+    }
+    .ov-state {
+        top: 56.8%;
+        left: 59.5%;
+        max-width: 17%;
+        color: #111827;
+    }
     .ov-mobile {
         top: 64.5%;
         left: 11.5%;
@@ -150,8 +162,13 @@
     }
     .ov-agent {
         top: 64.5%;
-        left: 58.5%;
-        max-width: 35%;
+        left: 57.2%;
+        max-width: 20.2%;
+        font-size: clamp(9.5px, 1.1vw, 12.0px);
+        letter-spacing: -0.2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
         color: #111827;
     }
     .ov-kisht {
@@ -162,16 +179,20 @@
         color: #111827;
     }
     .ov-scheme-title {
-        top: 23.5%;
+        top: 19.5%;
         left: 50%;
         transform: translateX(-50%);
-        background: #FFFFFF;
-        padding: 2px 14px;
-        color: #243382;
-        font-size: clamp(16px, 2.2vw, 24px);
+        background: transparent !important;
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        color: #1B365D;
+        font-size: clamp(12px, 1.4vw, 15px);
         font-weight: 700;
-        border-radius: 4px;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        letter-spacing: 0.3px;
+        white-space: nowrap;
+        text-align: center;
+        line-height: 1.2;
     }
 
     .ov-photo-box {
@@ -274,9 +295,15 @@
             <div class="cert-overlay-field ov-age">{{ $member->age }} वर्ष</div>
             <div class="cert-overlay-field ov-nominee">{{ $nomineeName }}</div>
             <div class="cert-overlay-field ov-village" title="{{ $member->address }}">{{ $member->address ?: '-' }}</div>
+            <div class="cert-overlay-field ov-district">{{ $member->district ?: 'बालोतरा' }}</div>
+            <div class="cert-overlay-field ov-state">{{ $member->state ?: 'राजस्थान' }}</div>
             <div class="cert-overlay-field ov-mobile">{{ $member->mobile ?: '-' }}</div>
             <div class="cert-overlay-field ov-agent" title="{{ $member->agent ? $member->agent->name : '' }}">{{ $member->agent ? $member->agent->name . ($member->agent->mobile ? ' (' . $member->agent->mobile . ')' : '') : 'HQ Direct' }}</div>
             <div class="cert-overlay-field ov-kisht">{{ number_format($kishtRate, 0) }}/-</div>
+
+            @if(empty($isSeniorScheme) && $schemeHeading !== 'विवाह योजना प्रमाण पत्र')
+                <div class="cert-overlay-field ov-scheme-title">{{ $schemeHeading }}</div>
+            @endif
 
             <!-- Member Photo Overlay (Inside the exact photo frame) -->
             <div class="ov-photo-box">

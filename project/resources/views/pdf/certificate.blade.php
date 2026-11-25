@@ -121,6 +121,20 @@
             max-width: 59mm;
             font-size: 14px;
         }
+        .pf-district {
+            top: 119.3mm;
+            left: 104.0mm;
+            max-width: 50mm;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .pf-state {
+            top: 119.3mm;
+            left: 176.0mm;
+            max-width: 50mm;
+            font-size: 14px;
+            font-weight: 700;
+        }
         .pf-mobile {
             top: 135.4mm;
             left: 34.1mm;
@@ -129,9 +143,13 @@
         }
         .pf-agent {
             top: 135.4mm;
-            left: 173.7mm;
-            max-width: 104mm;
-            font-size: 14px;
+            left: 171.0mm;
+            max-width: 58mm;
+            font-size: 11px;
+            letter-spacing: -0.2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .pf-kisht {
             top: 164.8mm;
@@ -140,14 +158,16 @@
             font-size: 15px;
         }
         .pf-scheme-title {
-            top: 49.0mm;
-            left: 90.0mm;
-            right: 90.0mm;
+            top: 41.5mm;
+            left: 50.0mm;
+            right: 50.0mm;
             text-align: center;
-            background-color: #ffffff;
-            color: #243382;
-            font-size: 22px;
-            padding: 1mm 4mm;
+            background: transparent;
+            color: #1B365D;
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 1.2;
+            letter-spacing: 0.3px;
         }
         .pdf-photo-box {
             position: absolute;
@@ -179,9 +199,15 @@
         <div class="pdf-field pf-age">{{ $member->age }} वर्ष</div>
         <div class="pdf-field pf-nominee">{{ $nomineeName }}</div>
         <div class="pdf-field pf-village">{{ $member->address ?: '-' }}</div>
+        <div class="pdf-field pf-district">{{ $member->district ?: 'बालोतरा' }}</div>
+        <div class="pdf-field pf-state">{{ $member->state ?: 'राजस्थान' }}</div>
         <div class="pdf-field pf-mobile">{{ $member->mobile ?: '-' }}</div>
         <div class="pdf-field pf-agent">{{ $member->agent ? $member->agent->name . ($member->agent->mobile ? ' (' . $member->agent->mobile . ')' : '') : 'HQ Direct' }}</div>
         <div class="pdf-field pf-kisht">{{ number_format($kishtRate, 0) }}/-</div>
+
+        @if(empty($isSeniorScheme) && $schemeHeading !== 'विवाह योजना प्रमाण पत्र')
+            <div class="pdf-field pf-scheme-title">{{ $schemeHeading }}</div>
+        @endif
 
         <!-- Member Photo -->
         <div class="pdf-photo-box">
