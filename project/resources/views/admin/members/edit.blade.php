@@ -256,12 +256,12 @@
                         <div class="row g-3 mb-3">
                             <div class="col-md-6 col-12">
                                 <label class="form-label fw-semibold">District (जिला)</label>
-                                <input type="text" name="district" class="form-control @error('district') is-invalid @enderror" value="{{ old('district', $member->district) }}" placeholder="e.g. Mahendragarh, Rewari">
+                                <input type="text" name="district" class="form-control @error('district') is-invalid @enderror" value="{{ old('district', $member->district) }}" placeholder="जिला दर्ज करें (District) e.g. Balotra, Barmer">
                                 @error('district') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                             <div class="col-md-6 col-12">
                                 <label class="form-label fw-semibold">State (राज्य)</label>
-                                <input type="text" name="state" class="form-control @error('state') is-invalid @enderror" value="{{ old('state', $member->state ?? 'Haryana') }}">
+                                <input type="text" name="state" class="form-control @error('state') is-invalid @enderror" value="{{ old('state', ($member->state && $member->state !== 'Haryana') ? $member->state : 'Rajasthan') }}" placeholder="राज्य दर्ज करें (State)">
                                 @error('state') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                         </div>

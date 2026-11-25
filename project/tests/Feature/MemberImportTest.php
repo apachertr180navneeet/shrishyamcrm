@@ -88,7 +88,7 @@ class MemberImportTest extends TestCase
 
         $csvContent .= implode(',', [
             'Radhey Shyam Verma', '9811122233', $dob, 'Male', 'S/o Mohan Lal', 'Kamla Devi',
-            'Kaushik', 'General', 'Near Temple Lohani', 'Bhiwani', 'Haryana', '127021', '444455556666',
+            'Kaushik', 'General', 'Near Temple Lohidi', 'Balotra', 'Rajasthan', '344022', '444455556666',
             'SENIOR_TEST', 'AGT-IMP-1', Carbon::now()->format('Y-m-d'), 'Kamla Verma', 'Spouse', '9811122234', '100'
         ]) . "\n";
 

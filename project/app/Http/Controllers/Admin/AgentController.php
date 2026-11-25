@@ -106,7 +106,7 @@ class AgentController extends Controller
                 'role_id' => $agentRole?->id,
                 'address' => $request->address ?? '',
                 'city' => $request->district ?? '',
-                'state' => 'Haryana',
+                'state' => 'Rajasthan',
                 'country' => 'India',
                 'status' => 'active',
             ]);
@@ -312,7 +312,7 @@ class AgentController extends Controller
                 'role_id' => $agentRole?->id,
                 'city' => $agent->district,
                 'address' => $agent->address ?: '',
-                'state' => 'Haryana',
+                'state' => 'Rajasthan',
                 'country' => 'India',
                 'status' => 'active',
                 'agent_id' => $agent->id,

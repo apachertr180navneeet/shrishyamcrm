@@ -202,15 +202,19 @@
                             <input type="text" name="gotra" class="form-control" placeholder="e.g. Kaushik, Vats, Garg..." value="{{ old('gotra') }}">
                         </div>
 
-                        <div class="col-md-6 col-12">
+                        <div class="col-md-4 col-12">
                             <label class="form-label fw-semibold">Residential Address (स्थायी पता)</label>
                             <textarea name="address" class="form-control" rows="2" placeholder="House No, Ward, Village...">{{ old('address') }}</textarea>
                         </div>
                         <div class="col-md-3 col-12">
                             <label class="form-label fw-semibold">District (जिला)</label>
-                            <input type="text" name="district" class="form-control" placeholder="जिला दर्ज करें (District)" value="{{ old('district') }}">
+                            <input type="text" name="district" class="form-control" placeholder="जिला दर्ज करें (District)" value="{{ old('district', 'Balotra') }}">
                         </div>
                         <div class="col-md-3 col-12">
+                            <label class="form-label fw-semibold">State (राज्य)</label>
+                            <input type="text" name="state" class="form-control" placeholder="राज्य दर्ज करें (State)" value="{{ old('state', 'Rajasthan') }}">
+                        </div>
+                        <div class="col-md-2 col-12">
                             <label class="form-label fw-semibold">Pincode (पिनकोड)</label>
                             <input type="text" name="pincode" class="form-control" placeholder="पिनकोड (Pincode)" value="{{ old('pincode') }}">
                         </div>

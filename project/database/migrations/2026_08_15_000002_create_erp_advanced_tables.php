@@ -181,7 +181,7 @@ return new class extends Migration
                 $table->string('alternate_mobile', 20)->nullable()->after('mobile');
             }
             if (!Schema::hasColumn('agents', 'state')) {
-                $table->string('state')->default('Haryana')->after('district');
+                $table->string('state')->default('Rajasthan')->after('district');
             }
             if (!Schema::hasColumn('agents', 'pincode')) {
                 $table->string('pincode', 10)->nullable()->after('state');

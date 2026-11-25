@@ -112,7 +112,8 @@
         $ev = $payment->event;
         $description = $ev->girl_name . ($ev->father_name ? ' / ' . $ev->father_name : '') . ($ev->venue ? ' ' . $ev->venue : '');
     } else {
-        $description = $payment->payment_type . ($payment->remarks ? ' - ' . $payment->remarks : ($payment->month_year ? ' (' . $payment->month_year . ')' : ''));
+        $hasRemarks = !empty($payment->remarks) && $payment->remarks !== 'Payment received';
+        $description = $payment->payment_type . ($hasRemarks ? ' - ' . $payment->remarks : '');
     }
 @endphp
 

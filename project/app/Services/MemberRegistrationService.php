@@ -80,7 +80,7 @@ class MemberRegistrationService
                 'caste' => $data['caste'] ?? null,
                 'address' => $data['address'] ?? null,
                 'district' => $data['district'] ?? null,
-                'state' => $data['state'] ?? 'Haryana',
+                'state' => !empty($data['state']) ? $data['state'] : 'Rajasthan',
                 'pincode' => $data['pincode'] ?? null,
                 'aadhaar_no' => $data['aadhaar_no'] ?? null,
                 'scheme_id' => $scheme->id,

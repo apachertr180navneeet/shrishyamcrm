@@ -50,7 +50,7 @@ class PaymentService
             $paymentType = $data['payment_type'] ?? 'Monthly Support';
             $paymentMode = $data['payment_mode'] ?? 'Cash';
             $referenceNo = $data['reference_no'] ?? ($paymentMode === 'Cash' ? 'CASH-' . rand(10000, 99999) : 'TXN' . random_int(100000, 999999));
-            $remarks = $data['remarks'] ?? 'Payment received';
+            $remarks = !empty($data['remarks']) && $data['remarks'] !== 'Payment received' ? $data['remarks'] : null;
 
             // Generate official receipt number
             $receiptNo = NumberSeriesService::getNextNumber('REC', ['prefix' => 'REC-' . Carbon::parse($paymentDate)->format('Y') . '-', 'initial_value' => 5001, 'padding' => 4]);

@@ -175,8 +175,9 @@ class MemberLedgerCardService
             $totalPaid += $amt;
             $totalExpected += $amt;
 
+            $hasRemarks = !empty($p->remarks) && $p->remarks !== 'Payment received';
             $tableRows[] = [
-                'description' => $p->payment_type . ($p->remarks ? ' - ' . $p->remarks : ''),
+                'description' => $p->payment_type . ($hasRemarks ? ' - ' . $p->remarks : ''),
                 'event_date' => $p->payment_date ? $p->payment_date->format('d.m.y') : '-',
                 'payment_date' => $p->payment_date ? $p->payment_date->format('d.m.y') : 'जमा',
                 'agent_name' => $p->agent ? $p->agent->name : ($member->agent ? $member->agent->name : '-'),

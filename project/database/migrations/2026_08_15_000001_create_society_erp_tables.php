@@ -66,7 +66,7 @@ return new class extends Migration
             $table->string('caste')->nullable();
             $table->text('address')->nullable();
             $table->string('district')->nullable();
-            $table->string('state')->default('Haryana');
+            $table->string('state')->default('Rajasthan');
             $table->string('pincode', 10)->nullable();
             $table->string('aadhaar_no', 20)->nullable();
             $table->foreignId('scheme_id')->nullable()->constrained('schemes')->onDelete('set null');
