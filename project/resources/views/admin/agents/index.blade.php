@@ -8,12 +8,60 @@
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
                 <div>
                     <h4 class="fw-bold mb-1" style="font-family: 'Hind', sans-serif;">एजेंट नेटवर्क (Agent Network Directory)</h4>
-                    <p class="text-muted mb-0">Manage society agents across all districts, commission structures, and field collection metrics.</p>
+                    <p class="text-muted mb-0">कुल {{ $agents->total() }} पंजीकृत एजेंट (Total {{ $agents->total() }} registered society agents across all districts).</p>
                 </div>
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAgentModal">
                     <i class="fas fa-user-plus me-1"></i> Register New Agent
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- Filters & Search -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-3">
+            <form action="{{ route('admin.agents.index') }}" method="GET" class="row g-3 align-items-center">
+                <div class="col-lg-4 col-md-6 col-12">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted"></i></span>
+                        <input type="text" name="search" class="form-control border-start-0" placeholder="Search by name, agent code, mobile, district..." value="{{ request('search') }}">
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 col-12">
+                    <select name="district" class="form-select" onchange="this.form.submit()">
+                        <option value="">All Districts (सभी जिले)</option>
+                        @foreach($districts as $dst)
+                        <option value="{{ $dst }}" {{ request('district') == $dst ? 'selected' : '' }}>{{ $dst }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-lg-2 col-md-6 col-6">
+                    <select name="status" class="form-select" onchange="this.form.submit()">
+                        <option value="">All Status (सभी)</option>
+                        <option value="Active" {{ request('status') == 'Active' ? 'selected' : '' }}>Active (सक्रिय)</option>
+                        <option value="Inactive" {{ request('status') == 'Inactive' ? 'selected' : '' }}>Inactive (निष्क्रिय)</option>
+                    </select>
+                </div>
+                <div class="col-lg-1 col-md-3 col-6">
+                    <select name="per_page" class="form-select" onchange="this.form.submit()" title="Records per page">
+                        <option value="15" {{ request('per_page') == '15' ? 'selected' : '' }}>15 / Page</option>
+                        <option value="25" {{ request('per_page', '25') == '25' ? 'selected' : '' }}>25 / Page</option>
+                        <option value="50" {{ request('per_page') == '50' ? 'selected' : '' }}>50 / Page</option>
+                        <option value="100" {{ request('per_page') == '100' ? 'selected' : '' }}>100 / Page</option>
+                        <option value="all" {{ request('per_page') == 'all' ? 'selected' : '' }}>All (सभी)</option>
+                    </select>
+                </div>
+                <div class="col-lg-2 col-md-3 col-12 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-filter me-1"></i> Filter
+                    </button>
+                    @if(request()->hasAny(['search', 'district', 'status', 'per_page']))
+                    <a href="{{ route('admin.agents.index') }}" class="btn btn-outline-secondary" title="Reset Filters">
+                        <i class="fas fa-undo"></i>
+                    </a>
+                    @endif
+                </div>
+            </form>
         </div>
     </div>
 
@@ -90,6 +138,22 @@
             </div>
         </div>
         @endforelse
+    </div>
+
+    <!-- Pagination & Results Summary -->
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3 py-3">
+            <div class="text-muted small">
+                @if($agents->total() > 0)
+                    Showing <strong>{{ $agents->firstItem() }}</strong> to <strong>{{ $agents->lastItem() }}</strong> of <strong>{{ $agents->total() }}</strong> Agents (कुल {{ $agents->total() }} एजेंट)
+                @else
+                    Showing <strong>0</strong> Agents
+                @endif
+            </div>
+            <div>
+                {{ $agents->links() }}
+            </div>
+        </div>
     </div>
 </div>
 

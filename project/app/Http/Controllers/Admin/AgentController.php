@@ -37,8 +37,19 @@ class AgentController extends Controller
             $query->where('district', $request->district);
         }
 
-        $agents = $query->latest('id')->paginate(15)->withQueryString();
-        $districts = Agent::distinct()->pluck('district')->filter();
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $perPage = $request->input('per_page', 25);
+        if ($perPage === 'all' || $perPage == -1) {
+            $perPage = 1000;
+        } else {
+            $perPage = (int)$perPage > 0 ? (int)$perPage : 25;
+        }
+
+        $agents = $query->latest('id')->paginate($perPage)->withQueryString();
+        $districts = Agent::distinct()->whereNotNull('district')->where('district', '!=', '')->pluck('district')->filter();
 
         return view('admin.agents.index', compact('agents', 'districts'));
     }
