@@ -179,7 +179,7 @@
         color: #111827;
     }
     .ov-scheme-title {
-        top: 19.5%;
+        top: 21.2%;
         left: 50%;
         transform: translateX(-50%);
         background: transparent !important;
@@ -187,9 +187,9 @@
         border: none !important;
         padding: 0 !important;
         color: #1B365D;
-        font-size: clamp(12px, 1.4vw, 15px);
+        font-size: clamp(14px, 1.8vw, 19px);
         font-weight: 700;
-        letter-spacing: 0.3px;
+        letter-spacing: 0.4px;
         white-space: nowrap;
         text-align: center;
         line-height: 1.2;

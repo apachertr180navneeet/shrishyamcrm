@@ -158,16 +158,16 @@
             font-size: 15px;
         }
         .pf-scheme-title {
-            top: 41.5mm;
+            top: 44.5mm;
             left: 50.0mm;
             right: 50.0mm;
             text-align: center;
             background: transparent;
             color: #1B365D;
-            font-size: 14px;
+            font-size: 17px;
             font-weight: 700;
             line-height: 1.2;
-            letter-spacing: 0.3px;
+            letter-spacing: 0.4px;
         }
         .pdf-photo-box {
             position: absolute;
