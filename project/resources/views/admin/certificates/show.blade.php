@@ -3,8 +3,45 @@
 @section('style')
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Hind:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700;800;900&family=Hind:wght@500;600;700&family=Mukta:wght@500;600;700;800&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
+    @font-face {
+        font-family: 'MangalLocal';
+        src: local('Mangal'), url('{{ asset("fonts/mangal.ttf") }}') format('truetype'), url('{{ url("fonts/mangal.ttf") }}') format('truetype');
+        font-weight: 400;
+        font-style: normal;
+    }
+    @font-face {
+        font-family: 'MangalLocal';
+        src: local('Mangal Bold'), local('Mangal'), url('{{ asset("fonts/mangalb.ttf") }}') format('truetype'), url('{{ url("fonts/mangalb.ttf") }}') format('truetype');
+        font-weight: 700;
+        font-style: normal;
+    }
+    @font-face {
+        font-family: 'MangalLocal';
+        src: local('Mangal Bold'), local('Mangal'), url('{{ asset("fonts/mangalb.ttf") }}') format('truetype'), url('{{ url("fonts/mangalb.ttf") }}') format('truetype');
+        font-weight: 800;
+        font-style: normal;
+    }
+    @font-face {
+        font-family: 'MangalLocal';
+        src: local('Mangal Bold'), local('Mangal'), url('{{ asset("fonts/mangalb.ttf") }}') format('truetype'), url('{{ url("fonts/mangalb.ttf") }}') format('truetype');
+        font-weight: 900;
+        font-style: normal;
+    }
+    @font-face {
+        font-family: 'AparajitaLocal';
+        src: local('Aparajita'), url('{{ asset("fonts/aparaj.ttf") }}') format('truetype'), url('{{ url("fonts/aparaj.ttf") }}') format('truetype');
+        font-weight: 400;
+        font-style: normal;
+    }
+    @font-face {
+        font-family: 'AparajitaLocal';
+        src: local('Aparajita Bold'), local('Aparajita'), url('{{ asset("fonts/aparajb.ttf") }}') format('truetype'), url('{{ url("fonts/aparajb.ttf") }}') format('truetype');
+        font-weight: 700;
+        font-style: normal;
+    }
+
     .cert-screen-wrapper {
         max-width: 1024px;
         margin: 0 auto;
@@ -20,22 +57,33 @@
         background-position: center;
         box-shadow: 0 12px 36px rgba(0,0,0,0.18);
         border-radius: 4px;
-        overflow: hidden;
-        font-family: 'Hind', 'Noto Sans Devanagari', 'Mangal', sans-serif;
+        overflow: visible; /* Ensure top matras are never cut off */
+        font-family: 'Noto Sans Devanagari', 'Hind', 'MangalLocal', 'Mangal', 'Nirmala UI', 'Mukta', 'AparajitaLocal', 'Aparajita', sans-serif;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        font-feature-settings: "kern" 1, "liga" 1, "calt" 1, "pres" 1, "abvs" 1, "blws" 1, "psts" 1, "haln" 1;
+        font-variant-ligatures: contextual normal;
     }
 
-    /* Dynamic overlay fields with non-overlapping boundaries */
+    /* Dynamic overlay fields with full headroom for Hindi matras */
     .cert-overlay-field {
         position: absolute;
-        font-family: 'Hind', 'Noto Sans Devanagari', 'Mangal', sans-serif;
+        font-family: 'Noto Sans Devanagari', 'Hind', 'MangalLocal', 'Mangal', 'Nirmala UI', 'Mukta', 'AparajitaLocal', 'Aparajita', sans-serif;
         font-weight: 700;
-        font-size: clamp(12px, 1.45vw, 16px);
+        font-size: clamp(12.5px, 1.5vw, 16.5px);
         color: #111827;
         white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        line-height: 1;
+        overflow: visible !important;
+        line-height: 1.45;
+        padding-top: 2px;
+        padding-bottom: 2px;
         z-index: 5;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        font-feature-settings: "kern" 1, "liga" 1, "calt" 1, "pres" 1, "abvs" 1, "blws" 1, "psts" 1, "haln" 1;
+        font-variant-ligatures: contextual normal;
     }
 
     .ov-mem-no {
@@ -53,12 +101,18 @@
         color: #111827;
         font-size: clamp(12px, 1.4vw, 15px);
     }
+    /* Member Name - Prominently enlarged & bold with ample breathing room */
     .ov-name {
-        top: 42.0%;
+        top: 41.2%;
         left: 8.5%;
-        max-width: 22%;
+        max-width: 32%;
         color: #700D18;
-        font-size: clamp(13px, 1.55vw, 17px);
+        font-size: clamp(19.5px, 2.4vw, 26px);
+        font-weight: 900;
+        letter-spacing: 0.4px;
+        line-height: 1.35;
+        overflow: visible !important;
+        text-shadow: 0 0.5px 1px rgba(112, 13, 24, 0.12);
     }
     .ov-father {
         top: 42.0%;
@@ -83,7 +137,7 @@
         left: 27.5%;
         max-width: 48%;
         color: #1B365D;
-        font-size: clamp(12px, 1.45vw, 16px);
+        font-size: clamp(12.5px, 1.5vw, 16.5px);
     }
     .ov-village {
         top: 56.8%;
@@ -173,8 +227,18 @@
             aspect-ratio: auto !important;
             box-shadow: none !important;
             border-radius: 0 !important;
+            overflow: visible !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
+        }
+        .cert-overlay-field {
+            overflow: visible !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        .ov-name {
+            font-size: 24px !important;
+            font-weight: 900 !important;
         }
         .no-print {
             display: none !important;

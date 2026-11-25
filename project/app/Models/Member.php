@@ -61,6 +61,53 @@ class Member extends Model
     }
 
     /**
+     * Accessor for full_name to guarantee proper Unicode Hindi matras and clean text
+     */
+    public function getFullNameAttribute(?string $value): ?string
+    {
+        if (empty($value)) return $value;
+        return \App\Services\KrutiDevConverter::cleanHindiText($value);
+    }
+
+    public function setFullNameAttribute($value): void
+    {
+        $this->attributes['full_name'] = !empty($value) ? \App\Services\KrutiDevConverter::cleanHindiText($value) : null;
+    }
+
+    public function getFatherSpouseNameAttribute(?string $value): ?string
+    {
+        if (empty($value)) return $value;
+        return \App\Services\KrutiDevConverter::cleanHindiText($value);
+    }
+
+    public function setFatherSpouseNameAttribute($value): void
+    {
+        $this->attributes['father_spouse_name'] = !empty($value) ? \App\Services\KrutiDevConverter::cleanHindiText($value) : null;
+    }
+
+    public function getCasteAttribute(?string $value): ?string
+    {
+        if (empty($value)) return $value;
+        return \App\Services\KrutiDevConverter::cleanHindiText($value);
+    }
+
+    public function setCasteAttribute($value): void
+    {
+        $this->attributes['caste'] = !empty($value) ? \App\Services\KrutiDevConverter::cleanHindiText($value) : null;
+    }
+
+    public function getAddressAttribute(?string $value): ?string
+    {
+        if (empty($value)) return $value;
+        return \App\Services\KrutiDevConverter::cleanHindiText($value);
+    }
+
+    public function setAddressAttribute($value): void
+    {
+        $this->attributes['address'] = !empty($value) ? \App\Services\KrutiDevConverter::cleanHindiText($value) : null;
+    }
+
+    /**
      * Alias for photo_src
      */
     public function getPhotoUrlAttribute(): ?string

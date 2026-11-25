@@ -19,4 +19,15 @@ class Nominee extends Model
     {
         return $this->belongsTo(Member::class);
     }
+
+    public function getNameAttribute(?string $value): ?string
+    {
+        if (empty($value)) return $value;
+        return \App\Services\KrutiDevConverter::cleanHindiText($value);
+    }
+
+    public function setNameAttribute($value): void
+    {
+        $this->attributes['name'] = !empty($value) ? \App\Services\KrutiDevConverter::cleanHindiText($value) : null;
+    }
 }

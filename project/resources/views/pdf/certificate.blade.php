@@ -65,9 +65,8 @@
             font-size: 14px;
             font-weight: 700;
             color: #111827;
-            line-height: 1;
+            line-height: 1.4;
             white-space: nowrap;
-            overflow: hidden;
         }
         .pf-mem-no {
             top: 66.8mm;
@@ -83,11 +82,14 @@
             font-size: 14px;
         }
         .pf-name {
-            top: 88.2mm;
+            top: 86.6mm;
             left: 25.2mm;
-            max-width: 65mm;
-            font-size: 16px;
+            max-width: 86mm;
+            font-size: 23px;
+            font-weight: 800;
             color: #700D18;
+            line-height: 1.35;
+            letter-spacing: 0.3px;
         }
         .pf-father {
             top: 88.2mm;

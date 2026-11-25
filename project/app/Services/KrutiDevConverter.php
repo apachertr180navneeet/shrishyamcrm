@@ -77,6 +77,14 @@ class KrutiDevConverter
             'nsoh' => 'देवी',
             'pkSFkh nsoh' => 'चौथी देवी',
             'pkSFkh' => 'चौथी',
+            'ukjk;.k jke' => 'नारायण राम',
+            'ukjk;.k' => 'नारायण',
+            'Hkxorh dqekjh' => 'भगवती कुमारी',
+            'Hkxorh' => 'भगवती',
+            '/kksyh nsoh' => 'धोली देवी',
+            '/kksyh' => 'धोली',
+            'xqtfj;k' => 'गुजरिया',
+            'flefy;k' => 'सिमलिया',
         ];
 
         foreach ($wordMap as $k => $v) {
@@ -117,7 +125,7 @@ class KrutiDevConverter
         }
 
         // Reorder 'f' (chhoti i matra): comes before consonant/cluster in Kruti Dev
-        $str = preg_replace('/f([D\[XPTBFn\/UIQCHEYO:L"~]*[a-zA-Z\x{0900}-\x{097F}])/u', '$1' . "\x01", $str);
+        $str = preg_replace('/f([D\[XPTBFn\/UIQCHEYO:L"\'\.>~]*[a-zA-Z\x{0900}-\x{097F}])/u', '$1' . "\x01", $str);
         $str = str_replace('f', "\x01", $str);
 
         // Reorder 'Z' (reph - half r on top): comes after consonant/cluster in Kruti Dev
@@ -126,55 +134,55 @@ class KrutiDevConverter
 
         // Crucial: Multi-character ligatures with 'k' must be replaced BEFORE single characters
         $multiCharMap = [
+            // Compound consonants with k combined with o/au/e/ai vowels (MUST be first)
+            '/kks' => 'धो', '/kkS' => 'धौ', '/ks' => 'धे', '/kS' => 'धै', '/k' => 'ध',
+            'Hkks' => 'भो', 'HkkS' => 'भौ', 'Hks' => 'भे', 'HkS' => 'भै', 'Hk' => 'भ',
+            'Fkks' => 'थो', 'FkkS' => 'थौ', 'Fks' => 'थे', 'FkS' => 'थै', 'Fk' => 'थ',
+            'Pkks' => 'चो', 'PkkS' => 'चौ', 'Pks' => 'चे', 'PkS' => 'चै', 'Pk' => 'च',
+            'Tkks' => 'जो', 'TkkS' => 'जौ', 'Tks' => 'जे', 'TkS' => 'जै', 'Tk' => 'ज',
+            'Dkks' => 'को', 'DkkS' => 'कौ', 'Dks' => 'के', 'DkS' => 'कै', 'Dk' => 'क',
+            'Xkks' => 'गो', 'XkkS' => 'गौ', 'Xks' => 'गे', 'XkS' => 'गै', 'Xk' => 'ग',
+            'Ykks' => 'लो', 'YkkS' => 'लौ', 'Yks' => 'ले', 'YkS' => 'लै', 'Yk' => 'ल',
+            'Ikks' => 'पो', 'IkkS' => 'पौ', 'Iks' => 'पे', 'IkS' => 'पै', 'Ik' => 'प',
+            'Okks' => 'वो', 'OkkS' => 'वौ', 'Oks' => 'वे', 'OkS' => 'वै', 'Ok' => 'व',
+            'Ukks' => 'नो', 'UkkS' => 'नौ', 'Uks' => 'ने', 'UkS' => 'नै', 'Uk' => 'न',
+            'Ekks' => 'मो', 'EkkS' => 'मौ', 'Eks' => 'मे', 'EkS' => 'मै', 'Ek' => 'म',
+            'Lkks' => 'सो', 'LkkS' => 'सौ', 'Lks' => 'से', 'LkS' => 'सै', 'Lk' => 'स',
+            ':kks' => 'शो', ':kkS' => 'शौ', ':ks' => 'शे', ':kS' => 'शै', ':k' => 'श',
+            '\'kks' => 'शो', '\'kkS' => 'शौ', '\'ks' => 'शे', '\'kS' => 'शै', '\'k' => 'श',
+            '"kks' => 'षो', '"kkS' => 'षौ', '"ks' => 'षे', '"kS' => 'षै', '"k' => 'ष',
+            'Rkks' => 'तो', 'RkkS' => 'तौ', 'Rks' => 'ते', 'RkS' => 'तै', 'Rk' => 'त',
+            '.kks' => 'णो', '.kkS' => 'णौ', '.ks' => 'णे', '.kS' => 'णै', '.k' => 'णा',
+            '>kks' => 'णो', '>kkS' => 'णौ', '>ks' => 'णे', '>kS' => 'णै', '>k' => 'णा',
+            'Kkks' => 'ज्ञो', 'KkkS' => 'ज्ञौ', 'Kks' => 'ज्ञे', 'KkS' => 'ज्ञै', 'Kk' => 'ज्ञ',
+            '{kks' => 'क्षो', '{kkS' => 'क्षौ', '{ks' => 'क्षे', '{kS' => 'क्षै', '{k' => 'क्ष',
+            'Jkks' => 'श्रो', 'JkkS' => 'श्रौ', 'Jks' => 'श्रे', 'JkS' => 'श्रै', 'Jk' => 'श्र',
+            'Qkks' => 'फो', 'QkkS' => 'फौ', 'Qks' => 'फे', 'QkS' => 'फै', 'Qk' => 'फ',
+
+            // Single letters combined with o/au
+            'ckS' => 'बौ', 'cks' => 'बो',
+            'pkS' => 'चौ', 'pks' => 'चो',
+            'dkS' => 'कौ', 'dks' => 'को',
+            'xkS' => 'गौ', 'xks' => 'गो',
+            'tkS' => 'जौ', 'tks' => 'जो',
+            'rkS' => 'तौ', 'rks' => 'तो',
+            'nkS' => 'दौ', 'nks' => 'दो',
+            'ukS' => 'नौ', 'uks' => 'नो',
+            'ikS' => 'पौ', 'iks' => 'पो',
+            'ekS' => 'मौ', 'eks' => 'मो',
+            'ykS' => 'लौ', 'yks' => 'लो',
+            'okS' => 'वौ', 'oks' => 'वो',
+            'lkS' => 'सौ', 'lks' => 'सो',
+            'gkS' => 'हौ', 'gks' => 'हो',
+            'jkS' => 'रौ', 'jks' => 'रो',
+            ';kS' => 'यौ', ';ks' => 'यो',
+            'VkS' => 'टौ', 'Vks' => 'टो',
+            'BkS' => 'ठौ', 'Bks' => 'ठो',
+            'MkS' => 'डौ', 'Mks' => 'डो',
+            '<kS' => 'ढौ', '<ks' => 'ढो',
+            'NkS' => 'छौ', 'Nks' => 'छो',
             'kS' => 'ौ',
             'ks' => 'ो',
-            'Fk' => 'थ',
-            'Hk' => 'भ',
-            'Pk' => 'च',
-            'Tk' => 'ज',
-            'Dk' => 'क',
-            'Xk' => 'ग',
-            'Yk' => 'ल',
-            'Ik' => 'प',
-            'Ok' => 'व',
-            'Uk' => 'न',
-            'Ek' => 'म',
-            'Lk' => 'स',
-            ':k' => 'श',
-            '"k' => 'ष',
-            'Rk' => 'त',
-            'Kk' => 'ज्ञ',
-            '{k' => 'क्ष',
-            'Jk' => 'श्र',
-            'Qk' => 'फ',
-            'ckS' => 'बौ',
-            'pkS' => 'चौ',
-            'dkS' => 'कौ',
-            'xkS' => 'गौ',
-            'tkS' => 'जौ',
-            'rkS' => 'तौ',
-            'nkS' => 'दौ',
-            'ukS' => 'नौ',
-            'ikS' => 'पौ',
-            'ekS' => 'मौ',
-            'ykS' => 'लौ',
-            'okS' => 'वौ',
-            'lkS' => 'सौ',
-            'gkS' => 'हौ',
-            'cks' => 'बो',
-            'pks' => 'चो',
-            'dks' => 'को',
-            'xks' => 'गो',
-            'tks' => 'जो',
-            'rks' => 'तो',
-            'nks' => 'दो',
-            'uks' => 'नो',
-            'iks' => 'पो',
-            'eks' => 'मो',
-            'yks' => 'लो',
-            'oks' => 'वो',
-            'lks' => 'सो',
-            'gks' => 'हो',
             'iz' => 'प्र',
             'pz' => 'प्र',
             'dz' => 'क्र',
@@ -214,6 +222,7 @@ class KrutiDevConverter
             'M' => 'ड',
             '<' => 'ढ',
             '>' => 'ण्',
+            '.' => 'ण्',
             'R' => 'त्',
             'F' => 'ँ',
             '/' => 'ध',
@@ -272,8 +281,8 @@ class KrutiDevConverter
             ')' => ';',
             '}' => 'द्व',
             '|' => 'द्य',
-            '\\' => '?',
-            '`' => '\'',
+            '\\' => '',
+            '`' => '',
         ];
 
         foreach ($charMap as $k => $v) {
@@ -281,9 +290,66 @@ class KrutiDevConverter
         }
 
         // Clean up common font artifacts
-        $str = str_replace(['्ा', 'ाे', 'ाै', '्रk'], ['ा', 'ो', 'ौ', '्रा'], $str);
+        $str = self::cleanHindiText($str);
 
         return trim($str);
+    }
+
+    /**
+     * Clean and normalize any Hindi Unicode text ensuring valid matras and no double accents.
+     */
+    public static function cleanHindiText($text): string
+    {
+        if (empty($text) || !is_string($text)) {
+            return (string)$text;
+        }
+
+        $str = $text;
+
+        // Common typing/conversion artifact cleanups
+        $cleanMap = [
+            '्ा' => 'ा',
+            'ाा' => 'ा',
+            'ाे' => 'ो',
+            'ाै' => 'ौ',
+            'ेे' => 'े',
+            'ैै' => 'ै',
+            'ीी' => 'ी',
+            'ुु' => 'ु',
+            'ूू' => 'ू',
+            'ीा' => 'ी',
+            'ाी' => 'ी',
+            'िा' => 'ि',
+            'ाि' => 'ि',
+            'ेा' => 'ो',
+            'ैा' => 'ौ',
+            '््' => '्',
+            'ंं' => 'ं',
+            '।।' => '।',
+            '्रk' => '्रा',
+            // Specific society common typing bugs
+            'नाराय.ा' => 'नारायण',
+            'नाराय. ' => 'नारायण ',
+            'नाराय.ा ' => 'नारायण ',
+            'रामी.ाा' => 'रामीणा',
+            'रामी.ा' => 'रामीणा',
+            'ढा.ाी' => 'ढाणी',
+            'ढा.ी' => 'ढाणी',
+            'ढा.ा' => 'ढाणा',
+            'क\'ष्.ाा' => 'कृष्णा',
+            'क\'ष्.ा' => 'कृष्णा',
+            'गु.ोशाा' => 'गुणेशा',
+            'गु.ोश' => 'गुणेश',
+            'धाुका' => 'धुका',
+            'भाावना' => 'भावना',
+            'चाडा राठौड-' => 'चाडा राठौड़',
+        ];
+
+        $str = str_replace(array_keys($cleanMap), array_values($cleanMap), $str);
+        $str = preg_replace('/[\\\\`\']+/', '', $str);
+        $str = preg_replace('/\s+/', ' ', trim($str));
+
+        return $str;
     }
 
     /**
