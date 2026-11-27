@@ -366,13 +366,20 @@
                                 </div>
                                 <div class="col-md-4 col-12">
                                     <label class="form-label fw-semibold">Relation (संबंध)</label>
-                                    <select name="nominee1_relation" class="form-select">
-                                        <option value="Spouse" {{ old('nominee1_relation') == 'Spouse' ? 'selected' : '' }}>Spouse (पति/पत्नी)</option>
-                                        <option value="Son" {{ old('nominee1_relation') == 'Son' ? 'selected' : '' }}>Son (पुत्र)</option>
-                                        <option value="Daughter" {{ old('nominee1_relation') == 'Daughter' ? 'selected' : '' }}>Daughter (पुत्री)</option>
-                                        <option value="Father" {{ old('nominee1_relation') == 'Father' ? 'selected' : '' }}>Father (पिता)</option>
-                                        <option value="Mother" {{ old('nominee1_relation') == 'Mother' ? 'selected' : '' }}>Mother (माता)</option>
+                                    @php
+                                        $nominee1Rel = old('nominee1_relation', 'Spouse');
+                                        $nominee1Std = ['Spouse', 'Son', 'Daughter', 'Father', 'Mother'];
+                                        $nominee1IsOther = $nominee1Rel === 'Other' || ($nominee1Rel && !in_array($nominee1Rel, $nominee1Std));
+                                    @endphp
+                                    <select class="form-select relation-select" data-target="nominee1_relation_other" data-name="nominee1_relation" @if(!$nominee1IsOther) name="nominee1_relation" @endif>
+                                        <option value="Spouse" {{ $nominee1Rel == 'Spouse' ? 'selected' : '' }}>Spouse (पति/पत्नी)</option>
+                                        <option value="Son" {{ $nominee1Rel == 'Son' ? 'selected' : '' }}>Son (पुत्र)</option>
+                                        <option value="Daughter" {{ $nominee1Rel == 'Daughter' ? 'selected' : '' }}>Daughter (पुत्री)</option>
+                                        <option value="Father" {{ $nominee1Rel == 'Father' ? 'selected' : '' }}>Father (पिता)</option>
+                                        <option value="Mother" {{ $nominee1Rel == 'Mother' ? 'selected' : '' }}>Mother (माता)</option>
+                                        <option value="Other" {{ $nominee1IsOther ? 'selected' : '' }}>Other (अन्य)</option>
                                     </select>
+                                    <input type="text" id="nominee1_relation_other" class="form-control mt-2 {{ $nominee1IsOther ? '' : 'd-none' }}" placeholder="Enter relation (अन्य संबंध लिखें)" value="{{ $nominee1IsOther && $nominee1Rel !== 'Other' ? $nominee1Rel : '' }}" @if($nominee1IsOther) name="nominee1_relation" @endif>
                                 </div>
                                 <div class="col-md-4 col-12">
                                     <label class="form-label fw-semibold">Nominee Mobile</label>
@@ -393,11 +400,18 @@
                                 </div>
                                 <div class="col-md-4 col-12">
                                     <label class="form-label fw-semibold">Relation (संबंध)</label>
-                                    <select name="nominee2_relation" class="form-select">
-                                        <option value="Son" {{ old('nominee2_relation') == 'Son' ? 'selected' : '' }}>Son (पुत्र)</option>
-                                        <option value="Daughter" {{ old('nominee2_relation') == 'Daughter' ? 'selected' : '' }}>Daughter (पुत्री)</option>
-                                        <option value="Brother" {{ old('nominee2_relation') == 'Brother' ? 'selected' : '' }}>Brother (भाई)</option>
+                                    @php
+                                        $nominee2Rel = old('nominee2_relation', 'Son');
+                                        $nominee2Std = ['Son', 'Daughter', 'Brother'];
+                                        $nominee2IsOther = $nominee2Rel === 'Other' || ($nominee2Rel && !in_array($nominee2Rel, $nominee2Std));
+                                    @endphp
+                                    <select class="form-select relation-select" data-target="nominee2_relation_other" data-name="nominee2_relation" @if(!$nominee2IsOther) name="nominee2_relation" @endif>
+                                        <option value="Son" {{ $nominee2Rel == 'Son' ? 'selected' : '' }}>Son (पुत्र)</option>
+                                        <option value="Daughter" {{ $nominee2Rel == 'Daughter' ? 'selected' : '' }}>Daughter (पुत्री)</option>
+                                        <option value="Brother" {{ $nominee2Rel == 'Brother' ? 'selected' : '' }}>Brother (भाई)</option>
+                                        <option value="Other" {{ $nominee2IsOther ? 'selected' : '' }}>Other (अन्य)</option>
                                     </select>
+                                    <input type="text" id="nominee2_relation_other" class="form-control mt-2 {{ $nominee2IsOther ? '' : 'd-none' }}" placeholder="Enter relation (अन्य संबंध लिखें)" value="{{ $nominee2IsOther && $nominee2Rel !== 'Other' ? $nominee2Rel : '' }}" @if($nominee2IsOther) name="nominee2_relation" @endif>
                                 </div>
                                 <div class="col-md-4 col-12">
                                     <label class="form-label fw-semibold">Nominee Mobile</label>
@@ -743,6 +757,25 @@ function resetSlabDisplay() {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll('.relation-select').forEach(function (select) {
+        select.addEventListener('change', function () {
+            const otherInput = document.getElementById(this.dataset.target);
+            const fieldName = this.dataset.name;
+            if (!otherInput) return;
+
+            if (this.value === 'Other') {
+                this.removeAttribute('name');
+                otherInput.setAttribute('name', fieldName);
+                otherInput.classList.remove('d-none');
+                otherInput.focus();
+            } else {
+                otherInput.removeAttribute('name');
+                otherInput.classList.add('d-none');
+                this.setAttribute('name', fieldName);
+            }
+        });
+    });
+
     const schemeSelect = document.getElementById('schemeSelect');
     if (schemeSelect && schemeSelect.value) {
         onSchemeChange();
